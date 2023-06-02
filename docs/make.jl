@@ -9,13 +9,8 @@ makedocs(;
     modules=[NormalizingFlows],
     repo="https://github.com/TuringLang/NormalizingFlows.jl/blob/{commit}{path}#{line}",
     sitename="NormalizingFlows.jl",
-    format=Documenter.HTML(;
-        prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://torfjelde.github.io/NormalizingFlows.jl",
-        edit_link="main",
-        assets=String[],
-    ),
+    format=Documenter.HTML(),
     pages=["Home" => "index.md"],
 )
 
-deploydocs(; repo="github.com/torfjelde/NormalizingFlows.jl", devbranch="main")
+deploydocs(; repo="github.com/TuringLang/NormalizingFlows.jl", devbranch="main")

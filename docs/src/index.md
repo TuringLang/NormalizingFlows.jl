@@ -4,7 +4,7 @@ CurrentModule = NormalizingFlows
 
 # NormalizingFlows
 
-Documentation for [NormalizingFlows](https://github.com/torfjelde/NormalizingFlows.jl).
+Documentation for [NormalizingFlows](https://github.com/TuringLang/NormalizingFlows.jl).
 
 ```@index
 ```
