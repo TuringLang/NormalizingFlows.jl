@@ -1,0 +1,7 @@
+name = "NormalizingFlows"
+uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
+authors = ["Tor Erlend Fjelde <tor.erlend95@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
