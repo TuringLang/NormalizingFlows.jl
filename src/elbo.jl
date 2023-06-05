@@ -34,3 +34,24 @@ elbo(rng::AbstractRNG, flow::Bijectors.MultivariateTransformed, logp, logq, n_sa
 ####################################
 # training by minimizing forward KL (MLE)
 ####################################    
+
+function neg_llh_single_sample(
+    x::AbstractVector,                          # sample from target dist p
+    flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
+    logq                                        # lpdf (exact) of the reference distribution
+    )
+    b = inverse(flow.transform)
+    y, logjac = with_logabsdet_jacobian(b, x)
+    return -logq(y) - logjac
+end
+    
+function neg_llh(
+    xs::AbstractMatrix,                         # sample from target dist p
+    flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
+    logq                                        # lpdf (exact) of the reference distribution
+    )
+    n_samples = size(xs, 2) # each column is a sample
+    neg_llhs = map(x -> neg_llh_single_sample(x, flow, logq), eachcol(xs))
+    return sum(neg_llhs) / n_samples
+end
+    
