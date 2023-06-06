@@ -7,7 +7,7 @@ using Random
 ####################################    
 function elbo_single_sample(
     x::Union{AbstractVector{T}, T},                          # sample from reference dist q
-    flow::Union{Bijectors.MultivariateTransformed,Bijectors.UnivariateTransformed}  # variational distribution to be trained
+    flow::Bjectors.TransformedDistribution  # variational distribution to be trained
     logp,                                       # lpdf (unnormalized) of the target distribution
     logq                                        # lpdf (exact) of the reference distribution
     ) where {T<:Real}
@@ -24,7 +24,7 @@ function elbo(
     )
     n_samples = size(xs, 1) # each column is a sample
     elbo_values = map(x -> elbo_single_sample(x, flow, logp, logq), xs)
-    return sum(elbo_values) / n_samples
+    return mean(elbo_values)
 end
 
 function elbo(
@@ -35,7 +35,7 @@ function elbo(
     )
     n_samples = size(xs, 2) # each column is a sample
     elbo_values = map(x -> elbo_single_sample(x, flow, logp, logq), eachcol(xs))
-    return sum(elbo_values) / n_samples
+    return mean(elbo_values)
 end
 
 elbo(rng::AbstractRNG, flow::Bijectors.MultivariateTransformed, logp, logq, n_samples) = elbo(
