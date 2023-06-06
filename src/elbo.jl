@@ -7,7 +7,7 @@ using Random
 ####################################    
 function elbo_single_sample(
     x::Union{AbstractVector{T}, T},                          # sample from reference dist q
-    flow::Union{Bijectors.MultivariateTransformed,Bijectors.UnivariateTransformed}  # variational distribution to be trained
+    flow::Bjectors.TransformedDistribution  # variational distribution to be trained
     logp,                                       # lpdf (unnormalized) of the target distribution
     logq                                        # lpdf (exact) of the reference distribution
     ) where {T<:Real}
