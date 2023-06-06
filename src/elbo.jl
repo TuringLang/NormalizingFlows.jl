@@ -35,7 +35,7 @@ function elbo(
     )
     n_samples = size(xs, 2) # each column is a sample
     elbo_values = map(x -> elbo_single_sample(x, flow, logp, logq), eachcol(xs))
-    return sum(elbo_values) / n_samples
+    return mean(elbo_values)
 end
 
 elbo(rng::AbstractRNG, flow::Bijectors.MultivariateTransformed, logp, logq, n_samples) = elbo(
