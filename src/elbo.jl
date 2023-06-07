@@ -43,31 +43,31 @@ elbo(rng::AbstractRNG, flow::Bijectors.UnivariateTransformed, logp, n_samples) =
 ####################################
 # training by minimizing forward KL (MLE)
 ####################################    
-function neg_llh_single_sample(
+function llh_single_sample(
     flow::Bjectors.TransformedDistribution,     # variational distribution to be trained
     logq,                                       # lpdf (exact) of the reference distribution
     x,                                          # sample from target dist p
     ) 
     b = inverse(flow.transform)
     y, logjac = with_logabsdet_jacobian(b, x)
-    return -logq(y) - logjac
+    return logq(y) + logjac
 end
     
-function neg_llh(
+function loglikelihood(
     flow::Bijectors.UnivariateTransformed,    # variational distribution to be trained
     logq,                                     # lpdf (exact) of the reference distribution
     xs::AbstractVector,                       # sample from target dist p
     )
-    neg_llhs = map(x -> neg_llh_single_sample(flow, logq, x), xs)
-    return mean(neg_llhs) 
+    llhs = map(x -> llh_single_sample(flow, logq, x), xs)
+    return mean(llhs) 
 end
    
-function neg_llh(
+function loglikelihood(
     flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
     logq,                                        # lpdf (exact) of the reference distribution
     xs::AbstractMatrix,                         # sample from target dist p
     )
-    neg_llhs = map(x -> neg_llh_single_sample(flow, logq, x), eachcol(xs))
-    return mean(neg_llhs)
+    llhs = map(x -> llh_single_sample(flow, logq, x), eachcol(xs))
+    return mean(llhs)
 end
    
