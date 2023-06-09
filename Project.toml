@@ -3,8 +3,10 @@ uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
 version = "0.1.0"
 
 [deps]
+AbstractDifferentiation = "c29ec348-61ec-40c8-8164-b8c60e9d9f3d"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 Functors = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
