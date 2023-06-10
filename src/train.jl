@@ -25,7 +25,7 @@ function grad!(
     # define opt loss function
     loss(θ_) = -vo(rng, reconstruct(θ_), args...)
     # compute loss value and gradient
-    ls, ∇θ = ab.value_and_gradient(ab, loss, θ_flat)
+    ls, ∇θ = AD.value_and_gradient(ab, loss, θ_flat)
 
     DiffResults.value!(out, ls)
     DiffResults.gradient!(out, first(∇θ))
