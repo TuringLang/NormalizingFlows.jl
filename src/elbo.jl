@@ -9,7 +9,7 @@ using Random
 #       we should ensure better generality such that we only need `logq` and `T<:Bijectors.Bijector, T⁻¹` for the input. 
 
 # 2. make types for variational objectives.
-#       - ELBO
+#       - ELBO 
 #       - MLE
 #       - IWAE
 #       - f-divergence
@@ -18,12 +18,12 @@ using Random
 # training by minimizing reverse KL
 ####################################    
 function elbo_single_sample(
-    flow::Bjectors.TransformedDistribution,     # variational distribution to be trained
+    flow::Bijectors.TransformedDistribution,     # variational distribution to be trained
     logp,                                       # lpdf (unnormalized) of the target distribution
     x,                                          # sample from reference dist q
 )
     y, logabsdetjac = with_logabsdet_jacobian(flow.transform, x)
-    return logp(y) - logpdfs(flow.dist, x) + logabsdetjac
+    return logp(y) - logpdf(flow.dist, x) + logabsdetjac
 end
 
 # ELBO based on multiple iid samples
@@ -57,7 +57,7 @@ end
 # training by minimizing forward KL (MLE)
 ####################################    
 function llh_single_sample(
-    flow::Bjectors.TransformedDistribution,     # variational distribution to be trained
+    flow::Bijectors.TransformedDistribution,     # variational distribution to be trained
     logq,                                       # lpdf (exact) of the reference distribution
     x,                                          # sample from target dist p
 )
