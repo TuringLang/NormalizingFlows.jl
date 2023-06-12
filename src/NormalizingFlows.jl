@@ -11,6 +11,8 @@ import AbstractDifferentiation as AD
 include("train.jl")
 include("elbo.jl")
 
+export NF, elbo
+
 function NF(
     vo,                                      # elbo, likelihood, f-div, STL, etc.. (how do we deal with this? it would require different input)
     flow::Bijectors.TransformedDistribution, # flow = T q₀, where T <: Bijectors.Bijector, q₀ reference dist that one can easily sample and compute logpdf
@@ -41,8 +43,5 @@ function NF(
     flow_trained = re(θ_flat_trained)
     return flow_trained, losses, st
 end
-
-export NF
-export elbo
 
 end
