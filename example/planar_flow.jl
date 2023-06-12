@@ -1,9 +1,10 @@
 include("../src/NormalizingFlows.jl")
-using .NormalizingFlows
 using Random, Distributions, LinearAlgebra, Bijectors
 using Plots
 using Optimisers
+using FunctionChains
 import AbstractDifferentiation as AD
+using .NormalizingFlows
 
 Random.seed!(123)
 rng = Random.default_rng()
@@ -66,7 +67,11 @@ end
 ######################################
 function create_planar_flow(n_layers::Int, q₀)
     d = length(q₀)
-    Ts = ∘([PlanarLayer(d) for _ in 1:n_layers]...)
+    Ls = [
+        PlanarLayer(randn(Float32, d), randn(Float32, d), randn(Float32, 1)) for
+        _ in 1:n_layers
+    ]
+    Ts = fchain(Ls)
     return transformed(q₀, Ts)
 end
 
@@ -76,7 +81,7 @@ logp = Base.Fix1(logpdf, p)
 # visualize(p)
 
 # create a 10-layer planar flow
-flow = create_planar_flow(15, MvNormal(zeros(Float32, 2), I))
+flow = create_planar_flow(20, MvNormal(zeros(Float32, 2), I))
 flow_untrained = deepcopy(flow)
 
 # train the flow
