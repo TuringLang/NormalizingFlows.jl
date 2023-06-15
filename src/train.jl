@@ -1,21 +1,67 @@
 using Distributions, LinearAlgebra
-using Flux, Zygote
 using Optimisers
 using ProgressMeter
 using Random
-import AbstractDifferentiation as AD
+using ADTypes
 
-# TODO:
-# support difference AD systems 
-# now by default using Zygote for the AD backend
+using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
-# Question: maybe its easier to use AbstractDifferentiation. 
-# This allows us to switch between different AD backend easily instead of implementing 5 different `grad!` function for different AD backend` 
+function value_and_gradient end
 
-# compute grad and loss using Zygote 
+# zygote
+function value_and_gradient!(
+    at::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+) where {T<:Real}
+    y, back = Zygote.pullback(f, θ)
+    ∇θ = back(one(T))
+    DiffResults.value!(out, y)
+    DiffResults.gradient!(out, first(∇θ))
+    return out
+end
+
+# ForwardDiff
+# extract chunk size from AutoForwardDiff
+getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
+function value_and_gradient!(
+    at::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+) where {T<:Real}
+    chunk_size = getchunksize(at)
+    config = if isnothing(chunk_size)
+        ForwardDiff.GradientConfig(f, θ)
+    else
+        ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
+    end
+    ForwardDiff.gradient!(out, f, λ, config)
+    return out
+end
+
+# ReverseDiff without compiled tape
+function value_and_gradient!(
+    at::ADTypes.AutoReverseDiff{false},
+    f,
+    θ::AbstractVector{T},
+    out::DiffResults.MutableDiffResult,
+) where {T<:Real}
+    tp = ReverseDiff.GradientTape(f, θ)
+    ReverseDiff.gradient!(out, tp, θ)
+    return out
+end
+
+# Enzyme  
+function value_and_gradient!(
+    at::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+) where {T<:Real}
+    y = f(θ)
+    DiffResults.value!(out, y)
+    ∇θ = DiffResults.gradient(out)
+    fill!(∇θ, zero(T))
+    Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ))
+    return out
+end
+
 function grad!(
-    ab::AD.AbstractBackend,
     vo,
+    at::ADTypes.AbstractADType,
     θ_flat::AbstractVector{<:Real},
     reconstruct,
     out::DiffResults.MutableDiffResult,
@@ -25,17 +71,16 @@ function grad!(
     # define opt loss function
     loss(θ_) = -vo(rng, reconstruct(θ_), args...)
     # compute loss value and gradient
-    ls, ∇θ = AD.value_and_gradient(ab, loss, θ_flat)
-
-    DiffResults.value!(out, ls)
-    DiffResults.gradient!(out, first(∇θ))
+    out = value_and_gradient!(at, loss, θ_flat, out)
     return out
 end
 
-# training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo)
+#######################################################
+# training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
+#######################################################
 function train!(
-    ab::AD.AbstractBackend,
     vo,
+    at::ADTypes.AbstractADType,
     θ₀::AbstractVector{T},
     re,
     args...;
@@ -55,7 +100,7 @@ function train!(
 
     losses = zeros(max_iters)
     time_elapsed = @elapsed for i in 1:max_iters
-        grad!(ab, vo, θ, re, diff_result, args...; rng=rng)
+        grad!(at, vo, θ, re, diff_result, args...; rng=rng)
         losses[i] = DiffResults.value(diff_result)
 
         # update optimiser state and parameters
@@ -67,5 +112,5 @@ function train!(
     return losses, θ, st
 end
 
-# training loop for variational objectives that require input of data, e.g., forward KL(MLE)
+# training loop for variational objectives that require input of data, e.g., forward KL(MLE), elbo with data subsampling in logp
 function train_pass_in_data!() end

@@ -9,7 +9,7 @@ using DiffResults
 import AbstractDifferentiation as AD
 
 include("train.jl")
-include("elbo.jl")
+include("Objectives/elbo.jl")
 
 export NF, elbo
 
@@ -25,7 +25,7 @@ function NF(
     # destruct flow for explicit access to the parameters
     # destructure can result in some overhead when the flow length is large
     @info "desctructuring flow..."
-    θ_flat, re = Flux.destructure(flow)
+    θ_flat, re = Optimisers.destructure(flow)
 
     # Normalizing flow training loop 
     @info "start training..."
