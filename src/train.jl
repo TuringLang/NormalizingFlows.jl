@@ -37,10 +37,7 @@ end
 
 # ReverseDiff without compiled tape
 function value_and_gradient!(
-    at::ADTypes.AutoReverseDiff{false},
-    f,
-    θ::AbstractVector{T},
-    out::DiffResults.MutableDiffResult,
+    at::ADTypes.AutoReverseDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     tp = ReverseDiff.GradientTape(f, θ)
     ReverseDiff.gradient!(out, tp, θ)
@@ -60,8 +57,8 @@ function value_and_gradient!(
 end
 
 function grad!(
-    vo,
     at::ADTypes.AbstractADType,
+    vo,
     θ_flat::AbstractVector{<:Real},
     reconstruct,
     out::DiffResults.MutableDiffResult,
@@ -79,8 +76,8 @@ end
 # training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
 function train!(
-    vo,
     at::ADTypes.AbstractADType,
+    vo,
     θ₀::AbstractVector{T},
     re,
     args...;

@@ -4,9 +4,8 @@ using Bijectors
 using Optimisers
 using ProgressMeter
 using LinearAlgebra
-using Zygote
 using DiffResults
-import AbstractDifferentiation as AD
+using ADTypes
 
 include("train.jl")
 include("Objectives/elbo.jl")
@@ -20,7 +19,7 @@ function NF(
     rng::AbstractRNG=Random.GLOBAL_RNG,
     max_iters::Int=1000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
-    AD_backend::AD.AbstractBackend=AD.ZygoteBackend(),
+    at::ADTypes.AbstractADType=ADTypes.AutoZygote,
 )
     # destruct flow for explicit access to the parameters
     # destructure can result in some overhead when the flow length is large
@@ -30,14 +29,7 @@ function NF(
     # Normalizing flow training loop 
     @info "start training..."
     losses, θ_flat_trained, st = train!(
-        AD_backend,
-        vo,
-        θ_flat,
-        re,
-        args...;
-        max_iters=max_iters,
-        optimiser=optimiser,
-        rng=rng,
+        at, vo, θ_flat, re, args...; max_iters=max_iters, optimiser=optimiser, rng=rng
     )
 
     flow_trained = re(θ_flat_trained)
