@@ -1,11 +1,11 @@
 include("../src/NormalizingFlows.jl")
 using Random, Distributions, LinearAlgebra, Bijectors
-using Plots
+using ADTypes
 using Optimisers
 using FunctionChains
-import AbstractDifferentiation as AD
 using .NormalizingFlows
 
+using Plots
 Random.seed!(123)
 rng = Random.default_rng()
 
@@ -94,7 +94,6 @@ flow_trained, losses, _ = NF(
     rng=rng,
     max_iters=100000,
     optimiser=Optimisers.ADAM(),
-    AD_backend=AD.ZygoteBackend(),
 )
 
 ######################################
