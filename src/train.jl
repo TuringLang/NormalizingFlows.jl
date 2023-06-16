@@ -6,10 +6,10 @@ using ADTypes
 
 using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
-function value_and_gradient end
+function evaluate_and_gradient! end
 
 # zygote
-function value_and_gradient!(
+function evaluate_and_gradient!(
     at::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     y, back = Zygote.pullback(f, θ)
@@ -22,7 +22,7 @@ end
 # ForwardDiff
 # extract chunk size from AutoForwardDiff
 getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
-function value_and_gradient!(
+function evaluate_and_gradient!(
     at::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     chunk_size = getchunksize(at)
@@ -36,7 +36,7 @@ function value_and_gradient!(
 end
 
 # ReverseDiff without compiled tape
-function value_and_gradient!(
+function evaluate_and_gradient!(
     at::ADTypes.AutoReverseDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     tp = ReverseDiff.GradientTape(f, θ)
@@ -45,7 +45,7 @@ function value_and_gradient!(
 end
 
 # Enzyme  
-function value_and_gradient!(
+function evaluate_and_gradient!(
     at::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     y = f(θ)
@@ -68,7 +68,7 @@ function grad!(
     # define opt loss function
     loss(θ_) = -vo(rng, reconstruct(θ_), args...)
     # compute loss value and gradient
-    out = value_and_gradient!(at, loss, θ_flat, out)
+    out = evaluate_and_gradient!(at, loss, θ_flat, out)
     return out
 end
 
