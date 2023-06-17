@@ -6,7 +6,7 @@ using ADTypes
 
 using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
-function value_and_gradient end
+function value_and_gradient! end
 
 # zygote
 function value_and_gradient!(
