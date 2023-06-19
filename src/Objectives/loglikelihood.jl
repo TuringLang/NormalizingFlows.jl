@@ -1,7 +1,3 @@
-using Distributions, LinearAlgebra
-using Bijectors
-using Random
-
 ####################################
 # training by minimizing forward KL (MLE)
 ####################################    

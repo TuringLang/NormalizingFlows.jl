@@ -1,18 +1,3 @@
-using Distributions, LinearAlgebra
-using Bijectors
-using Random
-
-###############
-# TODO: 
-###############
-# 1. so far we assume reference q isa Distribution, and is compatible with Bijectors.jl so that we can construct a `flow::Bijectors.TransformedDistribution`
-#       we should ensure better generality such that we only need `logq` and `T<:Bijectors.Bijector, T⁻¹` for the input. 
-
-# 2. make types for variational objectives.
-#       - ELBO 
-#       - MLE
-#       - IWAE
-#       - f-divergence
 
 ####################################
 # training by minimizing reverse KL
