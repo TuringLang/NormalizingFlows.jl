@@ -76,6 +76,7 @@ end
 # training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
 function train(
+    rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
     θ₀::AbstractVector{T},
@@ -83,7 +84,6 @@ function train(
     args...;
     max_iters::Int=10000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
-    rng::AbstractRNG=Random.GLOBAL_RNG,
 ) where {T<:Real}
 
     # progress bar
@@ -108,6 +108,3 @@ function train(
     # return status of the optimiser for potential coninuation of training
     return losses, θ, st
 end
-
-# training loop for variational objectives that require input of data, e.g., forward KL(MLE), elbo with data subsampling in logp
-function train_pass_in_data!() end
