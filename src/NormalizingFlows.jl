@@ -24,12 +24,12 @@ function NF(
 )
     # destruct flow for explicit access to the parameters
     # destructure can result in some overhead when the flow length is large
-    @info "desctructuring flow..."
+    @info "destructuring flow..."
     θ_flat, re = Optimisers.destructure(flow)
 
     # Normalizing flow training loop 
     @info "start training..."
-    losses, θ_flat_trained, st = train(
+    losses, θ_flat_trained, st = train!(
         rng, ADbackend, vo, θ_flat, re, args...; max_iters=max_iters, optimiser=optimiser
     )
 

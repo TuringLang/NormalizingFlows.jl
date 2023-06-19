@@ -57,13 +57,13 @@ function value_and_gradient!(
 end
 
 function grad!(
+    rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
     θ_flat::AbstractVector{<:Real},
     reconstruct,
     out::DiffResults.MutableDiffResult,
     args...;
-    rng::AbstractRNG=Random.GLOBAL_RNG,
 )
     # define opt loss function
     loss(θ_) = -vo(rng, reconstruct(θ_), args...)
@@ -75,11 +75,11 @@ end
 #######################################################
 # training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
-function train(
+function train!(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
-    θ₀::AbstractVector{T},
+    θ::AbstractVector{T},
     re,
     args...;
     max_iters::Int=10000,
@@ -89,21 +89,24 @@ function train(
     # progress bar
     prog = ProgressMeter.Progress(max_iters, 1, "Training...", 0)
 
-    θ = copy(θ₀)
     diff_result = DiffResults.GradientResult(θ)
 
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
-    losses = zeros(max_iters)
+    losses = []
     time_elapsed = @elapsed for i in 1:max_iters
-        grad!(at, vo, θ, re, diff_result, args...; rng=rng)
-        losses[i] = DiffResults.value(diff_result)
+        grad!(rng, at, vo, θ, re, diff_result, args...)
+        ls = DiffResults.value(diff_result)
+        push!(losses, ls)
 
         # update optimiser state and parameters
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
         ProgressMeter.next!(prog)
     end
+
+    # convert losses::Vector{Any} to Vector{::typeof(ls)}
+    losses = map(identity, losses)
 
     # return status of the optimiser for potential coninuation of training
     return losses, θ, st
