@@ -2,13 +2,10 @@ module NormalizingFlows
 
 using Bijectors
 using Optimisers
+using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
-using LinearAlgebra
-using DiffResults
-using ADTypes
-
-include("train.jl")
-include("Objectives/elbo.jl")
+using ADTypes, DiffResults
+using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
 export NF, elbo
 
@@ -21,20 +18,30 @@ function NF(
     max_iters::Int=1000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote(),
+    kwargs...,
 )
     # destruct flow for explicit access to the parameters
-    # destructure can result in some overhead when the flow length is large
     @info "destructuring flow..."
     θ_flat, re = Optimisers.destructure(flow)
 
     # Normalizing flow training loop 
-    @info "start training..."
-    losses, θ_flat_trained, st = train(
-        rng, ADbackend, vo, θ_flat, re, args...; max_iters=max_iters, optimiser=optimiser
+    θ_flat_trained, opt_stats, st = train(
+        rng,
+        ADbackend,
+        vo,
+        θ_flat,
+        re,
+        args...;
+        max_iters=max_iters,
+        optimiser=optimiser,
+        kwargs...,
     )
 
     flow_trained = re(θ_flat_trained)
-    return flow_trained, losses, st
+    return flow_trained, opt_stats, st
 end
+
+include("train.jl")
+include("Objectives/objs.jl")
 
 end

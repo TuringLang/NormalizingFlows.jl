@@ -1,11 +1,3 @@
-using Distributions, LinearAlgebra
-using Optimisers
-using ProgressMeter
-using Random
-using ADTypes
-
-using Zygote, ForwardDiff, ReverseDiff, Enzyme
-
 function value_and_gradient! end
 
 # zygote
@@ -75,6 +67,10 @@ end
 #######################################################
 # training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
+function pm_next!(pm, stats::NamedTuple)
+    return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
+end
+
 function train(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
@@ -84,32 +80,32 @@ function train(
     args...;
     max_iters::Int=10000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
+    show_progress::Bool=true,
 ) where {T<:Real}
-
-    # progress bar
-    prog = ProgressMeter.Progress(max_iters, 1, "Training...", 0)
+    prog = ProgressMeter.Progress(
+        max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
+    )
+    opt_stats = Vector{NamedTuple}(undef, max_iters)
 
     θ = copy(θ₀)
-
     diff_result = DiffResults.GradientResult(θ)
-
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
-    losses = []
     time_elapsed = @elapsed for i in 1:max_iters
         grad!(rng, at, vo, θ, re, diff_result, args...)
+
+        # save stats
         ls = DiffResults.value(diff_result)
-        push!(losses, ls)
+        g = DiffResults.gradient(diff_result)
+        stat_ = (iteration=i, loss=ls, gradient_norm=norm(g))
+        opt_stats[i] = stat_
 
         # update optimiser state and parameters
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
-        ProgressMeter.next!(prog)
+        pm_next!(prog, stat_)
     end
 
-    # convert losses::Vector{Any} to Vector{::typeof(ls)}
-    losses = map(identity, losses)
-
     # return status of the optimiser for potential coninuation of training
-    return losses, θ, st
+    return θ, opt_stats, st
 end
