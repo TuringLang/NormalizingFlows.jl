@@ -75,11 +75,11 @@ end
 #######################################################
 # training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
-function train!(
+function train(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
-    θ::AbstractVector{T},
+    θ₀::AbstractVector{T},
     re,
     args...;
     max_iters::Int=10000,
@@ -88,6 +88,8 @@ function train!(
 
     # progress bar
     prog = ProgressMeter.Progress(max_iters, 1, "Training...", 0)
+
+    θ = copy(θ₀)
 
     diff_result = DiffResults.GradientResult(θ)
 

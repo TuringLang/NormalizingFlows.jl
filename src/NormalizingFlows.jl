@@ -29,7 +29,7 @@ function NF(
 
     # Normalizing flow training loop 
     @info "start training..."
-    losses, θ_flat_trained, st = train!(
+    losses, θ_flat_trained, st = train(
         rng, ADbackend, vo, θ_flat, re, args...; max_iters=max_iters, optimiser=optimiser
     )
 
