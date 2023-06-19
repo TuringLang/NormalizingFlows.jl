@@ -1,9 +1,8 @@
-include("../src/NormalizingFlows.jl")
 using Random, Distributions, LinearAlgebra, Bijectors
 using ADTypes
 using Optimisers
 using FunctionChains
-using .NormalizingFlows
+using NormalizingFlows
 
 using Plots
 Random.seed!(123)
@@ -86,15 +85,17 @@ flow_untrained = deepcopy(flow)
 
 # train the flow
 sample_per_iter = 1
-flow_trained, losses, _ = NF(
+cb(re, opt_stats, i) = (sample_per_iter=sample_per_iter,)
+flow_trained, stats, _ = NF(
     elbo,
     flow,
     logp,
     sample_per_iter;
-    rng=rng,
-    max_iters=100000,
+    max_iters=100_000,
     optimiser=Optimisers.ADAM(),
+    callback=cb,
 )
+losses = map(x -> x.loss, stats)
 
 ######################################
 # evaluate the trained flow
