@@ -12,11 +12,12 @@ include("Objectives/elbo.jl")
 
 export NF, elbo
 
+NF(vo, flow, args...; kwargs...) = NF(Random.default_rng(), vo, flow, args...; kwargs...)
 function NF(
+    rng::AbstractRNG,
     vo,                                      # elbo, likelihood, f-div, STL, etc.. (how do we deal with this? it would require different input)
-    flow::Bijectors.TransformedDistribution, # flow = T q₀, where T <: Bijectors.Bijector, q₀ reference dist that one can easily sample and compute logpdf
+    flow,                                    # normalizing flow to be trained
     args...;                                 # additional arguments for vo 
-    rng::AbstractRNG=Random.GLOBAL_RNG,
     max_iters::Int=1000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote(),
@@ -28,15 +29,8 @@ function NF(
 
     # Normalizing flow training loop 
     @info "start training..."
-    losses, θ_flat_trained, st = train!(
-        ADbackend,
-        vo,
-        θ_flat,
-        re,
-        args...;
-        max_iters=max_iters,
-        optimiser=optimiser,
-        rng=rng,
+    losses, θ_flat_trained, st = train(
+        rng, ADbackend, vo, θ_flat, re, args...; max_iters=max_iters, optimiser=optimiser
     )
 
     flow_trained = re(θ_flat_trained)
