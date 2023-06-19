@@ -21,7 +21,7 @@ function NF(
     kwargs...,
 )
     # destruct flow for explicit access to the parameters
-    @info "destructuring flow..."
+    @info "destructuring flow object"
     θ_flat, re = Optimisers.destructure(flow)
 
     # Normalizing flow training loop 
