@@ -81,6 +81,7 @@ function train(
     max_iters::Int=10000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     show_progress::Bool=true,
+    callback=nothing,
 ) where {T<:Real}
     prog = ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
@@ -100,6 +101,12 @@ function train(
         g = DiffResults.gradient(diff_result)
         stat_ = (iteration=i, loss=ls, gradient_norm=norm(g))
         opt_stats[i] = stat_
+
+        # callback
+        if !isnothing(callback)
+            new_stat = callback(re, opt_stats, i)
+            stat_ = !isnothing(new_stat) ? merge(new_stat, stat_) : stat_
+        end
 
         # update optimiser state and parameters
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
