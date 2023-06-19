@@ -18,7 +18,7 @@ using Random
 # training by minimizing reverse KL
 ####################################    
 function elbo_single_sample(
-    flow::Bijectors.TransformedDistribution,     # variational distribution to be trained
+    flow::Bijectors.TransformedDistribution,     # variational distribution to be trained (flow = T q₀, where T <: Bijectors.Bijector, q₀ reference dist that one can easily sample and compute logpdf)
     logp,                                       # lpdf (unnormalized) of the target distribution
     x,                                          # sample from reference dist q
 )
@@ -51,35 +51,4 @@ end
 
 function elbo(rng::AbstractRNG, flow::Bijectors.UnivariateTransformed, logp, n_samples)
     return elbo(flow, logp, rand(rng, flow.dist, n_samples))
-end
-
-####################################
-# training by minimizing forward KL (MLE)
-####################################    
-function llh_single_sample(
-    flow::Bijectors.TransformedDistribution,     # variational distribution to be trained
-    logq,                                       # lpdf (exact) of the reference distribution
-    x,                                          # sample from target dist p
-)
-    b = inverse(flow.transform)
-    y, logjac = with_logabsdet_jacobian(b, x)
-    return logq(y) + logjac
-end
-
-function loglikelihood(
-    flow::Bijectors.UnivariateTransformed,    # variational distribution to be trained
-    logq,                                     # lpdf (exact) of the reference distribution
-    xs::AbstractVector,                       # sample from target dist p
-)
-    llhs = map(x -> llh_single_sample(flow, logq, x), xs)
-    return mean(llhs)
-end
-
-function loglikelihood(
-    flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
-    logq,                                        # lpdf (exact) of the reference distribution
-    xs::AbstractMatrix,                         # sample from target dist p
-)
-    llhs = map(x -> llh_single_sample(flow, logq, x), eachcol(xs))
-    return mean(llhs)
 end
