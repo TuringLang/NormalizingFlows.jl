@@ -75,7 +75,7 @@ end
 #######################################################
 # training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
-function train!(
+function train(
     at::ADTypes.AbstractADType,
     vo,
     θ₀::AbstractVector{T},
