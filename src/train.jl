@@ -1,3 +1,11 @@
+"""
+    value_and_gradient!(at::ADTypes.AbstractADType, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult) where {T<:Real}
+
+Compute the value and gradient of a function `f` at `θ` using the automatic
+differentiation backend `at`.  The result is stored in `out`. 
+The function `f` must return a scalar value. The gradient is stored in `out` as a
+vector of the same length as `θ`.
+"""
 function value_and_gradient! end
 
 # zygote
@@ -48,6 +56,22 @@ function value_and_gradient!(
     return out
 end
 
+"""
+    grad!(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ_flat::AbstractVector{<:Real}, reconstruct, out::DiffResults.MutableDiffResult, args...)    
+
+Compute the value and gradient for negation of the variational objective `vo` at `θ_flat` using the automatic differentiation backend `at`.  
+Default implementation is provided for `at` where `at` is one of `AutoZygote`, `AutoForwardDiff`, `AutoReverseDiff` (with no compiled tape), and `AutoEnzyme`.
+The result is stored in `out`.
+
+# Arguments
+- `rng::AbstractRNG`: random number generator
+- `at::ADTypes.AbstractADType`: automatic differentiation backend
+- `vo`: variational objective
+- `θ_flat::AbstractVector{<:Real}`: flattened parameters of the normalizing flow
+- `reconstruct`: function that reconstructs the normalizing flow from the flattened parameters
+- `out::DiffResults.MutableDiffResult`: mutable diff result to store the value and gradient
+- `args...`: additional arguments for `vo`
+"""
 function grad!(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
@@ -71,6 +95,31 @@ function pm_next!(pm, stats::NamedTuple)
     return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
 end
 
+"""
+    train(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; max_iters::Int=10000, optimiser::Optimisers.AbstractRule=Optimisers.ADAM(), show_progress::Bool=true, callback=nothing)
+
+Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!` and using the given `optimiser` to compute the steps.
+
+# Arguments
+- `rng::AbstractRNG`: random number generator
+- `at::ADTypes.AbstractADType`: automatic differentiation backend
+- `vo`: variational objective
+- `θ₀::AbstractVector{T}`: initial parameters of the normalizing flow
+- `re`: function that reconstructs the normalizing flow from the flattened parameters
+- `args...`: additional arguments for `vo`
+- `max_iters::Int=10000`: maximum number of iterations
+- `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
+- `show_progress::Bool=true`: whether to show the progress bar. The default information printed in the progress bar is the iteration number, the loss value, and the gradient norm.
+- `callback=nothing`: callback function that takes the current iteration number, 
+                        the current optimiser state, 
+                        and the current value of the variational objective as input, 
+                        and returns a dictionary of statistics to be displayed in the progress bar
+
+# Returns
+- `θ`: trained parameters of the normalizing flow
+- `opt_stats`: statistics of the optimiser
+- `st`: optimiser state for potential continuation of training
+"""
 function train(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,

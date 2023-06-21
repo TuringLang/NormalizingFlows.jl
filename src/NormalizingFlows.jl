@@ -7,7 +7,32 @@ using ProgressMeter
 using ADTypes, DiffResults
 using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
+using DocStringExtensions
+
 export NF, elbo
+
+"""
+    NF(rng::AbstractRNG, vo, flow, args...; kwargs...)
+    NF(vo, flow, args...; kwargs...) = NF(Random.default_rng(), vo, flow, args...; kwargs...)
+
+Train the given normalizing flow `flow` by calling `train`.
+
+# Arguments
+- `rng::AbstractRNG`: random number generator
+- `vo`: variational objective
+- `flow`: normalizing flow to be trained
+- `args...`: additional arguments for `vo`
+- `max_iters::Int=1000`: maximum number of iterations
+- `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
+- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: automatic differentiation backend
+- `kwargs...`: additional keyword arguments for `train` (See `train`)
+
+# Returns
+- `flow_trained`: trained normalizing flow
+- `opt_stats`: statistics of the optimiser during the training process (See `train`)
+- `st`: optimiser state for potential continuation of training
+"""
+function NF end
 
 NF(vo, flow, args...; kwargs...) = NF(Random.default_rng(), vo, flow, args...; kwargs...)
 function NF(
