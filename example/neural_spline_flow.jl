@@ -34,8 +34,8 @@ function NeuralSplineLayer(
     w = [MLP_3layer(input_dims, hdims, K) for i in 1:num_of_transformed_dims]
     h = [MLP_3layer(input_dims, hdims, K) for i in 1:num_of_transformed_dims]
     d = [MLP_3layer(input_dims, hdims, K - 1) for i in 1:num_of_transformed_dims]
-    Mask = Bijectors.PartitionMask(D, mask_idx)
-    return NeuralSplineLayer(D, Mask, w, h, d, B)
+    mask = Bijectors.PartitionMask(D, mask_idx)
+    return NeuralSplineLayer(D, mask, w, h, d, B)
 end
 
 @functor NeuralSplineLayer (w, h, d)
@@ -53,23 +53,23 @@ end
 function Bijectors.transform(
     nsl::NeuralSplineLayer{<:Vector{<:Flux.Chain}}, x::AbstractVector
 )
-    x_1, x_2, x_3 = Bijectors.partition(nsl.Mask, x)
+    x_1, x_2, x_3 = Bijectors.partition(nsl.mask, x)
     # TODO: need to ask whether there is a better way
     # instantiate rqs knots and derivatives
     rqs = instantiate_rqs(nsl, x_2)
     y_1 = transform(rqs, x_1)
-    return Bijectors.combine(nsl.Mask, y_1, x_2, x_3)
+    return Bijectors.combine(nsl.mask, y_1, x_2, x_3)
 end
 
 function Bijectors.transform(
     insl::Inverse{<:NeuralSplineLayer{<:Vector{<:Flux.Chain}}}, y::AbstractVector
 )
     nsl = insl.orig
-    y1, y2, y3 = partition(nsl.Mask, y)
+    y1, y2, y3 = partition(nsl.mask, y)
     # todo: improve
     rqs = instantiate_rqs(nsl, y2)
     x1 = transform(Inverse(rqs), y1)
-    return combine(nsl.Mask, x1, y2, y3)
+    return combine(nsl.mask, x1, y2, y3)
 end
 
 function (nsl::NeuralSplineLayer{<:Vector{<:Flux.Chain}})(x::AbstractVector)
@@ -80,7 +80,7 @@ end
 function Bijectors.logabsdetjac(
     nsl::NeuralSplineLayer{<:Vector{<:Flux.Chain}}, x::AbstractVector
 )
-    x_1, x_2, x_3 = Bijectors.partition(nsl.Mask, x)
+    x_1, x_2, x_3 = Bijectors.partition(nsl.mask, x)
     Rqs = instantiate_rqs(nsl, x_2)
     logjac = logabsdetjac(Rqs, x_1)
     return logjac
@@ -90,17 +90,17 @@ function Bijectors.logabsdetjac(
     insl::Inverse{<:NeuralSplineLayer{<:Vector{<:Flux.Chain}}}, y::AbstractVector
 )
     nsl = insl.orig
-    y1, y2, y3 = partition(nsl.Mask, y)
-    Rqs = instantiate_rqs(nsl, y2)
-    logjac = logabsdetjac(Inverse(Rqs), y1)
+    y1, y2, y3 = partition(nsl.mask, y)
+    rqs = instantiate_rqs(nsl, y2)
+    logjac = logabsdetjac(Inverse(rqs), y1)
     return logjac
 end
 
 function Bijectors.with_logabsdet_jacobian(
     nsl::NeuralSplineLayer{<:Vector{<:Flux.Chain}}, x::AbstractVector
 )
-    x_1, x_2, x_3 = Bijectors.partition(nsl.Mask, x)
-    Rqs = instantiate_rqs(nsl, x_2)
-    y_1, logjac = with_logabsdet_jacobian(Rqs, x_1)
-    return Bijectors.combine(nsl.Mask, y_1, x_2, x_3), logjac
+    x_1, x_2, x_3 = Bijectors.partition(nsl.mask, x)
+    rqs = instantiate_rqs(nsl, x_2)
+    y_1, logjac = with_logabsdet_jacobian(rqs, x_1)
+    return Bijectors.combine(nsl.mask, y_1, x_2, x_3), logjac
 end
