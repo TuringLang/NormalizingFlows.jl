@@ -9,7 +9,7 @@ using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
 using DocStringExtensions
 
-export NF, elbo
+export NF, elbo, loglikelihood
 
 """
     NF(rng::AbstractRNG, vo, flow, args...; kwargs...)
