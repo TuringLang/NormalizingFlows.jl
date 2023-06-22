@@ -31,7 +31,7 @@ function value_and_gradient!(
     else
         ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
     end
-    ForwardDiff.gradient!(out, f, λ, config)
+    ForwardDiff.gradient!(out, f, θ, config)
     return out
 end
 
