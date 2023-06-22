@@ -12,8 +12,7 @@ using DocStringExtensions
 export NF, elbo, loglikelihood
 
 """
-    NF(rng::AbstractRNG, vo, flow, args...; kwargs...)
-    NF(vo, flow, args...; kwargs...) = NF(Random.default_rng(), vo, flow, args...; kwargs...)
+    NF([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
 
 Train the given normalizing flow `flow` by calling `train`.
 
