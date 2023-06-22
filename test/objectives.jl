@@ -1,9 +1,3 @@
-using Distributions, Bijectors, Optimisers
-using LinearAlgebra
-using Random
-using NormalizingFlows
-using Test
-
 @testset "variational objectives" begin
     @testset "$T" for T in [Float32, Float64]
         μ = randn(T, 2)
