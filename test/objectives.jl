@@ -19,15 +19,15 @@ using Test
         @testset "elbo" begin
             el = elbo(Random.default_rng(), flow, logp, 10)
 
-            @test el ≈ atol=1e-5
+            @test abs(el) ≤ 1e-5
             @test logpdf(flow, x) + el ≈ logp(x)
         end
 
         @testset "likelihood" begin
             sample_trained = rand(flow, 1000)
             sample_untrained = rand(q₀, 1000)
-            llh_trained = loglikelihood(flow, sample_trained)
-            llh_untrained = loglikelihood(flow, sample_untrained)
+            llh_trained = NormalizingFlows.loglikelihood(flow, sample_trained)
+            llh_untrained = NormalizingFlows.loglikelihood(flow, sample_untrained)
 
             @test llh_trained > llh_untrained
         end
