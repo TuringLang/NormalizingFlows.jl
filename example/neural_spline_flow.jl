@@ -75,8 +75,8 @@ function Bijectors.transform(
     nsl = insl.orig
     y1, y2, y3 = partition(nsl.Mask, y)
     # todo: improve
-    Rqs = instantiate_rqs(nsl, y2)
-    x1 = transform(Inverse(Rqs), y1)
+    rqs = instantiate_rqs(nsl, y2)
+    x1 = transform(Inverse(rqs), y1)
     return combine(nsl.Mask, x1, y2, y3)
 end
 
