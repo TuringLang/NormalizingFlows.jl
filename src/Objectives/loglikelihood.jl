@@ -5,8 +5,7 @@ function loglikelihood(
     flow::Bijectors.UnivariateTransformed,    # variational distribution to be trained
     xs::AbstractVector,                       # sample batch from target dist p
 )
-    llhs = map(x -> logpdf(flow, x), xs)
-    return mean(llhs)
+    return mean(Base.Fix1(logpdf, flow), xs)
 end
 
 function loglikelihood(
