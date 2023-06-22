@@ -1,15 +1,7 @@
 using Flux
 using Functors
 using Bijectors
-using Bijectors: ∘, partition, PartitionMask
-import Bijectors:
-    transform,
-    with_logabsdet_jacobian,
-    logabsdetjac,
-    rqs_univariate,
-    rqs_univariate_inverse,
-    rqs_logabsdetjac
-
+using Bijectors: partition, PartitionMask
 """
 Neural Rational quadratic Spline layer "(https://proceedings.neurips.cc/paper_files/paper/2019/file/7ac71d433f282034e088473244df8c02-Paper.pdf)"
 """
