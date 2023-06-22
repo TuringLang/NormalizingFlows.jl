@@ -162,6 +162,6 @@ function train(
         pm_next!(prog, stat)
     end
 
-    # return status of the optimiser for potential coninuation of training
+    # return status of the optimiser for potential continuation of training
     return θ, opt_stats, st
 end
