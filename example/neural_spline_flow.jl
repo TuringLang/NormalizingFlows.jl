@@ -15,7 +15,7 @@ Neural Rational quadratic Spline layer "(https://proceedings.neurips.cc/paper_fi
 """
 struct NeuralSplineLayer{T} <: Bijectors.Bijector
     D::Int
-    Mask::Bijectors.PartitionMask
+    mask::Bijectors.PartitionMask
     w::T # width (xs)
     h::T # height (ys)
     d::T # derivative of the knots
