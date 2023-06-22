@@ -7,7 +7,7 @@ Neural Rational quadratic Spline layer "(https://proceedings.neurips.cc/paper_fi
 """
 struct NeuralSplineLayer{T} <: Bijectors.Bijector
     D::Int
-    Mask::Bijectors.PartitionMask
+    mask::Bijectors.PartitionMask
     w::T # width (xs)
     h::T # height (ys)
     d::T # derivative of the knots
@@ -56,8 +56,8 @@ function Bijectors.transform(
     x_1, x_2, x_3 = Bijectors.partition(nsl.Mask, x)
     # TODO: need to ask whether there is a better way
     # instantiate rqs knots and derivatives
-    Rqs = instantiate_rqs(nsl, x_2)
-    y_1 = transform(Rqs, x_1)
+    rqs = instantiate_rqs(nsl, x_2)
+    y_1 = transform(rqs, x_1)
     return Bijectors.combine(nsl.Mask, y_1, x_2, x_3)
 end
 
@@ -67,8 +67,8 @@ function Bijectors.transform(
     nsl = insl.orig
     y1, y2, y3 = partition(nsl.Mask, y)
     # todo: improve
-    Rqs = instantiate_rqs(nsl, y2)
-    x1 = transform(Inverse(Rqs), y1)
+    rqs = instantiate_rqs(nsl, y2)
+    x1 = transform(Inverse(rqs), y1)
     return combine(nsl.Mask, x1, y2, y3)
 end
 
