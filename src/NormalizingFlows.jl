@@ -31,8 +31,6 @@ Train the given normalizing flow `flow` by calling `train`.
 - `opt_stats`: statistics of the optimiser during the training process (See `train`)
 - `st`: optimiser state for potential continuation of training
 """
-function NF end
-
 NF(vo, flow, args...; kwargs...) = NF(Random.default_rng(), vo, flow, args...; kwargs...)
 function NF(
     rng::AbstractRNG,
