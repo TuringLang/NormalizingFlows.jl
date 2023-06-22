@@ -108,7 +108,7 @@ function compare_trained_and_untrained_flow(
     samples_untrained = rand(flow_untrained, n_samples)
     samples_true = rand(true_dist, n_samples)
 
-    scatter(
+    p = scatter(
         samples_true[1, :],
         samples_true[2, :];
         label="True Distribution",
@@ -117,6 +117,7 @@ function compare_trained_and_untrained_flow(
         alpha=0.5,
     )
     scatter!(
+        p,
         samples_untrained[1, :],
         samples_untrained[2, :];
         label="Untrained Flow",
@@ -125,6 +126,7 @@ function compare_trained_and_untrained_flow(
         alpha=0.5,
     )
     scatter!(
+        p,
         samples_trained[1, :],
         samples_trained[2, :];
         label="Trained Flow",
@@ -133,11 +135,11 @@ function compare_trained_and_untrained_flow(
         alpha=0.5,
     )
 
-    xlabel!("X")
-    ylabel!("Y")
-    title!("Comparison of Trained and Untrained Flow")
+    xlabel!(p, "X")
+    ylabel!(p, "Y")
+    title!(p, "Comparison of Trained and Untrained Flow")
 
-    return current()
+    return p
 end
 
 plot(losses; label="Loss", linewidth=2)
