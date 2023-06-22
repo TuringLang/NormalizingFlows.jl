@@ -107,6 +107,9 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 - `θ₀::AbstractVector{T}`: initial parameters of the normalizing flow
 - `re`: function that reconstructs the normalizing flow from the flattened parameters
 - `args...`: additional arguments for `vo`
+
+
+# Keyword Arguments
 - `max_iters::Int=10000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `show_progress::Bool=true`: whether to show the progress bar. The default information printed in the progress bar is the iteration number, the loss value, and the gradient norm.
@@ -131,11 +134,11 @@ function train(
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     show_progress::Bool=true,
     callback=nothing,
-    prog = ProgressMeter.Progress(
+    prog=ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
-    )
+    ),
 ) where {T<:Real}
-    opt_stats = Vector{NamedTuple}(undef, max_iters)
+    opt_stats = Vector(undef, max_iters)
 
     θ = copy(θ₀)
     diff_result = DiffResults.GradientResult(θ)
@@ -163,5 +166,5 @@ function train(
     end
 
     # return status of the optimiser for potential continuation of training
-    return θ, opt_stats, st
+    return θ, map(identity, opt_stats), st
 end
