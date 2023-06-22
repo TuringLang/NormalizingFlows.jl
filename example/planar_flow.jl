@@ -77,7 +77,6 @@ end
 # create target p
 p = Banana(2, 1.0f-1)
 logp = Base.Fix1(logpdf, p)
-# visualize(p)
 
 # create a 10-layer planar flow
 flow = create_planar_flow(20, MvNormal(zeros(Float32, 2), I))
