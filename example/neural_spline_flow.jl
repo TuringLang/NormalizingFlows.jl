@@ -64,8 +64,8 @@ function Bijectors.transform(
     x_1, x_2, x_3 = Bijectors.partition(nsl.Mask, x)
     # TODO: need to ask whether there is a better way
     # instantiate rqs knots and derivatives
-    Rqs = instantiate_rqs(nsl, x_2)
-    y_1 = transform(Rqs, x_1)
+    rqs = instantiate_rqs(nsl, x_2)
+    y_1 = transform(rqs, x_1)
     return Bijectors.combine(nsl.Mask, y_1, x_2, x_3)
 end
 
