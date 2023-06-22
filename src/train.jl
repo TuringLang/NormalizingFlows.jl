@@ -148,20 +148,20 @@ function train(
         # save stats
         ls = DiffResults.value(diff_result)
         g = DiffResults.gradient(diff_result)
-        stat_ = (iteration=i, loss=ls, gradient_norm=norm(g))
-        opt_stats[i] = stat_
+        stat = (iteration=i, loss=ls, gradient_norm=norm(g))
+        opt_stats[i] = stat
 
         # callback
         if !isnothing(callback)
             new_stat = callback(re, opt_stats, i)
-            stat_ = !isnothing(new_stat) ? merge(new_stat, stat_) : stat_
+            stat = !isnothing(new_stat) ? merge(new_stat, stat) : stat
         end
 
         # update optimiser state and parameters
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
-        pm_next!(prog, stat_)
+        pm_next!(prog, stat)
     end
 
-    # return status of the optimiser for potential coninuation of training
+    # return status of the optimiser for potential continuation of training
     return θ, opt_stats, st
 end
