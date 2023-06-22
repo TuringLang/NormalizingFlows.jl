@@ -131,10 +131,10 @@ function train(
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     show_progress::Bool=true,
     callback=nothing,
-) where {T<:Real}
     prog = ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     )
+) where {T<:Real}
     opt_stats = Vector{NamedTuple}(undef, max_iters)
 
     θ = copy(θ₀)
