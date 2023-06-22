@@ -9,12 +9,12 @@ using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
 using DocStringExtensions
 
-export NF, elbo, loglikelihood
+export train_flow, elbo, loglikelihood
 
 """
-    NF([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
+    train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
 
-Train the given normalizing flow `flow` by calling `train`.
+Train the given normalizing flow `flow` by calling `optimize`.
 
 # Arguments
 - `rng::AbstractRNG`: random number generator
@@ -24,15 +24,17 @@ Train the given normalizing flow `flow` by calling `train`.
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: automatic differentiation backend
-- `kwargs...`: additional keyword arguments for `train` (See `train`)
+- `kwargs...`: additional keyword arguments for `optimize` (See `optimize`)
 
 # Returns
 - `flow_trained`: trained normalizing flow
-- `opt_stats`: statistics of the optimiser during the training process (See `train`)
+- `opt_stats`: statistics of the optimiser during the training process (See `optimize`)
 - `st`: optimiser state for potential continuation of training
 """
-NF(vo, flow, args...; kwargs...) = NF(Random.default_rng(), vo, flow, args...; kwargs...)
-function NF(
+function train_flow(vo, flow, args...; kwargs...)
+    return train_flow(Random.default_rng(), vo, flow, args...; kwargs...)
+end
+function train_flow(
     rng::AbstractRNG,
     vo,                                      # elbo, likelihood, f-div, STL, etc.. (how do we deal with this? it would require different input)
     flow,                                    # normalizing flow to be trained
@@ -46,7 +48,7 @@ function NF(
     θ_flat, re = Optimisers.destructure(flow)
 
     # Normalizing flow training loop 
-    θ_flat_trained, opt_stats, st = train(
+    θ_flat_trained, opt_stats, st = optimize(
         rng,
         ADbackend,
         vo,
@@ -63,6 +65,6 @@ function NF(
 end
 
 include("train.jl")
-include("Objectives/objs.jl")
+include("objectives.jl")
 
 end

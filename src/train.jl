@@ -96,7 +96,7 @@ function pm_next!(pm, stats::NamedTuple)
 end
 
 """
-    train(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; max_iters::Int=10000, optimiser::Optimisers.AbstractRule=Optimisers.ADAM(), show_progress::Bool=true, callback=nothing)
+    optimize(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; max_iters::Int=10000, optimiser::Optimisers.AbstractRule=Optimisers.ADAM(), show_progress::Bool=true, callback=nothing)
 
 Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!` and using the given `optimiser` to compute the steps.
 
@@ -117,13 +117,14 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
                         the current optimiser state, 
                         and the current value of the variational objective as input, 
                         and returns a dictionary of statistics to be displayed in the progress bar
+- `prog=ProgressMeter.Progress(max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress)`: progress bar configuration
 
 # Returns
 - `θ`: trained parameters of the normalizing flow
 - `opt_stats`: statistics of the optimiser
 - `st`: optimiser state for potential continuation of training
 """
-function train(
+function optimize(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
