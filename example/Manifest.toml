@@ -2,7 +2,7 @@
 
 julia_version = "1.9.1"
 manifest_format = "2.0"
-project_hash = "695cc6432f3480297ed3c62b54af98afae5d66b3"
+project_hash = "19082b4b3dd6a47b3049a70718dcaeed6cde605b"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "dcfdf328328f2645531c4ddebf841228aef74130"
@@ -902,7 +902,7 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
 
 [[deps.NormalizingFlows]]
-deps = ["ADTypes", "Bijectors", "DiffResults", "Distributions", "Enzyme", "ForwardDiff", "LinearAlgebra", "Optimisers", "ProgressMeter", "Random", "ReverseDiff", "StatsBase", "Zygote"]
+deps = ["ADTypes", "Bijectors", "DiffResults", "Distributions", "DocStringExtensions", "Enzyme", "ForwardDiff", "LinearAlgebra", "Optimisers", "ProgressMeter", "Random", "ReverseDiff", "StatsBase", "Zygote"]
 path = ".."
 uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
 version = "0.1.0"
