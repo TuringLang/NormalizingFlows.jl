@@ -70,8 +70,8 @@ function create_planar_flow(n_layers::Int, q₀)
         PlanarLayer(randn(Float32, d), randn(Float32, d), randn(Float32, 1)) for
         _ in 1:n_layers
     ]
-    Ts = fchain(Ls)
-    return transformed(q₀, Ts)
+    ts = fchain(Ls)
+    return transformed(q₀, ts)
 end
 
 # create target p
