@@ -2,7 +2,7 @@
 
 This folder contains various demonstrations of the usage of the `NormalizingFlows.jl` package.
 
-`synthetic_targets/` contains a collection of interesting synthetic target distributions for testing/benchmarking normalizing flows.
+`targets/` contains a collection of example target distributions for testing/benchmarking normalizing flows.
 
 Each `*_flow.jl` file provides a demonstration of how to train the corresponding
 normalizing flow to approximate the target distribution using `NormalizingFlows.jl` package.
