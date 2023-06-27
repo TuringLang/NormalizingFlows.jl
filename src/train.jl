@@ -7,7 +7,7 @@ The function `f` must return a scalar value. The gradient is stored in `out` as 
 vector of the same length as `θ`.
 """
 function value_and_gradient! end
-
+# TODO: Make these definitions extensions to avoid loading unneecssary packages.
 # zygote
 function value_and_gradient!(
     at::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
