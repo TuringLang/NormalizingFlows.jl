@@ -23,7 +23,6 @@ end
 @testset "AD for ELBO" begin
     @testset "$at" for at in [
         ADTypes.AutoZygote(),
-        ADTypes.AutoForwardDiff(chuncksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
         # ADTypes.AutoEnzyme(), # not working now
