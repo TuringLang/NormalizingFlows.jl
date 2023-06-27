@@ -96,7 +96,7 @@ function pm_next!(pm, stats::NamedTuple)
 end
 
 """
-    optimize(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; max_iters::Int=10000, optimiser::Optimisers.AbstractRule=Optimisers.ADAM(), show_progress::Bool=true, callback=nothing)
+    optimize(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; kwargs...)
 
 Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!` and using the given `optimiser` to compute the steps.
 

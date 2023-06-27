@@ -21,6 +21,9 @@ Train the given normalizing flow `flow` by calling `optimize`.
 - `vo`: variational objective
 - `flow`: normalizing flow to be trained
 - `args...`: additional arguments for `vo`
+
+
+# Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: automatic differentiation backend
