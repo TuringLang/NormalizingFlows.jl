@@ -6,6 +6,6 @@ using Random
 using ADTypes, DiffResults
 using Test
 
-include("interface.jl")
-include("objectives.jl")
 include("ad.jl")
+include("objectives.jl")
+include("interface.jl")

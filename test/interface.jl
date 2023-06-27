@@ -1,4 +1,5 @@
 @testset "learining 2d Gaussian" begin
+    chuncksize = 4
     @testset "$adtype" for adtype in [
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(chuncksize),
