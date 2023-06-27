@@ -29,7 +29,7 @@ end
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
-            Σ = Diagonal(D .^ 2)
+            Σ = Diagonal(4 * ones(T, 2))
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
