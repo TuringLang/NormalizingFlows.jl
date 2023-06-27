@@ -44,17 +44,17 @@ function value_and_gradient!(
     return out
 end
 
-# Enzyme  (currently doesn't support Functors.jl)
-# function value_and_gradient!(
-#     at::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-# ) where {T<:Real}
-#     y = f(θ)
-#     DiffResults.value!(out, y)
-#     ∇θ = DiffResults.gradient(out)
-#     fill!(∇θ, zero(T))
-#     Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ))
-#     return out
-# end
+# Enzyme  
+function value_and_gradient!(
+    at::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+) where {T<:Real}
+    y = f(θ)
+    DiffResults.value!(out, y)
+    ∇θ = DiffResults.gradient(out)
+    fill!(∇θ, zero(T))
+    Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ))
+    return out
+end
 
 """
     grad!(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ_flat::AbstractVector{<:Real}, reconstruct, out::DiffResults.MutableDiffResult, args...)    

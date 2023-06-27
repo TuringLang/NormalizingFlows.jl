@@ -5,8 +5,7 @@ using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes, DiffResults
-using Zygote, ForwardDiff, ReverseDiff
-# using Enzyme
+using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
 using DocStringExtensions
 
