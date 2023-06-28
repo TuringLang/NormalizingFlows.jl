@@ -16,4 +16,3 @@ Currently, all examples share the same [Julia project](https://pkgdocs.julialang
 using Pkg; Pkg.activate("example"); Pkg.instantiate()
 ```
 This will install all needed packages, at the exact versions when the model was last updated. Then you can run the model code with include("<example-to-run>.jl"), or by running the example script line-by-line.
-
