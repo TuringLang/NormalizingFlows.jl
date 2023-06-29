@@ -74,12 +74,13 @@ end
 function Distributions._logpdf(p::Banana{T}, x::AbstractVector{T}) where {T<:Real}
     d, b, s = p.dim, p.b, p.var
     ϕ⁻¹_x = ϕ⁻¹(p, x)
-    logz = (log(s) + d * log(2π)) / 2
+    # I'm converting log(2π) to T(log(2π)) to avoid type promotion
+    # is there a better way of enforcing 2π to be of type T?
+    logz = (log(s) + d * log(T(2π))) / 2
     return -logz - sum(ϕ⁻¹_x .^ 2 ./ vcat(s, ones(T, d - 1))) / 2
 end
 
 function visualize(p::Banana, samples=rand(p, 1000))
-    T = eltype(p)
     xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)
     yrange = range(minimum(samples[2, :]) - 1, maximum(samples[2, :]) + 1; length=100)
     z = [exp(Distributions.logpdf(p, [x, y])) for x in xrange, y in yrange]
@@ -87,6 +88,3 @@ function visualize(p::Banana, samples=rand(p, 1000))
     scatter!(samples[1, :], samples[2, :]; label="Samples", alpha=0.3, legend=:bottomright)
     return fig
 end
-
-p = Banana(2, 1.0f-1, 100.0f0)
-visualize(p)
