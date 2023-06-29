@@ -48,6 +48,8 @@ function train_flow(
     kwargs...,
 )
     # destruct flow for explicit access to the parameters
+    # use FunctionChains instead of simple compositions to construct the flow when many flow layers are involved
+    # otherwise the compilation time for destructure will be too long
     θ_flat, re = Optimisers.destructure(flow)
 
     # Normalizing flow training loop 
