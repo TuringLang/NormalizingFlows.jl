@@ -111,7 +111,8 @@ end
 """
     optimize(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; kwargs...)
 
-Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!` and using the given `optimiser` to compute the steps.
+Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!`
+ and using the given `optimiser` to compute the steps.
 
 # Arguments
 - `rng::AbstractRNG`: random number generator
