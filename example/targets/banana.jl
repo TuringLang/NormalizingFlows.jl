@@ -61,12 +61,11 @@ function ϕ⁻¹(p::Banana, x::AbstractVector)
     return d == 2 ? [x[1], y2] : reduce(vcat, [x[1], y2, x[3:end]])
 end
 
-function Distributions._rand!(
-    rng::AbstractRNG, p::Banana{T}, x::AbstractVecOrMat{T}
-) where {T<:Real}
+function Distributions._rand!(rng::AbstractRNG, p::Banana, x::AbstractVecOrMat)
+    T = eltype(p)
     d, s = p.dim, p.var
     d == size(x, 1) || error("Dimension mismatch")
-    x[1, :] .= randn(rng, T, 1, size(x, 2)) .* sqrt(s)
+    x[1, :] .= randn(rng, T, size(x, 2)) .* sqrt(s)
     x[2:end, :] .= randn(rng, T, d - 1, size(x, 2))
     for y in eachcol(x)
         ϕ!(p, y)
