@@ -159,6 +159,7 @@ function optimize(
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
+    # TODO: Add support for general `hasconverged(...)` approach to allow early termination.
     time_elapsed = @elapsed for i in 1:max_iters
         grad!(rng, at, vo, θ, re, diff_result, args...)
 
