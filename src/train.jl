@@ -72,8 +72,11 @@ end
         args...
     )
 
-Compute the value and gradient for negation of the variational objective `vo` at `θ_flat` using the automatic differentiation backend `at`.  
-Default implementation is provided for `at` where `at` is one of `AutoZygote`, `AutoForwardDiff`, `AutoReverseDiff` (with no compiled tape), and `AutoEnzyme`.
+Compute the value and gradient for negation of the variational objective `vo` 
+at `θ_flat` using the automatic differentiation backend `at`.  
+
+Default implementation is provided for `at` where `at` is one of `AutoZygote`, 
+`AutoForwardDiff`, `AutoReverseDiff` (with no compiled tape), and `AutoEnzyme`.
 The result is stored in `out`.
 
 # Arguments
