@@ -64,7 +64,8 @@ function Distributions._rand!(
 ) where {T<:Real}
     d, s = p.dim, p.var
     d == size(x, 1) || error("Dimension mismatch")
-    x .= randn(rng, T, size(x)) .* vcat(sqrt(s), ones(T, d - 1))
+    x[1, :] .= randn(rng, T, 1, size(x, 2)) .* sqrt(s)
+    x[2:end, :] .= randn(rng, T, d - 1, size(x, 2))
     for y in eachcol(x)
         ϕ!(p, y)
     end
