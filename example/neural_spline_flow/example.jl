@@ -18,3 +18,5 @@ include("../targets/banana.jl")
 # create target p
 p = Banana(2, 1.0f-1, 100.0f0)
 logp = Base.Fix1(logpdf, p)
+
+#  work in progress, not for review
