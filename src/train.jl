@@ -1,5 +1,10 @@
 """
-    value_and_gradient!(at::ADTypes.AbstractADType, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult) where {T<:Real}
+    value_and_gradient!(
+        at::ADTypes.AbstractADType,
+        f,
+        θ::AbstractVector{T},
+        out::DiffResults.MutableDiffResult
+    ) where {T<:Real}
 
 Compute the value and gradient of a function `f` at `θ` using the automatic
 differentiation backend `at`.  The result is stored in `out`. 
@@ -121,10 +126,8 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 - `max_iters::Int=10000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `show_progress::Bool=true`: whether to show the progress bar. The default information printed in the progress bar is the iteration number, the loss value, and the gradient norm.
-- `callback=nothing`: callback function that takes the current iteration number, 
-                        the current optimiser state, 
-                        and the current value of the variational objective as input, 
-                        and returns a dictionary of statistics to be displayed in the progress bar
+- `callback=nothing`: callback function with signature `cb(iter, opt_state, obj_val)`
+  which returns a dictionary-like object of statistics to be displayed in the progress bar.
 - `prog=ProgressMeter.Progress(max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress)`: progress bar configuration
 
 # Returns
