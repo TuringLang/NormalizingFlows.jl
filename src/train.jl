@@ -1,13 +1,13 @@
 """
     value_and_gradient!(
-        at::ADTypes.AbstractADType,
+        ad::ADTypes.AbstractADType,
         f,
         θ::AbstractVector{T},
         out::DiffResults.MutableDiffResult
     ) where {T<:Real}
 
 Compute the value and gradient of a function `f` at `θ` using the automatic
-differentiation backend `at`.  The result is stored in `out`. 
+differentiation backend `ad`.  The result is stored in `out`. 
 The function `f` must return a scalar value. The gradient is stored in `out` as a
 vector of the same length as `θ`.
 """
@@ -15,7 +15,7 @@ function value_and_gradient! end
 # TODO: Make these definitions extensions to avoid loading unneecssary packages.
 # zygote
 function value_and_gradient!(
-    at::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+    ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     y, back = Zygote.pullback(f, θ)
     ∇θ = back(one(T))
@@ -28,9 +28,9 @@ end
 # extract chunk size from AutoForwardDiff
 getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
 function value_and_gradient!(
-    at::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+    ad::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
-    chunk_size = getchunksize(at)
+    chunk_size = getchunksize(ad)
     config = if isnothing(chunk_size)
         ForwardDiff.GradientConfig(f, θ)
     else
@@ -42,7 +42,7 @@ end
 
 # ReverseDiff without compiled tape
 function value_and_gradient!(
-    at::ADTypes.AutoReverseDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+    ad::ADTypes.AutoReverseDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     tp = ReverseDiff.GradientTape(f, θ)
     ReverseDiff.gradient!(out, tp, θ)
@@ -51,7 +51,7 @@ end
 
 # Enzyme  
 function value_and_gradient!(
-    at::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+    ad::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     y = f(θ)
     DiffResults.value!(out, y)
@@ -64,7 +64,7 @@ end
 """
     grad!(
         rng::AbstractRNG,
-        at::ADTypes.AbstractADType,
+        ad::ADTypes.AbstractADType,
         vo,
         θ_flat::AbstractVector{<:Real},
         reconstruct,
@@ -73,15 +73,15 @@ end
     )
 
 Compute the value and gradient for negation of the variational objective `vo` 
-at `θ_flat` using the automatic differentiation backend `at`.  
+at `θ_flat` using the automatic differentiation backend `ad`.  
 
-Default implementation is provided for `at` where `at` is one of `AutoZygote`, 
+Default implementation is provided for `ad` where `ad` is one of `AutoZygote`, 
 `AutoForwardDiff`, `AutoReverseDiff` (with no compiled tape), and `AutoEnzyme`.
 The result is stored in `out`.
 
 # Arguments
 - `rng::AbstractRNG`: random number generator
-- `at::ADTypes.AbstractADType`: automatic differentiation backend
+- `ad::ADTypes.AbstractADType`: automatic differentiation backend
 - `vo`: variational objective
 - `θ_flat::AbstractVector{<:Real}`: flattened parameters of the normalizing flow
 - `reconstruct`: function that reconstructs the normalizing flow from the flattened parameters
@@ -90,7 +90,7 @@ The result is stored in `out`.
 """
 function grad!(
     rng::AbstractRNG,
-    at::ADTypes.AbstractADType,
+    ad::ADTypes.AbstractADType,
     vo,
     θ_flat::AbstractVector{<:Real},
     reconstruct,
@@ -100,27 +100,34 @@ function grad!(
     # define opt loss function
     loss(θ_) = -vo(rng, reconstruct(θ_), args...)
     # compute loss value and gradient
-    out = value_and_gradient!(at, loss, θ_flat, out)
+    out = value_and_gradient!(ad, loss, θ_flat, out)
     return out
 end
 
 #######################################################
-# training loop for variational objectives that do not require input of data, 
-# e.g., reverse KL(elbo) without data subsampling in logp
+# training loop for variational objectives 
 #######################################################
 function pm_next!(pm, stats::NamedTuple)
     return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
 end
 
 """
-    optimize(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; kwargs...)
+    optimize(
+        rng::AbstractRNG, 
+        ad::ADTypes.AbstractADType, 
+        vo, 
+        θ₀::AbstractVector{T}, 
+        re, 
+        args...; 
+        kwargs...
+    )
 
 Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!`
  and using the given `optimiser` to compute the steps.
 
 # Arguments
 - `rng::AbstractRNG`: random number generator
-- `at::ADTypes.AbstractADType`: automatic differentiation backend
+- `ad::ADTypes.AbstractADType`: automatic differentiation backend
 - `vo`: variational objective
 - `θ₀::AbstractVector{T}`: initial parameters of the normalizing flow
 - `re`: function that reconstructs the normalizing flow from the flattened parameters
@@ -130,12 +137,16 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 # Keyword Arguments
 - `max_iters::Int=10000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
-- `show_progress::Bool=true`: whether to show the progress bar. The default information printed in the progress bar is the iteration number, the loss value, and the gradient norm.
+- `show_progress::Bool=true`: whether to show the progress bar. The default
+  information printed in the progress bar is the iteration number, the loss value,
+  and the gradient norm.
 - `callback=nothing`: callback function with signature `cb(iter, opt_state, re, θ)`
   which returns a dictionary-like object of statistics to be displayed in the progress bar.
   re and θ are used for reconstructing the normalizing flow in case that user 
   want to further axamine the status of the flow.
-- `prog=ProgressMeter.Progress(max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress)`: progress bar configuration
+- `prog=ProgressMeter.Progress(
+            max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
+        )`: progress bar configuration
 
 # Returns
 - `θ`: trained parameters of the normalizing flow
@@ -144,7 +155,7 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 """
 function optimize(
     rng::AbstractRNG,
-    at::ADTypes.AbstractADType,
+    ad::ADTypes.AbstractADType,
     vo,
     θ₀::AbstractVector{<:Real},
     re,
@@ -166,7 +177,7 @@ function optimize(
 
     # TODO: Add support for general `hasconverged(...)` approach to allow early termination.
     time_elapsed = @elapsed for i in 1:max_iters
-        grad!(rng, at, vo, θ, re, diff_result, args...)
+        grad!(rng, ad, vo, θ, re, diff_result, args...)
 
         # save stats
         ls = DiffResults.value(diff_result)

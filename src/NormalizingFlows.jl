@@ -39,9 +39,9 @@ function train_flow(vo, flow, args...; kwargs...)
 end
 function train_flow(
     rng::AbstractRNG,
-    vo,                                      # elbo, likelihood, f-div, STL, etc.. (how do we deal with this? it would require different input)
-    flow,                                    # normalizing flow to be trained
-    args...;                                 # additional arguments for vo 
+    vo,
+    flow,
+    args...;
     max_iters::Int=1000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote(),
