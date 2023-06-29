@@ -102,7 +102,8 @@ function grad!(
 end
 
 #######################################################
-# training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
+# training loop for variational objectives that do not require input of data, 
+# e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
 function pm_next!(pm, stats::NamedTuple)
     return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
