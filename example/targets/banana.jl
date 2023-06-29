@@ -45,7 +45,7 @@ end
 Banana(dim::Int, b::T, var::T) where {T<:Real} = Banana{T}(dim, b, var)
 
 Base.length(p::Banana) = p.dim
-Base.eltype(p::Banana) = typeof(p.b)
+Base.eltype(p::Banana{T}) where {T<:Real} = T
 Distributions.sampler(p::Banana) = p
 
 # Define the transformation function φ and the inverse ϕ⁻¹ for the banana distribution
@@ -73,7 +73,8 @@ function Distributions._rand!(
     return x
 end
 
-function Distributions._logpdf(p::Banana{T}, x::AbstractVector{T}) where {T<:Real}
+function Distributions._logpdf(p::Banana, x::AbstractVector)
+    T = eltype(p)
     d, b, s = p.dim, p.b, p.var
     ϕ⁻¹_x = ϕ⁻¹(p, x)
     logz = (log(s) / d + IrrationalConstants.log2π) * d / 2
@@ -88,6 +89,3 @@ function visualize(p::Banana, samples=rand(p, 1000))
     scatter!(samples[1, :], samples[2, :]; label="Samples", alpha=0.3, legend=:bottomright)
     return fig
 end
-
-dist = Banana(2, 1.0, 2.0) # => T = Float64
-# ForwardDiff.gradient(Base.Fix1(logpdf, dist), [1.0, 1.0]) # => T in logpdf can't be resolved since `[1.0, 1.0]` will be `Vector{ForwardDiff.Dual{Float64, ...}}` not `Vector{Float64}`
