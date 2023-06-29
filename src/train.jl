@@ -57,7 +57,15 @@ function value_and_gradient!(
 end
 
 """
-    grad!(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ_flat::AbstractVector{<:Real}, reconstruct, out::DiffResults.MutableDiffResult, args...)    
+    grad!(
+        rng::AbstractRNG,
+        at::ADTypes.AbstractADType,
+        vo,
+        θ_flat::AbstractVector{<:Real},
+        reconstruct,
+        out::DiffResults.MutableDiffResult,
+        args...
+    )
 
 Compute the value and gradient for negation of the variational objective `vo` at `θ_flat` using the automatic differentiation backend `at`.  
 Default implementation is provided for `at` where `at` is one of `AutoZygote`, `AutoForwardDiff`, `AutoReverseDiff` (with no compiled tape), and `AutoEnzyme`.
