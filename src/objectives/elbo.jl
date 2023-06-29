@@ -1,31 +1,33 @@
-
 ####################################
 # training by minimizing reverse KL
 ####################################    
-function elbo_single_sample(
-    flow::Bijectors.TransformedDistribution,     # variational distribution to be trained (flow = T q₀, where T <: Bijectors.Bijector, q₀ reference dist that one can easily sample and compute logpdf)
-    logp,                                       # lpdf (unnormalized) of the target distribution
-    x,                                          # sample from reference dist q
-)
+function elbo_single_sample(flow::Bijectors.TransformedDistribution, logp, x)
     y, logabsdetjac = with_logabsdet_jacobian(flow.transform, x)
     return logp(y) - logpdf(flow.dist, x) + logabsdetjac
 end
 
+"""
+    elbo(flow, logp, xs) 
+    elbo([rng, ]flow, logp, n_samples)
+
+Compute the ELBO for a batch of samples `xs` from the reference distribution `flow.dist`.
+
+# Arguments
+- `rng`: random number generator
+- `flow`: variational distribution to be trained. In particular 
+  "flow = transformed(q₀, T::Bijectors.Bijector)", 
+  q₀ is a reference distribution that one can easily sample and compute logpdf
+- `logp`: log-pdf of the target distribution (not necessarily normalized)
+- `xs`: samples from reference dist q₀
+- `n_samples`: number of samples from reference dist q₀
+"""
 # ELBO based on multiple iid samples
-function elbo(
-    flow::Bijectors.UnivariateTransformed,      # variational distribution to be trained
-    logp,                                       # lpdf (unnormalized) of the target distribution
-    xs::AbstractVector,                          # samples from reference dist q
-)
+function elbo(flow::Bijectors.UnivariateTransformed, logp, xs::AbstractVector)
     elbo_values = map(x -> elbo_single_sample(flow, logp, x), xs)
     return mean(elbo_values)
 end
 
-function elbo(
-    flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
-    logp,                                       # lpdf (unnormalized) of the target distribution
-    xs::AbstractMatrix,                         # samples from reference dist q
-)
+function elbo(flow::Bijectors.MultivariateTransformed, logp, xs::AbstractMatrix)
     elbo_values = map(x -> elbo_single_sample(flow, logp, x), eachcol(xs))
     return mean(elbo_values)
 end
