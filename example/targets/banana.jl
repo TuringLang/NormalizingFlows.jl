@@ -1,5 +1,6 @@
 using Distributions, Random
 using Plots
+using IrrationalConstants
 
 """
     Banana{T<:Real}
@@ -38,21 +39,22 @@ struct Banana{T<:Real} <: ContinuousMultivariateDistribution
     function Banana{T}(dim::Int, b::T, var::T) where {T<:Real}
         dim >= 2 || error("dim must be >= 2")
         var > 0 || error("var must be > 0")
-        return new(dim, b, var)
+        return new{T}(dim, b, var)
     end
 end
+Banana(dim::Int, b::T, var::T) where {T<:Real} = Banana{T}(dim, b, var)
 
 Base.length(p::Banana) = p.dim
 Base.eltype(p::Banana) = typeof(p.b)
 Distributions.sampler(p::Banana) = p
 
 # Define the transformation function φ and the inverse ϕ⁻¹ for the banana distribution
-function ϕ!(p::Banana{T}, x::AbstractVector{T}) where {T<:Real}
+function ϕ!(p::Banana, x::AbstractVector)
     d, b, s = p.dim, p.b, p.var
     d == length(x) || error("Dimension mismatch")
     return x[2] = x[2] - b * x[1]^2 + s * b
 end
-function ϕ⁻¹(p::Banana{T}, x::AbstractVector{T}) where {T<:Real}
+function ϕ⁻¹(p::Banana, x::AbstractVector)
     d, b, s = p.dim, p.b, p.var
     d == length(x) || error("Dimension mismatch")
     y2 = x[2] + b * x[1]^2 - s * b
@@ -74,9 +76,7 @@ end
 function Distributions._logpdf(p::Banana{T}, x::AbstractVector{T}) where {T<:Real}
     d, b, s = p.dim, p.b, p.var
     ϕ⁻¹_x = ϕ⁻¹(p, x)
-    # I'm converting log(2π) to T(log(2π)) to avoid type promotion
-    # is there a better way of enforcing 2π to be of type T?
-    logz = (log(s) + d * log(T(2π))) / 2
+    logz = (log(s) / d + IrrationalConstants.log2π) * d / 2
     return -logz - sum(ϕ⁻¹_x .^ 2 ./ vcat(s, ones(T, d - 1))) / 2
 end
 
@@ -88,3 +88,6 @@ function visualize(p::Banana, samples=rand(p, 1000))
     scatter!(samples[1, :], samples[2, :]; label="Samples", alpha=0.3, legend=:bottomright)
     return fig
 end
+
+dist = Banana(2, 1.0, 2.0) # => T = Float64
+# ForwardDiff.gradient(Base.Fix1(logpdf, dist), [1.0, 1.0]) # => T in logpdf can't be resolved since `[1.0, 1.0]` will be `Vector{ForwardDiff.Dual{Float64, ...}}` not `Vector{Float64}`
