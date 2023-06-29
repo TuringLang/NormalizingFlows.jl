@@ -139,7 +139,7 @@ function optimize(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
-    θ₀::AbstractVector{T},
+    θ₀::AbstractVector{<:Real},
     re,
     args...;
     max_iters::Int=10000,
