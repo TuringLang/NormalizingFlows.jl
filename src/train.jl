@@ -149,7 +149,7 @@ function optimize(
     prog=ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     ),
-) where {T<:Real}
+)
     opt_stats = Vector(undef, max_iters)
 
     θ = copy(θ₀)
