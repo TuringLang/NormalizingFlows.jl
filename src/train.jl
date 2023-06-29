@@ -128,8 +128,10 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 - `max_iters::Int=10000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `show_progress::Bool=true`: whether to show the progress bar. The default information printed in the progress bar is the iteration number, the loss value, and the gradient norm.
-- `callback=nothing`: callback function with signature `cb(iter, opt_state, obj_val)`
+- `callback=nothing`: callback function with signature `cb(iter, opt_state, re, θ)`
   which returns a dictionary-like object of statistics to be displayed in the progress bar.
+  re and θ are used for reconstructing the normalizing flow in case that user 
+  want to further axamine the status of the flow.
 - `prog=ProgressMeter.Progress(max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress)`: progress bar configuration
 
 # Returns
@@ -171,7 +173,7 @@ function optimize(
 
         # callback
         if !isnothing(callback)
-            new_stat = callback(re, opt_stats, i)
+            new_stat = callback(i, opt_stats, re, θ)
             stat = !isnothing(new_stat) ? merge(new_stat, stat) : stat
         end
 
