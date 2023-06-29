@@ -35,7 +35,7 @@ flow_untrained = deepcopy(flow)
 
 # train the flow
 sample_per_iter = 10
-cb(re, opt_stats, i) = (sample_per_iter=sample_per_iter,)
+cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
 flow_trained, stats, _ = train_flow(
     elbo,
     flow,
