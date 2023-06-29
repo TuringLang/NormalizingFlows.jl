@@ -1,5 +1,10 @@
 """
-    value_and_gradient!(at::ADTypes.AbstractADType, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult) where {T<:Real}
+    value_and_gradient!(
+        at::ADTypes.AbstractADType,
+        f,
+        θ::AbstractVector{T},
+        out::DiffResults.MutableDiffResult
+    ) where {T<:Real}
 
 Compute the value and gradient of a function `f` at `θ` using the automatic
 differentiation backend `at`.  The result is stored in `out`. 
