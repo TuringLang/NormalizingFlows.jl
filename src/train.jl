@@ -102,7 +102,8 @@ function grad!(
 end
 
 #######################################################
-# training loop for variational objectives that do not require input of data, e.g., reverse KL(elbo) without data subsampling in logp
+# training loop for variational objectives that do not require input of data, 
+# e.g., reverse KL(elbo) without data subsampling in logp
 #######################################################
 function pm_next!(pm, stats::NamedTuple)
     return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
@@ -111,7 +112,8 @@ end
 """
     optimize(rng::AbstractRNG, at::ADTypes.AbstractADType, vo, θ₀::AbstractVector{T}, re, args...; kwargs...)
 
-Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!` and using the given `optimiser` to compute the steps.
+Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by calling `grad!`
+ and using the given `optimiser` to compute the steps.
 
 # Arguments
 - `rng::AbstractRNG`: random number generator
@@ -139,7 +141,7 @@ function optimize(
     rng::AbstractRNG,
     at::ADTypes.AbstractADType,
     vo,
-    θ₀::AbstractVector{T},
+    θ₀::AbstractVector{<:Real},
     re,
     args...;
     max_iters::Int=10000,
@@ -149,7 +151,7 @@ function optimize(
     prog=ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     ),
-) where {T<:Real}
+)
     opt_stats = Vector(undef, max_iters)
 
     θ = copy(θ₀)
