@@ -1,6 +1,11 @@
 using NormalizingFlows
+using Distributions
+using Bijectors, Optimisers
+using LinearAlgebra
+using Random
+using ADTypes, DiffResults
 using Test
 
-@testset "NormalizingFlows.jl" begin
-    # Write your tests here.
-end
+include("ad.jl")
+include("objectives.jl")
+include("interface.jl")
