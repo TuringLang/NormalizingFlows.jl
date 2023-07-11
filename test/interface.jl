@@ -20,7 +20,7 @@
 
             sample_per_iter = 10
             cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
-            checkconv(iter, opt_stats, re, θ, st) = iter > 4999
+            checkconv(iter, stat, re, θ, st) = stat.gradient_norm < 1e-3
             flow_trained, stats, _ = train_flow(
                 elbo,
                 flow,
