@@ -180,7 +180,7 @@ function optimize(
 
     # TODO: Add support for general `hasconverged(...)` approach to allow early termination.
     converged = false
-    i = 0
+    i = 1
     time_elapsed = @elapsed while (i ≤ max_iters) && !converged
         # Compute gradient and objective value; results are stored in `diff_results`
         grad!(rng, ad, vo, θ, re, diff_result, args...)
