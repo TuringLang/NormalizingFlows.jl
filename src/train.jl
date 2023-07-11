@@ -178,7 +178,7 @@ function optimize(
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
-    # TODO: Add support for general `hasconverged(...)` approach to allow early termination.
+    # general `hasconverged(...)` approach to allow early termination.
     converged = false
     i = 1
     time_elapsed = @elapsed while (i ≤ max_iters) && !converged
@@ -201,11 +201,11 @@ function optimize(
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
 
         # check convergence
-        converged = hasconverged(i, opt_stats, re, θ, st)
         i += 1
+        converged = hasconverged(i, stat, re, θ, st)
         pm_next!(prog, stat)
     end
 
     # return status of the optimiser for potential continuation of training
-    return θ, map(identity, opt_stats), st
+    return θ, map(identity, opt_stats[1:(i - 1)]), st
 end
