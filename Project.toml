@@ -20,7 +20,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 ADTypes = "0.1"
-Bijectors = "0.12.6"
+Bijectors = "0.12.6, 0.13"
 DiffResults = "1"
 Distributions = "0.25"
 ForwardDiff = "0.10.25"
@@ -29,4 +29,5 @@ ProgressMeter = "1.0.0"
 ReverseDiff = "1.14"
 StatsBase = "0.33, 0.34"
 Zygote = "0.6"
-julia = "1"
+julia = "1.6"
+
