@@ -144,6 +144,8 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
   which returns a dictionary-like object of statistics to be displayed in the progress bar.
   re and θ are used for reconstructing the normalizing flow in case that user 
   want to further axamine the status of the flow.
+- `hasconverged = (iter, opt_stats, re, θ, st) -> false`: function that checks whether the
+  training has converged. The default is to always return false.
 - `prog=ProgressMeter.Progress(
             max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
         )`: progress bar configuration
@@ -164,6 +166,7 @@ function optimize(
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     show_progress::Bool=true,
     callback=nothing,
+    hasconverged=(i, stats, re, θ, st) -> false,
     prog=ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     ),
@@ -176,10 +179,13 @@ function optimize(
     st = Optimisers.setup(optimiser, θ)
 
     # TODO: Add support for general `hasconverged(...)` approach to allow early termination.
-    time_elapsed = @elapsed for i in 1:max_iters
+    converged = false
+    i = 0
+    time_elapsed = @elapsed while (i ≤ max_iters) && !converged
+        # Compute gradient and objective value; results are stored in `diff_results`
         grad!(rng, ad, vo, θ, re, diff_result, args...)
 
-        # save stats
+        # Save stats
         ls = DiffResults.value(diff_result)
         g = DiffResults.gradient(diff_result)
         stat = (iteration=i, loss=ls, gradient_norm=norm(g))
@@ -193,6 +199,10 @@ function optimize(
 
         # update optimiser state and parameters
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
+
+        # check convergence
+        converged = hasconverged(i, opt_stats, re, θ, st)
+        i += 1
         pm_next!(prog, stat)
     end
 

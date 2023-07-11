@@ -19,6 +19,8 @@
             )
 
             sample_per_iter = 10
+            cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
+            checkconv(iter, opt_stats, re, θ, st) = iter > 4999
             flow_trained, stats, _ = train_flow(
                 elbo,
                 flow,
@@ -28,6 +30,8 @@
                 optimiser=Optimisers.ADAM(0.01 * one(T)),
                 ADbackend=adtype,
                 show_progress=false,
+                callback=cb,
+                hasconverged=checkconv,
             )
             θ, re = Optimisers.destructure(flow_trained)
 
