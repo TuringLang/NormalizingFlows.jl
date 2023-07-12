@@ -8,7 +8,7 @@ using ADTypes, DiffResults
 
 using DocStringExtensions
 
-export train_flow, elbo, loglikelihood
+export train_flow, elbo, loglikelihood, value_and_gradient!
 
 """
     train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
@@ -43,7 +43,7 @@ function train_flow(
     args...;
     max_iters::Int=1000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
-    ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote(),
+    ADbackend::ADTypes.AbstractADType,
     kwargs...,
 )
     # destruct flow for explicit access to the parameters
@@ -93,5 +93,4 @@ function __init__()
         )
     end
 end
-
 end

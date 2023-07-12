@@ -3,6 +3,7 @@ using ADTypes
 using Optimisers
 using FunctionChains
 using NormalizingFlows
+using Zygote
 using Flux: f32
 using Plots
 include("../common.jl")
@@ -36,7 +37,6 @@ flow_untrained = deepcopy(flow)
 # train the flow
 sample_per_iter = 10
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
-checkconv(iter, stat, re, θ, st) = stat.gradient_norm < 1e-3
 flow_trained, stats, _ = train_flow(
     elbo,
     flow,
@@ -45,7 +45,7 @@ flow_trained, stats, _ = train_flow(
     max_iters=200_00,
     optimiser=Optimisers.ADAM(),
     callback=cb,
-    hasconverged=checkconv,
+    ADbackend=AutoZygote(),
 )
 losses = map(x -> x.loss, stats)
 
