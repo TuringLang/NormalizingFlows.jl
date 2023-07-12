@@ -5,7 +5,6 @@ using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes, DiffResults
-using Zygote, ForwardDiff, ReverseDiff, Enzyme
 
 using DocStringExtensions
 
@@ -71,5 +70,28 @@ end
 
 include("train.jl")
 include("objectives.jl")
+
+# optional dependencies 
+if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
+    using Requires
+end
+
+# Question: should Exts be loaded here or in train.jl? 
+function __init__()
+    @static if !isdefined(Base, :get_extension)
+        @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" include(
+            "../ext/NormalizingFlowsForwardDiffExt.jl"
+        )
+        @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(
+            "../ext/NormalizingFlowsReverseDiffExt.jl"
+        )
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
+            "../ext/NormalizingFlowsEnzymeExt.jl"
+        )
+        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
+            "../ext/NormalizingFlowsZygoteExt.jl"
+        )
+    end
+end
 
 end

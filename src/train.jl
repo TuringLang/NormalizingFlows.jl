@@ -12,54 +12,6 @@ The function `f` must return a scalar value. The gradient is stored in `out` as 
 vector of the same length as `θ`.
 """
 function value_and_gradient! end
-# TODO: Make these definitions extensions to avoid loading unneecssary packages.
-# zygote
-function value_and_gradient!(
-    ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    y, back = Zygote.pullback(f, θ)
-    ∇θ = back(one(T))
-    DiffResults.value!(out, y)
-    DiffResults.gradient!(out, first(∇θ))
-    return out
-end
-
-# ForwardDiff
-# extract chunk size from AutoForwardDiff
-getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
-function value_and_gradient!(
-    ad::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    chunk_size = getchunksize(ad)
-    config = if isnothing(chunk_size)
-        ForwardDiff.GradientConfig(f, θ)
-    else
-        ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
-    end
-    ForwardDiff.gradient!(out, f, θ, config)
-    return out
-end
-
-# ReverseDiff without compiled tape
-function value_and_gradient!(
-    ad::ADTypes.AutoReverseDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    tp = ReverseDiff.GradientTape(f, θ)
-    ReverseDiff.gradient!(out, tp, θ)
-    return out
-end
-
-# Enzyme  
-function value_and_gradient!(
-    ad::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    y = f(θ)
-    DiffResults.value!(out, y)
-    ∇θ = DiffResults.gradient(out)
-    fill!(∇θ, zero(T))
-    Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ))
-    return out
-end
 
 """
     grad!(
