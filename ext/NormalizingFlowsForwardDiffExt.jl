@@ -11,7 +11,7 @@ else
 end
 
 # extract chunk size from AutoForwardDiff
-getchunksize(::AutoForwardDiff{chunksize}) where {chunksize} = chunksize
+getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
 function NormalizingFlows.value_and_gradient!(
     ad::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
