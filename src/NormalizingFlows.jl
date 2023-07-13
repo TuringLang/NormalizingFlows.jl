@@ -10,8 +10,8 @@ using DocStringExtensions
 
 export train_flow, elbo, loglikelihood, value_and_gradient!
 
-using ADTypes: AutoEnzyme, AutoForwardDiff, AutoReverseDiff, AutoZygote
-using DiffResults: MutableDiffResult, value!, gradient, gradient!
+using ADTypes
+using DiffResults
 
 """
     train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
