@@ -1,21 +1,18 @@
 module NormalizingFlowsForwardDiffExt
 
 if isdefined(Base, :get_extension)
-    using ADTypes
-    using DiffResults
     using ForwardDiff
     using NormalizingFlows
+    using NormalizingFlows: AutoForwardDiff, MutableDiffResult
 else
-    using ..ADTypes
-    using ..DiffResults
     using ..ForwardDiff
     using ..NormalizingFlows
 end
 
 # extract chunk size from AutoForwardDiff
-getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
+getchunksize(::AutoForwardDiff{chunksize}) where {chunksize} = chunksize
 function NormalizingFlows.value_and_gradient!(
-    ad::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
+    ad::AutoForwardDiff, f, θ::AbstractVector{T}, out::MutableDiffResult
 ) where {T<:Real}
     chunk_size = getchunksize(ad)
     config = if isnothing(chunk_size)
