@@ -12,7 +12,6 @@ else
     using ..DiffResults
 end
 
-# ForwardDiff
 # extract chunk size from AutoForwardDiff
 getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
 function value_and_gradient!(

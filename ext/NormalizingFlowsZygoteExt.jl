@@ -12,7 +12,7 @@ else
     using ..DiffResults
 end
 
-# zygote
+@info "loading zygote ext"
 function value_and_gradient!(
     ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
