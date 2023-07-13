@@ -2,7 +2,7 @@ module NormalizingFlowsZygoteExt
 
 if isdefined(Base, :get_extension)
     using NormalizingFlows
-    using NormalizingFlows: AutoZygote, MutableDiffResult
+    using NormalizingFlows: AutoZygote, MutableDiffResult, value!, gradient!
     using Zygote
 else
     using ..NormalizingFlows
@@ -15,8 +15,8 @@ function NormalizingFlows.value_and_gradient!(
 ) where {T<:Real}
     y, back = Zygote.pullback(f, θ)
     ∇θ = back(one(T))
-    DiffResults.value!(out, y)
-    DiffResults.gradient!(out, first(∇θ))
+    value!(out, y)
+    gradient!(out, first(∇θ))
     return out
 end
 

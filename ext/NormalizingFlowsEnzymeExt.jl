@@ -14,8 +14,8 @@ function NormalizingFlows.value_and_gradient!(
     ad::AutoEnzyme, f, θ::AbstractVector{T}, out::MutableDiffResult
 ) where {T<:Real}
     y = f(θ)
-    DiffResults.value!(out, y)
-    ∇θ = DiffResults.gradient(out)
+    value!(out, y)
+    ∇θ = gradient(out)
     fill!(∇θ, zero(T))
     Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ))
     return out
