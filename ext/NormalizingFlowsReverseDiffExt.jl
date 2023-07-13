@@ -6,6 +6,7 @@ if isdefined(Base, :get_extension)
     using ReverseDiff
 else
     using ..NormalizingFlows
+    using ..NormalizingFlows: AutoReverseDiff, MutableDiffResult
     using ..ReverseDiff
 end
 

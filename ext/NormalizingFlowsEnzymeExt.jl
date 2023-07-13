@@ -7,6 +7,7 @@ if isdefined(Base, :get_extension)
 else
     using ..Enzyme
     using ..NormalizingFlows
+    using ..NormalizingFlows: AutoEnzyme, MutableDiffResult, value!, gradient
 end
 
 # Enzyme doesn't support f::Bijectors (see https://github.com/EnzymeAD/Enzyme.jl/issues/916)

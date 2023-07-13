@@ -6,6 +6,7 @@ if isdefined(Base, :get_extension)
     using Zygote
 else
     using ..NormalizingFlows
+    using ..NormalizingFlows: AutoZygote, MutableDiffResult, value!, gradient!
     using ..Zygote
 end
 

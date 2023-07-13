@@ -7,6 +7,7 @@ if isdefined(Base, :get_extension)
 else
     using ..ForwardDiff
     using ..NormalizingFlows
+    using ..NormalizingFlows: AutoForwardDiff, MutableDiffResult
 end
 
 # extract chunk size from AutoForwardDiff
