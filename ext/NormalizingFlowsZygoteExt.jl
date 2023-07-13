@@ -1,19 +1,19 @@
 module NormalizingFlowsZygoteExt
 
 if isdefined(Base, :get_extension)
-    using Zygote
-    using NormalizingFlows: value_and_gradient!
     using ADTypes
     using DiffResults
+    using NormalizingFlows
+    using Zygote
 else
-    using ..Zygote
-    using ..NormalizingFlows: value_and_gradient!
     using ..ADTypes
     using ..DiffResults
+    using ..NormalizingFlows
+    using ..Zygote
 end
 
 @info "loading zygote ext"
-function value_and_gradient!(
+function NormalizingFlows.value_and_gradient!(
     ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
     y, back = Zygote.pullback(f, θ)
