@@ -3,6 +3,7 @@ using ADTypes
 using Optimisers
 using FunctionChains
 using NormalizingFlows
+using Zygote
 using Flux: f32
 using Plots
 include("../common.jl")
