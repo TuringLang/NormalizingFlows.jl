@@ -16,7 +16,7 @@ distribution "N(0, diag(σ₁, σ₂))". The transformation ϕ(x) is defined as
 "ϕ(x₁, x₂) = (r*cos(θ + r/2), r*sin(θ + r/2))", 
 where "r = sqrt(x₁² + x₂²)", "θ = atan(x₂, x₁)", 
 and "atan(y, x) ∈ [-π, π]" is the angle, in radians, between the positive x axis and the 
-ray to the point "(x, y)".
+ray to the point "(x, y)". See page 18. of [1] for reference.
 
 
 # Reference
