@@ -70,7 +70,8 @@ end
 function Distributions._rand!(rng::AbstractRNG, p::WarpedGauss, x::AbstractVecOrMat)
     size(x, 1) == 2 || error("Dimension mismatch")
     σ₁, σ₂ = p.σ₁, p.σ₂
-    randn!(rng, x) .* [σ₁, σ₂]
+    randn!(rng, x)
+    x .*= [σ₁, σ₂]
     for y in eachcol(x)
         ϕ!(p, y)
     end
