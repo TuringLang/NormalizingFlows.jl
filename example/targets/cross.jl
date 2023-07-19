@@ -17,7 +17,8 @@ shape that is symmetric about the y- and x-axises. The mixture is defined as
 where "μ" and "σ" are the mean and standard deviation of the Gaussian components, 
 respectively. See an example of the Cross distribution in Page 18 of [1].
 
-
+# Fields
+$(FIELDS)
 
 # Reference
 [1] Zuheng Xu, Naitong Chen, Trevor Campbell
