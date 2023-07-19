@@ -1,0 +1,41 @@
+using Distributions, Random
+
+"""
+    Cross{T<:Real}
+
+2-dimensional Cross distribution
+
+
+# Explanation
+
+The Cross distribution is a 2-dimension 4-component Gaussian distribution with a "Cross" shape.
+
+
+# Reference
+[1] Zuheng Xu, Naitong Chen, Trevor Campbell
+"MixFlows: principled variational inference via mixed flows."
+International Conference on Machine Learning, 2023
+
+"""
+struct Cross{T<:Real} <: ContinuousMultivariateDistribution
+    μ::T          # mean of one component
+    σ::T          # sd of one component
+    function Cross{T}(μ::T, σ::T) where {T<:Real}
+        σ > 0 || error("SD must be > 0")
+        return new{T}(μ, σ)
+    end
+end
+Cross(μ::T, σ::T) where {T<:Real} = Cross{T}(μ, σ)
+Cross() = Cross(2.0, 0.15)
+function Cross(μ::T, σ::T) where {T<:Real}
+    return MixtureModel([
+        MvNormal([zero(μ), μ], [σ, one(σ)]),
+        MvNormal([-μ, one(μ)], [one(σ), σ]),
+        MvNormal([μ, one(μ)], [one(σ), σ]),
+        MvNormal([zero(μ), -μ], [σ, one(σ)]),
+    ])
+end
+
+Base.length(p::Cross) = 2
+Base.eltype(p::Cross{T}) where {T<:Real} = T
+Distributions.sampler(p::Cross) = p

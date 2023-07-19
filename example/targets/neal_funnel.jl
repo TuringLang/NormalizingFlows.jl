@@ -25,7 +25,6 @@ The generative process is given by
 [1] Stan User’s Guide: 
 https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html#ref-Neal:2003
 [2] Radford Neal 2003. “Slice Sampling.” Annals of Statistics 31 (3): 705–67.
-
 """
 struct Funnel{T<:Real} <: ContinuousMultivariateDistribution
     dim::Int      # Dimension
