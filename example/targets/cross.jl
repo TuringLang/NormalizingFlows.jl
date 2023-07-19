@@ -1,5 +1,4 @@
 using Distributions, Random
-
 """
     Cross{T<:Real}
 
@@ -8,22 +7,27 @@ using Distributions, Random
 
 # Explanation
 
-The Cross distribution is a 2-dimension 4-component Gaussian distribution with a "Cross" 
+The Cross distribution is a 2-dimension 4-component Gaussian distribution with a "cross" 
 shape that is symmetric about the y- and x-axises. The mixture is defined as
-"p(x) = 0.25* N(x | (0, μ), (σ, 1)) + 
-    0.25* N(x | (μ, 0), (1, σ)) + 
-    0.25* N(x | (0, -μ), (σ, 1)) + 
-    0.25* N(x | (-μ, 0), (1, σ)))"
-where "μ" and "σ" are the mean and standard deviation of the Gaussian components, 
-respectively. See an example of the Cross distribution in Page 18 of [1].
 
+```math
+\begin{aligned}
+p(x) =
+& 0.25 \mathcal{N}(x | (0, \mu), (\sigma, 1)) + \\
+& 0.25 \mathcal{N}(x | (\mu, 0), (1, \sigma)) + \\
+& 0.25 \mathcal{N}(x | (0, -\mu), (\sigma, 1)) + \\
+& 0.25 \mathcal{N}(x | (-\mu, 0), (1, \sigma)))
+\end{aligned}
+```
+
+where ``μ`` and ``σ`` are the mean and standard deviation of the Gaussian components, 
+respectively. See an example of the Cross distribution in Page 18 of [1].
 
 
 # Reference
 [1] Zuheng Xu, Naitong Chen, Trevor Campbell
 "MixFlows: principled variational inference via mixed flows."
 International Conference on Machine Learning, 2023
-
 """
 struct Cross{T<:Real} <: ContinuousMultivariateDistribution
     μ::T          # mean of one component
