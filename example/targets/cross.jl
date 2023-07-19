@@ -26,8 +26,10 @@ International Conference on Machine Learning, 2023
 
 """
 struct Cross{T<:Real} <: ContinuousMultivariateDistribution
-    μ::T          # mean of one component
-    σ::T          # sd of one component
+    "component mean"
+    μ::T
+    "component standard deviation"
+    σ::T
     function Cross{T}(μ::T, σ::T) where {T<:Real}
         σ > 0 || error("SD must be > 0")
         return new{T}(μ, σ)
