@@ -1,8 +1,7 @@
 using Flux
 using Functors
 using Bijectors
-using Bijectors: ∘, partition, combine, PartitionMask
-import Bijectors: transform, with_logabsdet_jacobian, logabsdetjac
+using Bijectors: partition, combine, PartitionMask
 
 """
 Affinecoupling layer for RealNVP "(http://proceedings.mlr.press/v118/fjelde20a/fjelde20a.pdf)"
