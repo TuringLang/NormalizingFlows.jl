@@ -71,8 +71,6 @@ function Random.rand(rng::AbstractRNG, d::BatchDistributionWrapper{D, T}) where 
     return x
 end
 
-rand(gpu(d))
-
 function Distributions.logpdf(d::BatchDistributionWrapper{D, T}, x::AbstractArray) where {D, T}
     dists = D.(d.parameters...)
     return reshape(map(logpdf, dists, x), d.batch_shape)
