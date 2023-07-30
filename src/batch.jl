@@ -59,7 +59,7 @@ function Random.rand(rng::AbstractRNG, d::BatchDistributionWrapper{D, T}) where 
     rand!(x)
     x .*= σ
     x .+= μ
-    return reshape(x, d.batch_shape)
+    return x
 end
 
 function Random.rand(rng::AbstractRNG, d::BatchDistributionWrapper{D, T}) where {D<:Normal, T<:CuArray}
@@ -68,8 +68,10 @@ function Random.rand(rng::AbstractRNG, d::BatchDistributionWrapper{D, T}) where 
     CUDA.rand!(x)
     x .*= σ
     x .+= μ
-    return reshape(x, d.batch_shape)
+    return x
 end
+
+rand(gpu(d))
 
 function Distributions.logpdf(d::BatchDistributionWrapper{D, T}, x::AbstractArray) where {D, T}
     dists = D.(d.parameters...)
