@@ -1,8 +1,8 @@
 @testset "learining 2d Gaussian" begin
-    chuncksize = 4
+    chunksize = 4
     @testset "$adtype" for adtype in [
         ADTypes.AutoZygote(),
-        ADTypes.AutoForwardDiff(; chunksize=chuncksize),
+        ADTypes.AutoForwardDiff(; chunksize=chunksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
         # ADTypes.AutoEnzyme(), # doesn't work for Enzyme

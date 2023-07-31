@@ -3,11 +3,11 @@
 
     @testset "$T" for T in [Float32, Float64]
         x = randn(T, 10)
-        chuncksize = size(x, 1)
+        chunksize = size(x, 1)
 
         @testset "$at" for at in [
             ADTypes.AutoZygote(),
-            ADTypes.AutoForwardDiff(; chuncksize=chuncksize),
+            ADTypes.AutoForwardDiff(; chunksize=chunksize),
             ADTypes.AutoForwardDiff(),
             ADTypes.AutoReverseDiff(false),
             ADTypes.AutoEnzyme(),
