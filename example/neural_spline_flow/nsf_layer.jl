@@ -31,8 +31,8 @@ function NeuralSplineLayer(
     w = [MLP_3layer(input_dims, hdims, K) for i in 1:num_of_transformed_dims]
     h = [MLP_3layer(input_dims, hdims, K) for i in 1:num_of_transformed_dims]
     d = [MLP_3layer(input_dims, hdims, K - 1) for i in 1:num_of_transformed_dims]
-    mask = Bijectors.PartitionMask(D, mask_idx)
-    return NeuralSplineLayer(D, mask, w, h, d, B)
+    mask = Bijectors.PartitionMask(dim, mask_idx)
+    return NeuralSplineLayer(dim, mask, w, h, d, B)
 end
 
 @functor NeuralSplineLayer (w, h, d)
@@ -63,7 +63,7 @@ function Bijectors.transform(
     y1, y2, y3 = partition(nsl.mask, y)
     rqs = instantiate_rqs(nsl, y2)
     x1 = transform(Inverse(rqs), y1)
-    return combine(nsl.mask, x1, y2, y3)
+    return Bijectors.combine(nsl.mask, x1, y2, y3)
 end
 
 function (nsl::NeuralSplineLayer{<:Vector{<:Flux.Chain}})(x::AbstractVector)
