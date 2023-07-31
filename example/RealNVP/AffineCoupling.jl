@@ -73,3 +73,34 @@ function Bijectors.logabsdetjac(af::AffineCoupling, x::AbstractVector)
     logjac = sum(log ∘ abs, af.s(x_2))
     return logjac
 end
+
+################### 
+# a equivalent definition of AffineCoupling using Bijectors.Coupling 
+# (see https://github.com/TuringLang/Bijectors.jl/blob/74d52d4eda72a6149b1a89b72524545525419b3f/src/bijectors/coupling.jl#L188C1-L188C1)
+###################
+
+# struct AffineCoupling <: Bijectors.Bijector
+#     dim::Int
+#     mask::Bijectors.PartitionMask
+#     s::Flux.Chain
+#     t::Flux.Chain
+# end
+
+# # let params track field s and t
+# @functor AffineCoupling (s, t)
+
+# function AffineCoupling(dim, mask, s, t)
+#     return Bijectors.Coupling(θ -> Bijectors.Shift(t(θ)) ∘ Bijectors.Scale(s(θ)), mask)
+# end
+
+# function AffineCoupling(
+#     dim::Int,  # dimension of input
+#     hdims::Int, # dimension of hidden units for s and t
+#     mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
+# )
+#     cdims = length(mask_idx) # dimension of parts used to construct coupling law
+#     s = MLP_3layer(cdims, hdims, cdims)
+#     t = MLP_3layer(cdims, hdims, cdims)
+#     mask = PartitionMask(dim, mask_idx)
+#     return AffineCoupling(dim, mask, s, t)
+# end
