@@ -2,7 +2,7 @@
     chuncksize = 4
     @testset "$adtype" for adtype in [
         ADTypes.AutoZygote(),
-        ADTypes.AutoForwardDiff(chuncksize),
+        ADTypes.AutoForwardDiff(; chunksize=chuncksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
         # ADTypes.AutoEnzyme(), # doesn't work for Enzyme
