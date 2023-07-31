@@ -3,12 +3,14 @@ using Functors
 using Bijectors
 using Bijectors: partition, combine, PartitionMask
 
+include("../util.jl")
+
 """
 Affinecoupling layer for RealNVP "(http://proceedings.mlr.press/v118/fjelde20a/fjelde20a.pdf)"
 """
 struct AffineCoupling <: Bijectors.Bijector
-    D::Int
-    Mask::Bijectors.PartitionMask
+    dim::Int
+    mask::Bijectors.PartitionMask
     s::Flux.Chain
     t::Flux.Chain
 end
@@ -17,29 +19,29 @@ end
 @functor AffineCoupling (s, t)
 
 function AffineCoupling(
-    D::Int,  # dimension of input
+    dim::Int,  # dimension of input
     hdims::Int, # dimension of hidden units for s and t
     mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
 )
-    cdims = D ÷ 2 # D is even (and D ≥ 4 since PartitionMask requires D ≥ 3)
-    s = Chain(
-        Flux.Dense(cdims, hdims, leakyrelu),
-        Flux.Dense(hdims, hdims, leakyrelu),
-        Flux.Dense(hdims, cdims),
-    )
-    t = Chain(
-        Flux.Dense(cdims, hdims, leakyrelu),
-        Flux.Dense(hdims, hdims, leakyrelu),
-        Flux.Dense(hdims, cdims),
-    )
-    Mask = Bijectors.PartitionMask(D, mask_idx)
-    return AffineCoupling(D, Mask, s, t)
+    cdims = length(mask_idx) # dimension of parts used to construct coupling law
+    s = MLP_3layer(cdims, hdims, cdims)
+    t = MLP_3layer(cdims, hdims, cdims)
+    mask = Bijectors.PartitionMask(dim, mask_idx)
+    return AffineCoupling(dim, mask, s, t)
 end
 
+## scaling parameterize using exp
+# function Bijectors.transform(af::AffineCoupling, x::AbstractVector)
+#     # partition vector using 'af.mask::PartitionMask`
+#     x₁, x₂, x₃ = Bijectors.partition(af.Mask, x)
+#     y₁ = x₁ .* exp.(af.s(x₂)) .+ af.t(x₂)
+#     return Bijectors.combine(af.mask, y₁, x₂, x₃)
+# end
+
 function Bijectors.transform(af::AffineCoupling, x::AbstractVector)
-    # partition vector using 'af.Mask::PartitionMask`
+    # partition vector using 'af.mask::PartitionMask`
     x₁, x₂, x₃ = Bijectors.partition(af.Mask, x)
-    y₁ = x₁ .* exp.(af.s(x₂)) .+ af.t(x₂)
+    y₁ = x₁ .* af.s(x₂) .+ af.t(x₂)
     return Bijectors.combine(af.Mask, y₁, x₂, x₃)
 end
 
@@ -48,19 +50,10 @@ function (af::AffineCoupling)(x::AbstractArray)
 end
 
 function Bijectors.with_logabsdet_jacobian(af::AffineCoupling, x::AbstractVector)
-    x_1, x_2, x_3 = Bijectors.partition(af.Mask, x)
+    x_1, x_2, x_3 = Bijectors.partition(af.mask, x)
     y_1 = exp.(af.s(x_2)) .* x_1 .+ af.t(x_2)
-    logjac = sum(af.s(x_2))  # logabsdetjac of exp is simply the argument
-    return combine(af.Mask, y_1, x_2, x_3), logjac
-end
-
-function Bijectors.transform(iaf::Inverse{<:AffineCoupling}, y::AbstractVector)
-    af = iaf.orig
-    # partition vector using `af.mask::PartitionMask`
-    y_1, y_2, y_3 = partition(af.Mask, y)
-    # inverse transformation
-    x_1 = (y_1 .- af.t(y_2)) .* exp.(-af.s(y_2))
-    return combine(af.Mask, x_1, y_2, y_3)
+    logjac = sum(log ∘ abs, af.s(x_2))  # logabsdetjac of exp is simply the argument
+    return combine(af.mask, y_1, x_2, x_3), logjac
 end
 
 function Bijectors.with_logabsdet_jacobian(
@@ -82,7 +75,7 @@ function Bijectors.logabsdetjac(af::AffineCoupling, x::AbstractVector)
 end
 
 # # test invertibility
-# Ls = [
+# Ls =  [
 #     AffineCoupling(4, 8, 1:2),
 #     AffineCoupling(4, 8, 3:4),
 #     AffineCoupling(4, 8, 1:2),

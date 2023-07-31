@@ -3,6 +3,7 @@ using Functors
 using Bijectors
 using Bijectors: partition, PartitionMask
 
+include("../util.jl")
 """
 Neural Rational quadratic Spline layer 
 
@@ -16,14 +17,6 @@ struct NeuralSplineLayer{T1,T2,A<:AbstractVecOrMat{T1}} <: Bijectors.Bijector
     h::A # height 
     d::A # derivative of the knots
     B::T2 # bound of the knots
-end
-
-function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
-    return Chain(
-        Flux.Dense(input_dim, hdims, activation),
-        Flux.Dense(hdims, hdims, activation),
-        Flux.Dense(hdims, output_dim),
-    )
 end
 
 function NeuralSplineLayer(
@@ -82,8 +75,8 @@ function Bijectors.logabsdetjac(
     nsl::NeuralSplineLayer{<:Vector{<:Flux.Chain}}, x::AbstractVector
 )
     x_1, x_2, x_3 = Bijectors.partition(nsl.mask, x)
-    Rqs = instantiate_rqs(nsl, x_2)
-    logjac = logabsdetjac(Rqs, x_1)
+    rqs = instantiate_rqs(nsl, x_2)
+    logjac = logabsdetjac(rqs, x_1)
     return logjac
 end
 
