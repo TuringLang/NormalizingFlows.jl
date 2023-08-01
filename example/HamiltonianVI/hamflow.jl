@@ -56,6 +56,7 @@ struct CoresetScore{T<:AbstractVector} <: TrainableScore
     "weighted coreset score function of the target, ∇logpw(w, x)"
     ∇logpw
 end
+@functor CoresetScore (w,)
 
 struct SurrogateLeapFrog{T<:Real,I<:Int,H<:Union{TrainableScore,Flux.Chain}} <:
        Bijectors.Bijector
