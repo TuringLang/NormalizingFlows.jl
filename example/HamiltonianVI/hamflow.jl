@@ -6,7 +6,7 @@ using SimpleUnPack: @unpack
 struct LeapFrog{T<:Real,I<:Int} <: Bijectors.Bijector
     "dimention of the target space"
     dim::I
-    "leapfrpg step size"
+    "leapfrog step size"
     ϵ::AbstractVector{T}
     "number of leapfrog steps"
     L::I
@@ -19,6 +19,11 @@ end
 
 function LeapFrog(dim::Int, ϵ::AbstractVector{T}, L::Int, ∇logp, ∇logm)
     return LeapFrog(dim, ϵ .* one.(ϵ), L, ∇logp, ∇logm)
+end
+
+function Bijectors.inverse(lf::LeapFrog)
+    @unpack d, ϵ, L, ∇logp, ∇logm = lf
+    return LeapFrog(d, -ϵ, L, ∇logp, ∇logm)
 end
 
 function Bijectors.transform(lf::LeapFrog, z::AbstractVector)
@@ -40,15 +45,28 @@ end
 # leapfrog composes shear transformations, hence has unit jacobian 
 Bijector.logabsdetjac(lf::LeapFrog, z::AbstractVector) = zero(eltype(z))
 
-struct SurrogateLeapFrog{T<:Real,I<:Int} <: Bijectors.Bijector
+function Bijectors.with_logabsdet_jacobian(lf::LeapFrog, z::AbstractVector)
+    return Bijectors.transform(lf, z), zero(eltype(z))
+end
+
+abstract type TrainableScore end
+struct CoresetScore{T<:AbstractVector} <: TrainableScore
+    "coreset weights"
+    w::T
+    "weighted coreset score function of the target, ∇logpw(w, x)"
+    ∇logpw
+end
+
+struct SurrogateLeapFrog{T<:Real,I<:Int,H<:Union{TrainableScore,Flux.Chain}} <:
+       Bijectors.Bijector
     "dimention of the target space"
     dim::I
-    "leapfrpg step size"
+    "leapfrog step size"
     ϵ::AbstractVector{T}
     "number of leapfrog steps"
     L::I
     "trainable surrogate of the score of the target distribution, e.g., coreset score or some neural net"
-    ∇S
+    ∇S::H
     "score of the momentum distribution"
     ∇logm
 end
@@ -57,6 +75,11 @@ end
 
 function SurrogateLeapFrog(dim::Int, ϵ::AbstractVector{T}, L::Int, ∇S, ∇logm)
     return SurrogateLeapFrog(dim, ϵ .* one.(ϵ), L, ∇S, ∇logm)
+end
+
+function Bijectors.inverse(slf::SurrogateLeapFrogeapFrog)
+    @unpack d, ϵ, L, ∇S, ∇logm = slf
+    return SurrogateLeapFrog(d, -ϵ, L, ∇S, ∇logm)
 end
 
 function Bijectors.transform(slf::SurrogateLeapFrog, z::AbstractVector)
@@ -77,3 +100,7 @@ end
 
 # leapfrog composes shear transformations, hence has unit jacobian 
 Bijector.logabsdetjac(slf::SurrogateLeapFrog, z::AbstractVector) = zero(eltype(z))
+
+function Bijectors.with_logabsdet_jacobian(slf::SurrogateLeapFrog, z::AbstractVector)
+    return Bijectors.transform(slf, z), zero(eltype(z))
+end
