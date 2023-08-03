@@ -10,7 +10,6 @@ else
     using ..Zygote
 end
 
-@info "loading zygote ext"
 function NormalizingFlows.value_and_gradient!(
     ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}
