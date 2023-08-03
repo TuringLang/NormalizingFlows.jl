@@ -123,7 +123,7 @@ function optimize(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     ),
 )
-    opt_stats = Vector(undef, max_iters)
+    opt_stats = []
 
     θ = copy(θ₀)
     diff_result = DiffResults.GradientResult(θ)
@@ -141,7 +141,7 @@ function optimize(
         ls = DiffResults.value(diff_result)
         g = DiffResults.gradient(diff_result)
         stat = (iteration=i, loss=ls, gradient_norm=norm(g))
-        opt_stats[i] = stat
+        push!(opt_stats, stat)
 
         # callback
         if !isnothing(callback)
@@ -159,5 +159,5 @@ function optimize(
     end
 
     # return status of the optimiser for potential continuation of training
-    return θ, map(identity, opt_stats[1:(i - 1)]), st
+    return θ, map(identity, opt_stats), st
 end
