@@ -12,54 +12,6 @@ The function `f` must return a scalar value. The gradient is stored in `out` as 
 vector of the same length as `θ`.
 """
 function value_and_gradient! end
-# TODO: Make these definitions extensions to avoid loading unneecssary packages.
-# zygote
-function value_and_gradient!(
-    ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    y, back = Zygote.pullback(f, θ)
-    ∇θ = back(one(T))
-    DiffResults.value!(out, y)
-    DiffResults.gradient!(out, first(∇θ))
-    return out
-end
-
-# ForwardDiff
-# extract chunk size from AutoForwardDiff
-getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
-function value_and_gradient!(
-    ad::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    chunk_size = getchunksize(ad)
-    config = if isnothing(chunk_size)
-        ForwardDiff.GradientConfig(f, θ)
-    else
-        ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
-    end
-    ForwardDiff.gradient!(out, f, θ, config)
-    return out
-end
-
-# ReverseDiff without compiled tape
-function value_and_gradient!(
-    ad::ADTypes.AutoReverseDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    tp = ReverseDiff.GradientTape(f, θ)
-    ReverseDiff.gradient!(out, tp, θ)
-    return out
-end
-
-# Enzyme  
-function value_and_gradient!(
-    ad::ADTypes.AutoEnzyme, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
-    y = f(θ)
-    DiffResults.value!(out, y)
-    ∇θ = DiffResults.gradient(out)
-    fill!(∇θ, zero(T))
-    Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ))
-    return out
-end
 
 """
     grad!(
@@ -144,6 +96,8 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
   which returns a dictionary-like object of statistics to be displayed in the progress bar.
   re and θ are used for reconstructing the normalizing flow in case that user 
   want to further axamine the status of the flow.
+- `hasconverged = (iter, opt_stats, re, θ, st) -> false`: function that checks whether the
+  training has converged. The default is to always return false.
 - `prog=ProgressMeter.Progress(
             max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
         )`: progress bar configuration
@@ -164,26 +118,30 @@ function optimize(
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
     show_progress::Bool=true,
     callback=nothing,
+    hasconverged=(i, stats, re, θ, st) -> false,
     prog=ProgressMeter.Progress(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     ),
 )
-    opt_stats = Vector(undef, max_iters)
+    opt_stats = []
 
     θ = copy(θ₀)
     diff_result = DiffResults.GradientResult(θ)
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
-    # TODO: Add support for general `hasconverged(...)` approach to allow early termination.
-    time_elapsed = @elapsed for i in 1:max_iters
+    # general `hasconverged(...)` approach to allow early termination.
+    converged = false
+    i = 1
+    time_elapsed = @elapsed while (i ≤ max_iters) && !converged
+        # Compute gradient and objective value; results are stored in `diff_results`
         grad!(rng, ad, vo, θ, re, diff_result, args...)
 
-        # save stats
+        # Save stats
         ls = DiffResults.value(diff_result)
         g = DiffResults.gradient(diff_result)
         stat = (iteration=i, loss=ls, gradient_norm=norm(g))
-        opt_stats[i] = stat
+        push!(opt_stats, stat)
 
         # callback
         if !isnothing(callback)
@@ -193,6 +151,10 @@ function optimize(
 
         # update optimiser state and parameters
         st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
+
+        # check convergence
+        i += 1
+        converged = hasconverged(i, stat, re, θ, st)
         pm_next!(prog, stat)
     end
 
