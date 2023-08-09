@@ -27,9 +27,12 @@ https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html#r
 [2] Radford Neal 2003. “Slice Sampling.” Annals of Statistics 31 (3): 705–67.
 """
 struct Funnel{T<:Real} <: ContinuousMultivariateDistribution
-    dim::Int      # Dimension
-    μ::T          # Mean of the first dimension
-    σ::T          # sd of the first dimension
+    "Dimension of the distribution, must be >= 2"
+    dim::Int
+    "Mean of the first dimension"
+    μ::T
+    "Standard deviation of the first dimension, must be > 0"
+    σ::T
     function Funnel{T}(dim::Int, μ::T, σ::T) where {T<:Real}
         dim >= 2 || error("dim must be >= 2")
         σ > 0 || error("σ must be > 0")
