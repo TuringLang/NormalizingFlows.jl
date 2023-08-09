@@ -8,10 +8,7 @@ using IrrationalConstants
 Multidimensional banana-shape distribution.
 
 # Fields 
-- 'dim::Int': Dimension of the distribution, must be >= 2
-- 'b::T': Banananicity constant, the larger "|b|" the more curved the banana
-- 'var::T': Variance of the first dimension, must be > 0
-
+$(FIELDS)
 
 # Explanation
 
@@ -33,8 +30,11 @@ Gareth O. Roberts and Jeffrey S. Rosenthal
 Journal of computational and graphical statistics, Volume 18, Number 2 (2009): 349-367.
 """
 struct Banana{T<:Real} <: ContinuousMultivariateDistribution
+    "Dimension of the distribution, must be >= 2"
     dim::Int      # Dimension
+    "Banananicity constant, the larger |b| the more curved the banana"
     b::T          # Curvature
+    "Variance of the first dimension, must be > 0"
     var::T        # Variance
     function Banana{T}(dim::Int, b::T, var::T) where {T<:Real}
         dim >= 2 || error("dim must be >= 2")
