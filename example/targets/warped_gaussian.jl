@@ -6,15 +6,16 @@ using Distributions, Random, LinearAlgebra, IrrationalConstants
 2-dimensional warped Gaussian distribution
 
 # Fields 
-- 'σ₁::T': Standard deviation of the first dimension, must be > 0
-- 'σ₂::T': Standard deviation of the second dimension, must be > 0 
+$(FIELDS)
 
 # Explanation
 
 The banana distribution is obtained by applying a transformation ϕ to a 2-dimensional normal 
-distribution "N(0, diag(σ₁, σ₂))". The transformation ϕ(x) is defined as
-"ϕ(x₁, x₂) = (r*cos(θ + r/2), r*sin(θ + r/2))", 
-where "r = sqrt(x₁² + x₂²)", "θ = atan(x₂, x₁)", 
+distribution ``\\mathcal{N}(0, diag(\\sigma_1, \\sigma_2))``. The transformation ϕ(x) is defined as
+```math
+ϕ(x_1, x_2) = (r*\cos(\theta + r/2), r*\sin(\theta + r/2)), 
+```
+where ``r = \\sqrt{x\_1^2 + x_2^2}``, ``\\theta = \\atan(x₂, x₁)``, 
 and "atan(y, x) ∈ [-π, π]" is the angle, in radians, between the positive x axis and the 
 ray to the point "(x, y)". See page 18. of [1] for reference.
 
@@ -25,15 +26,17 @@ ray to the point "(x, y)". See page 18. of [1] for reference.
 International Conference on Machine Learning, 2023
 """
 struct WarpedGauss{T<:Real} <: ContinuousMultivariateDistribution
-    σ₁::T          # sd of the first dimension
-    σ₂::T          # sd of the second dimension   
-    function WarpedGauss{T}(σ₁, σ₂) where {T<:Real}
-        σ₁ > 0 || error("σ₁ must be > 0")
-        σ₂ > 0 || error("σ₂ must be > 0")
-        return new{T}(σ₁, σ₂)
+    "Standard deviation of the first dimension, must be > 0"
+    σ1::T
+    "Standard deviation of the second dimension, must be > 0"
+    σ2::T
+    function WarpedGauss{T}(σ1, σ2) where {T<:Real}
+        σ1 > 0 || error("σ₁ must be > 0")
+        σ2 > 0 || error("σ₂ must be > 0")
+        return new{T}(σ1, σ2)
     end
 end
-WarpedGauss(σ₁::T, σ₂::T) where {T<:Real} = WarpedGauss{T}(σ₁, σ₂)
+WarpedGauss(σ1::T, σ2::T) where {T<:Real} = WarpedGauss{T}(σ1, σ2)
 WarpedGauss() = WarpedGauss(1.0, 0.12)
 
 Base.length(p::WarpedGauss) = 2

@@ -12,11 +12,13 @@ $(FIELDS)
 
 The Neal's Funnel distribution is a p-dimensional distribution with a funnel shape, 
 originally proposed by Radford Neal in [2]. 
-The marginal distribution of "x₁" is Gaussian with mean "μ" and standard
-deviation "σ". The conditional distribution of "x₂, …, xₚ" given "x₁" is independent 
-Gaussian distribution with mean 0 and standard deviation "exp(x₁/2)". 
+The marginal distribution of ``x_1`` is Gaussian with mean "μ" and standard
+deviation "σ". The conditional distribution of ``x_2, \dots, x_p | x_1`` are independent 
+Gaussian distributions with mean 0 and standard deviation ``\\exp(x_1/2)``. 
 The generative process is given by
-"x₁ ∼ N(μ, σ²), x₂, ..., xₚ ∼ N(0, exp(x₁))"
+```math
+x_1 \sim \mathcal{N}(\mu, \sigma^2), \quad x_2, \ldots, x_p \sim \mathcal{N}(0, \exp(x_1))
+```
 
 
 # Reference
