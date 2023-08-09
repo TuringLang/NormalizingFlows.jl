@@ -6,9 +6,7 @@ using Distributions, Random
 Multidimensional Neal's Funnel distribution
 
 # Fields 
-- 'dim::Int': Dimension of the distribution, must be >= 2
-- 'μ::T': Mean of the first dimension
-- 'σ::T': Standard deviation of the first dimension, must be > 0
+$(FIELDS)
 
 # Explanation
 
