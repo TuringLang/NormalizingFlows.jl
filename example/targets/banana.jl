@@ -13,14 +13,20 @@ $(FIELDS)
 # Explanation
 
 The banana distribution is obtained by applying a transformation ϕ to a multivariate normal 
-distribution "N(0, diag(var, 1, 1, …, 1))". The transformation ϕ is defined as
-"ϕ(x₁, … , xₚ) = (x₁, x₂ - B x₁² + var*B, x₃, … , xₚ)", 
+distribution ``\\mathcal{N}(0, \\text{diag}(var, 1, 1, …, 1))``. The transformation ϕ is defined as
+```math
+\phi(x_1, … , x_p) = (x_1, x_2 - B x_1^² + \text{var}*B, x_3, … , x_p)
+````
 which has a unit Jacobian determinant.
 
 Hence the density "fb" of a p-dimensional banana distribution is given by
-"fb(x₁, … , xₚ) = exp[ -½x₁²/var - ½(x₂ + B x₁² - var*B)² - ½(x₃² + x₄² + … + xₚ²)] / Z",
+```math
+fb(x_1, \dots, x_p) = \exp\left[ -\frac{1}{2}\frac{x_1^2}{\text{var}} -
+\frac{1}{2}(x_2 + B x_1^2 - \text{var}*B)^2 - \frac{1}{2}(x_3^2 + x_4^2 + \dots
++ x_p^2) \right] / Z,
+```
 where "B" is the "banananicity" constant, determining the curvature of a banana, and   
-"Z = sqrt(var * (2π)^p))" is the normalization constant.
+``Z = \\sqrt{\\text{var} * (2\\pi)^p)}`` is the normalization constant.
 
 
 # Reference
