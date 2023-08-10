@@ -59,8 +59,8 @@ and
 $$
 \begin{aligned}
 \text{Forward KL:}\quad
-&\argmin _{\theta} \mathbb{E}_{p(z)}\left[\log q_{\theta}(z)-\log p(z)\right] \\
-&= \argmin _{\theta} \mathbb{E}_{p(z)}\left[\log q_\theta(z)\right] 
+&\argmin _{\theta} \mathbb{E}_{p}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
+&= \argmin _{\theta} \mathbb{E}_{p}\left[\log q_\theta(Z)\right] 
 \end{aligned}
 $$
 Both problems can be solved via standard stochastic optimization algorithms, such as stochastic gradient descent (SGD) and Adam.
@@ -69,5 +69,19 @@ Reverse KL minimization is typically used for **Bayesian computation**, where on
 wants to approximate a posterior distribution $p$ that is only known up to a
 normalizing constant. 
 In contrast, forward KL minimization is typically used for **generative modeling**, where one wants to approximate a complex distribution $p$ that is known up to a normalizing constant.
+
 ## Current status and TODOs
+
+- [x] general interface development
+- [ ] documentation
+- [ ] GPU support
+- [ ] including more flow examples
+- [ ] benchmarking
+
+## Related packages
+- [Bijectors.jl](https://github.com/TuringLang/Bijectors.jl): a package for defining bijective transformations, which can be used for defining customized flow layers.
+- [Flux.jl](https://fluxml.ai/Flux.jl/stable/)
+- [Optimisers.jl](https://github.com/FluxML/Optimisers.jl)
+- [AdvancedVI.jl](https://github.com/TuringLang/AdvancedVI.jl)
+
 
