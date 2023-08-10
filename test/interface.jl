@@ -1,8 +1,8 @@
 @testset "learining 2d Gaussian" begin
-    chuncksize = 4
+    chunksize = 4
     @testset "$adtype" for adtype in [
         ADTypes.AutoZygote(),
-        ADTypes.AutoForwardDiff(chuncksize),
+        ADTypes.AutoForwardDiff(; chunksize=chunksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
         # ADTypes.AutoEnzyme(), # doesn't work for Enzyme
@@ -19,6 +19,8 @@
             )
 
             sample_per_iter = 10
+            cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
+            checkconv(iter, stat, re, θ, st) = stat.gradient_norm < 1e-3
             flow_trained, stats, _ = train_flow(
                 elbo,
                 flow,
@@ -28,6 +30,8 @@
                 optimiser=Optimisers.ADAM(0.01 * one(T)),
                 ADbackend=adtype,
                 show_progress=false,
+                callback=cb,
+                hasconverged=checkconv,
             )
             θ, re = Optimisers.destructure(flow_trained)
 
