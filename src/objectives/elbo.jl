@@ -15,7 +15,7 @@ Compute the ELBO for a batch of samples `xs` from the reference distribution `fl
 # Arguments
 - `rng`: random number generator
 - `flow`: variational distribution to be trained. In particular 
-  "flow = transformed(q₀, T::Bijectors.Bijector)", 
+  `flow = transformed(q₀, T::Bijectors.Bijector)`, 
   q₀ is a reference distribution that one can easily sample and compute logpdf
 - `logp`: log-pdf of the target distribution (not necessarily normalized)
 - `xs`: samples from reference dist q₀
