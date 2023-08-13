@@ -14,7 +14,7 @@ makedocs(;
         "Home" => "index.md",
         "API" => "api.md",
         "Examples" => "example.md",
-        "Customize your own flow layer" => "custommized_layer.md",
+        "Customize your own flow layer" => "customized_layer.md",
     ],
 )
 

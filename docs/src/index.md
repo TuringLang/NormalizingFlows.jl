@@ -30,45 +30,61 @@ using NormalizingFlows
 
 ## Quick recap of normalizing flows
 Normalizing flows transform a simple reference distribution $q_0$ (sometimes known as base distribution) to 
-a complex distribution $q$ using invertible functions.
+a complex distribution $q_\theta$ using invertible functions with trainable parameter $\theta$, aiming to approximate a target distribution $p$.
+The approximation is achieved by minimizing some statistical distances between $q$ and $p$.
 
 In more details, given the base distribution, usually a standar Gaussian distribution, i.e., $q_0 = \mathcal{N}(0, I)$,
 we apply a series of parameterized invertible transformations (called flow layers), $T_{1, \theta_1}, \cdots, T_{N, \theta_k}$, yielding that
-$$
+```math
 Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim q_0,\quad  Z_N \sim q_{\theta}, 
-$$
-where $\theta = (\theta_1, \dots, \theta_N)$ is the parameter to be learned, and $q_{\theta}$ is the variational distribution (flow distribution). This describes **sampling procedure** of normalizing flows, which requires send draws through a forward pass of these flow layers.
+```
+where $\theta = (\theta_1, \dots, \theta_N)$ are the parameters to be learned,
+and $q_{\theta}$ is the transformed distribution (typically called as the
+variational distribution or the flow distribution). 
+This describes **sampling procedure** of normalizing flows, which requires
+sending draws through a forward pass of these flow layers.
 
-Since all the transformations are invertible (techinically diffeomorphic), we can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the change of variable formula:
-$$
-q_\theta(x)=\frac{q_0\left(T_1^{-1} \circ \cdots \circ T_N^{-1}(x)\right)}{\prod_{n=1}^N J_n\left(T_n^{-1} \circ \cdots \circ T_N^{-1}(x)\right)} \quad J_n(x)=\left|\operatorname{det} \nabla_x T_n(x)\right|.
-$$
+Since all the transformations are invertible (techinically diffeomorphic), we
+can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the
+change of variable formula:
+```math
+q_\theta(x)=\frac{q_0\left(T_1^{-1} \circ \cdots \circ
+T_N^{-1}(x)\right)}{\prod_{n=1}^N J_n\left(T_n^{-1} \circ \cdots \circ
+T_N^{-1}(x)\right)} \quad J_n(x)=\left|\operatorname{det} \nabla_x
+T_n(x)\right|.
+```
 Here we drop the subscript $\theta_n, n = 1, \dots, N$ for simplicity. 
 Density evaluation of normalizing flow requires computing the **inverse** and the
 **Jacobian determinant** of each flow layer.
 
-Given the feasibility of i.i.d. sampling and density evaluation, normalizing flows can be trained by minimizing some statistical distances to the target distribution $p$. The typical choice of the statistical distance is the forward and backward Kullback-Leibler (KL) divergence, which leads to the following optimization problems:
-$$
+Given the feasibility of i.i.d. sampling and density evaluation, normalizing
+flows can be trained by minimizing some statistical distances to the target
+distribution $p$. The typical choice of the statistical distance is the forward
+and reverse Kullback-Leibler (KL) divergence, which leads to the following
+optimization problems:
+```math
 \begin{aligned}
 \text{Reverse KL:}\quad
 &\argmin _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
 &= \argmin _{\theta} \mathbb{E}_{q_0}\left[\log \frac{q_\theta(T_N\circ \cdots \circ T_1(Z_0))}{p(T_N\circ \cdots \circ T_1(Z_0))}\right] \\
 &= \argmax _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(F_n \circ \cdots \circ F_1(X)\right)\right]
 \end{aligned}
-$$
+```
 and 
-$$
+```math
 \begin{aligned}
 \text{Forward KL:}\quad
 &\argmin _{\theta} \mathbb{E}_{p}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
 &= \argmin _{\theta} \mathbb{E}_{p}\left[\log q_\theta(Z)\right] 
 \end{aligned}
-$$
+```
 Both problems can be solved via standard stochastic optimization algorithms, such as stochastic gradient descent (SGD) and Adam.
 
-Reverse KL minimization is typically used for **Bayesian computation**, where one
-wants to approximate a posterior distribution $p$ that is only known up to a
-normalizing constant. 
-In contrast, forward KL minimization is typically used for **generative modeling**, where one wants to approximate a complex distribution $p$ that is known up to a normalizing constant.
+Reverse KL minimization is typically used for **Bayesian computation**, where one only
+has access to the log-(unnormalized)density of the target distribution $p$ (e.g., a Bayesian posterior distribution), 
+and hope to generate approximate samples from it.
+In contrast, forward KL minimization is typically used for **generative
+modeling**, where one is given a set of samples from the target distribution $p$ (e.g., images)
+and aims to learn the density or a generative process that outputs high quality samples.
 
 
