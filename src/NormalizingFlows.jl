@@ -21,7 +21,8 @@ Train the given normalizing flow `flow` by calling `optimize`.
 # Arguments
 - `rng::AbstractRNG`: random number generator
 - `vo`: variational objective
-- `flow`: normalizing flow to be trained
+- `flow`: normalizing flow to be trained, we recommend to define flow as
+`<:Bijectors.TransformedDistribution` 
 - `args...`: additional arguments for `vo`
 
 
