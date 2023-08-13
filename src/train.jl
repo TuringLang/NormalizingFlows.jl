@@ -33,7 +33,8 @@ The result is stored in `out`.
 
 # Arguments
 - `rng::AbstractRNG`: random number generator
-- `ad::ADTypes.AbstractADType`: automatic differentiation backend
+- `ad::ADTypes.AbstractADType`: automatic differentiation backend, currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, and `ADTypes.ReverseDiff()`. 
 - `vo`: variational objective
 - `θ_flat::AbstractVector{<:Real}`: flattened parameters of the normalizing flow
 - `reconstruct`: function that reconstructs the normalizing flow from the flattened parameters

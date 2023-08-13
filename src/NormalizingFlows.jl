@@ -28,12 +28,15 @@ Train the given normalizing flow `flow` by calling `optimize`.
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
-- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: automatic differentiation backend
-- `kwargs...`: additional keyword arguments for `optimize` (See `optimize`)
+- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: 
+    automatic differentiation backend, currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, and `ADTypes.ReverseDiff()`. 
+- `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
 - `flow_trained`: trained normalizing flow
-- `opt_stats`: statistics of the optimiser during the training process (See `optimize`)
+- `opt_stats`: statistics of the optimiser during the training process 
+    (See [`optimize`](@ref) for details)
 - `st`: optimiser state for potential continuation of training
 """
 function train_flow(vo, flow, args...; kwargs...)
