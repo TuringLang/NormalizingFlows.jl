@@ -63,7 +63,8 @@ $$
 &= \argmin _{\theta} \mathbb{E}_{p}\left[\log q_\theta(Z)\right] 
 \end{aligned}
 $$
-Both problems can be solved via standard stochastic optimization algorithms, such as stochastic gradient descent (SGD) and Adam.
+Both problems can be solved via standard stochastic optimization algorithms,
+such as stochastic gradient descent (SGD) and its variants.
 
 Reverse KL minimization is typically used for **Bayesian computation**, where one
 wants to approximate a posterior distribution $p$ that is only known up to a

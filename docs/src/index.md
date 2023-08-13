@@ -28,7 +28,8 @@ Then simply run the following command to use the package:
 using NormalizingFlows
 ```
 
-## Quick recap of normalizing flows
+## What are normalizing flows?
+
 Normalizing flows transform a simple reference distribution $q_0$ (sometimes known as base distribution) to 
 a complex distribution $q_\theta$ using invertible functions with trainable parameter $\theta$, aiming to approximate a target distribution $p$.
 The approximation is achieved by minimizing some statistical distances between $q$ and $p$.
@@ -78,13 +79,8 @@ and
 &= \argmin _{\theta} \mathbb{E}_{p}\left[\log q_\theta(Z)\right] 
 \end{aligned}
 ```
-Both problems can be solved via standard stochastic optimization algorithms, such as stochastic gradient descent (SGD) and Adam.
+Both problems can be solved via standard stochastic optimization algorithms,
+such as stochastic gradient descent (SGD) and its variants. 
 
-Reverse KL minimization is typically used for **Bayesian computation**, where one only
-has access to the log-(unnormalized)density of the target distribution $p$ (e.g., a Bayesian posterior distribution), 
-and hope to generate approximate samples from it.
-In contrast, forward KL minimization is typically used for **generative
-modeling**, where one is given a set of samples from the target distribution $p$ (e.g., images)
-and aims to learn the density or a generative process that outputs high quality samples.
 
 
