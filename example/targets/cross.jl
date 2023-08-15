@@ -51,7 +51,3 @@ function Cross(μ::T, σ::T) where {T<:Real}
         MvNormal([zero(μ), -μ], [σ, one(σ)]),
     ])
 end
-
-Base.length(p::Cross) = 2
-Base.eltype(p::Cross{T}) where {T<:Real} = T
-Distributions.sampler(p::Cross) = p
