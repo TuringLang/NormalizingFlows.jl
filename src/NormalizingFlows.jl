@@ -94,6 +94,9 @@ function __init__()
         @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
             "../ext/NormalizingFlowsZygoteExt.jl"
         )
+        @require CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba" include(
+            "../ext/NormalizingFlowsCUDAExt.jl"
+        )
     end
 end
 end

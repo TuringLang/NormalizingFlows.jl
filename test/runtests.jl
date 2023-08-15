@@ -7,6 +7,7 @@ using ADTypes, DiffResults
 using ForwardDiff, Zygote, Enzyme, ReverseDiff
 using Test
 
+include("cuda.jl")
 include("ad.jl")
 include("objectives.jl")
 include("interface.jl")
