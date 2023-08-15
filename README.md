@@ -77,9 +77,9 @@ In contrast, forward KL minimization is typically used for **generative modeling
 ## Current status and TODOs
 
 - [x] general interface development
-- [ ] documentation
-- [ ] GPU support
+- [x] documentation
 - [ ] including more flow examples
+- [ ] GPU compatibility
 - [ ] benchmarking
 
 ## Related packages
