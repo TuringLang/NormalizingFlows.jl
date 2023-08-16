@@ -6,7 +6,7 @@ using Bijectors: partition, combine, PartitionMask
 include("../util.jl")
 
 """
-Affinecoupling layer for RealNVP "(http://proceedings.mlr.press/v118/fjelde20a/fjelde20a.pdf)"
+Affinecoupling layer 
 """
 struct AffineCoupling <: Bijectors.Bijector
     dim::Int
@@ -30,14 +30,6 @@ function AffineCoupling(
     return AffineCoupling(dim, mask, s, t)
 end
 
-## scaling parameterize using exp
-# function Bijectors.transform(af::AffineCoupling, x::AbstractVector)
-#     # partition vector using 'af.mask::PartitionMask`
-#     x₁, x₂, x₃ = Bijectors.partition(af.Mask, x)
-#     y₁ = x₁ .* exp.(af.s(x₂)) .+ af.t(x₂)
-#     return Bijectors.combine(af.mask, y₁, x₂, x₃)
-# end
-
 function Bijectors.transform(af::AffineCoupling, x::AbstractVector)
     # partition vector using 'af.mask::PartitionMask`
     x₁, x₂, x₃ = partition(af.mask, x)
@@ -51,7 +43,7 @@ end
 
 function Bijectors.with_logabsdet_jacobian(af::AffineCoupling, x::AbstractVector)
     x_1, x_2, x_3 = Bijectors.partition(af.mask, x)
-    y_1 = exp.(af.s(x_2)) .* x_1 .+ af.t(x_2)
+    y_1 = af.s(x_2) .* x_1 .+ af.t(x_2)
     logjac = sum(log ∘ abs, af.s(x_2))
     return combine(af.mask, y_1, x_2, x_3), logjac
 end
@@ -75,7 +67,7 @@ function Bijectors.logabsdetjac(af::AffineCoupling, x::AbstractVector)
 end
 
 ################### 
-# a equivalent definition of AffineCoupling using Bijectors.Coupling 
+# an equivalent definition of AffineCoupling using Bijectors.Coupling 
 # (see https://github.com/TuringLang/Bijectors.jl/blob/74d52d4eda72a6149b1a89b72524545525419b3f/src/bijectors/coupling.jl#L188C1-L188C1)
 ###################
 
