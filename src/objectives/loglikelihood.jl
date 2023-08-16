@@ -22,3 +22,29 @@ function loglikelihood(
     llhs = map(x -> logpdf(flow, x), eachcol(xs))
     return mean(llhs)
 end
+
+function loglikelihood(
+    rng::AbstractRNG,
+    flow::Bijectors.UnivariateTransformed,
+    fulldata::AbstractVector,
+    batchsize::Int,
+)
+    N = length(fulldata)
+    @assert batchsize <= N
+    idx = sample(rng, 1:N, batchsize; replace=false)
+    xs = @view(fulldata[idx])
+    return loglikelihood(flow, xs)
+end
+
+function loglikelihood(
+    rng::AbstractRNG,
+    flow::Bijectors.MultivariateTransformed,
+    fulldata::AbstractMatrix,
+    batchsize::Int,
+)
+    N = size(fulldata, 2)
+    @assert batchsize <= N
+    idx = sample(rng, 1:N, batchsize; replace=false)
+    xs = @view(fulldata[:, idx])
+    return loglikelihood(flow, xs)
+end
