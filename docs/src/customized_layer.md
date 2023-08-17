@@ -47,7 +47,7 @@ Here, $s$ and $t$ are arbitrary functions (often neural networks) called the
 same dimension as $\boldsymbol{x}_{I_1}$.
 
 
-## Implement affine coupling layer
+## Implementing Affine Coupling Layer
 
 We start by defining a simple 3-layer multi-layer perceptron (MLP) using `Flux.jl`, which will be 
 used to define the scaling $s$ and translation functions $t$ in the affine coupling layer.
