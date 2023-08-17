@@ -92,7 +92,7 @@ plot(losses; xlabel = "#iteration", ylabel= "negative ELBO", label="", linewidth
 ```
 ![elbo](elbo.png)
 
-## Evaluate the trained flow 
+## Evaluating Trained Flow 
 Finally, we can evaluate the trained flow by sampling from it and compare it with the target distribution.
 Since the flow is defined as a `Bijectors.TransformedDistribution`, one can
 easily sample from it using `rand` function, or examine the density using `logpdf` function.
