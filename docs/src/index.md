@@ -34,18 +34,18 @@ Normalizing flows transform a simple reference distribution $q_0$ (sometimes kno
 a complex distribution $q_\theta$ using invertible functions with trainable parameter $\theta$, aiming to approximate a target distribution $p$.
 The approximation is achieved by minimizing some statistical distances between $q$ and $p$.
 
-In more details, given the base distribution, usually a standar Gaussian distribution, i.e., $q_0 = \mathcal{N}(0, I)$,
+In more details, given the base distribution, usually a standard Gaussian distribution, i.e., $q_0 = \mathcal{N}(0, I)$,
 we apply a series of parameterized invertible transformations (called flow layers), $T_{1, \theta_1}, \cdots, T_{N, \theta_k}$, yielding that
 ```math
 Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim q_0,\quad  Z_N \sim q_{\theta}, 
 ```
 where $\theta = (\theta_1, \dots, \theta_N)$ are the parameters to be learned,
-and $q_{\theta}$ is the transformed distribution (typically called as the
+and $q_{\theta}$ is the transformed distribution (typically called the
 variational distribution or the flow distribution). 
 This describes **sampling procedure** of normalizing flows, which requires
-sending draws through a forward pass of these flow layers.
+sending draws from the base distribution through a forward pass of these flow layers.
 
-Since all the transformations are invertible (techinically diffeomorphic), we
+Since all the transformations are invertible (technically diffeomorphic), we
 can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the
 change of variable formula:
 ```math

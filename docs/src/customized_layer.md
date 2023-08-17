@@ -1,4 +1,4 @@
-# Customize your own flow layer
+# Defining Your Own Flow Layer
 
 In practice, user might want to define their own normalizing flow. 
 As briefly noted in [What are normalizing flows?](@ref), the key is to define a
@@ -12,7 +12,7 @@ for more details.
 
 
 In this tutorial, we demonstrate how to define a customized normalizing flow
-layer --an **affine coupling layer** (Dinh *et al.*, 2016) -- using `Bijectors.jl` and `Flux.jl`.
+layer -- an `Affine Coupling Layer` (Dinh *et al.*, 2016) -- using `Bijectors.jl` and `Flux.jl`.
 
 ## Affine coupling flow
 
@@ -27,15 +27,14 @@ c_{I_1}(\cdot ; f, \theta): & \mathbb{R}^d \rightarrow \mathbb{R}^d & c_{I_1}^{-
 & \boldsymbol{x}_{I_1} \mapsto f\left(\boldsymbol{x}_{I_1} ; \theta\left(\boldsymbol{x}_{I\setminus I_1}\right)\right) & & \boldsymbol{y}_{I_1} \mapsto f^{-1}\left(\boldsymbol{y}_{I_1} ; \theta\left(\boldsymbol{y}_{I\setminus I_1}\right)\right)
 \end{array}
 ```
-Here $\theta$ can be a arbitrary complex function, e.g., a neural network.
+Here $\theta$ can be an arbitrary function, e.g., a neural network.
 As long as $f(\cdot; \theta(\boldsymbol{x}_{I\setminus I_1}))$ is invertible, $c_{I_1}$ is invertible, and the 
 Jacobian determinant of $c_{I_1}$ is easy to compute:
 ```math
 \left|\text{det} \nabla_x c_{I_1}(x)\right| = \left|\text{det} \nabla_{x_{I_1}} f(x_{I_1}; \theta(x_{I\setminus I_1}))\right|
 ```
 
-The affine coupling layer is a special case of the coupling transformation, 
-where the coupling law $f$ is an affine function:
+The affine coupling layer is a special case of the coupling transformation, where the coupling law $f$ is an affine function:
 ```math
 \begin{aligned}
 \boldsymbol{x}_{I_1} &\mapsto \boldsymbol{x}_{I_1} \odot s\left(\boldsymbol{x}_{I\setminus I_1}\right) + t\left(\boldsymbol{x}_{I \setminus I_1}\right) \\
@@ -47,7 +46,7 @@ Here, $s$ and $t$ are arbitrary functions (often neural networks) called the
 same dimension as $\boldsymbol{x}_{I_1}$.
 
 
-## Implement affine coupling layer
+## Implementing Affine Coupling Layer
 
 We start by defining a simple 3-layer multi-layer perceptron (MLP) using `Flux.jl`, which will be 
 used to define the scaling $s$ and translation functions $t$ in the affine coupling layer.
@@ -65,11 +64,10 @@ end
 
 #### Construct the object
 
-Following the user interface of `Bijectors.jl`, we define a struct
-`AffineCoupling` as a subtype of `Bijectors.Bijector`.
-The used `parition`, `combine` functions are used used to partition and
-recombine a vector into 3 disjoint "subvectors". 
-And `PartitionMask` is used to store this partition rule. These three functions are
+Following the user interface of `Bijectors.jl`, we define a struct `AffineCoupling` as a subtype of `Bijectors.Bijector`.
+The functions `parition` , `combine` are used to partition and recombine a vector into 3 disjoint subvectors. 
+And `PartitionMask` is used to store this partition rule. 
+These three functions are
 all defined in `Bijectors.jl`; see the [documentaion](https://github.com/TuringLang/Bijectors.jl/blob/49c138fddd3561c893592a75b211ff6ad949e859/src/bijectors/coupling.jl#L3) for more details.
 
 ```@example afc
@@ -104,7 +102,7 @@ end
 By default, we define $s$ and $t$ using the `MLP_3layer` function, which is a
 3-layer MLP with leaky ReLU activation function.
 
-#### Implement the forward and inverse transformation
+#### Implement the Forward and Inverse Transformations
 
 
 ```@example afc
@@ -125,7 +123,7 @@ function Bijectors.transform(iaf::Inverse{<:AffineCoupling}, y::AbstractVector)
 end
 ```
 
-#### Implement the log-determinant of the Jacobian
+#### Implement the Log-determinant of the Jacobian
 Notice that here we wrap the transformation and the log-determinant of the Jacobian into a single function, `with_logabsdet_jacobian`.
 
 ```@example afc
@@ -148,7 +146,7 @@ function Bijectors.with_logabsdet_jacobian(
     return combine(af.mask, x_1, y_2, y_3), logjac
 end
 ```
-#### Use it for normalizing flow
+#### Construct Normalizing Flow
 
 Now with all the above implementations, we are ready to use the `AffineCoupling` layer for normalizing flow 
 by applying it to a base distribution $q_0$.

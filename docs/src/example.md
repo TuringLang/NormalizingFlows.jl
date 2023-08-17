@@ -1,4 +1,4 @@
-## Planar flow example
+## Example Using Planar Flow
 
 Here we provide a minimal demonstration of learning a synthetic 2d banana distribution
 using *planar flows* (Renzende *et al.* 2015) by maximizing the [Evidence lower bound (ELBO)](@ref).
@@ -6,7 +6,7 @@ To complete this task, the two key inputs are:
 - the log-density function of the target distribution, 
 - the planar flow. 
 
-#### The target distribution
+#### The Target Distribution
 
 The `Banana` object is defined in `example/targets/banana.jl`, see the [source code](https://github.com/zuhengxu/NormalizingFlows.jl/blob/main/example/targets/banana.jl) for details.
 ```julia
@@ -19,7 +19,7 @@ Visualize the contour of the log-density and the sample scatters of the target d
 
 
 
-#### The planar flow 
+#### The Planar Flow 
 
 The planar flow is defined by repeated applying a sequence of invertible
 transformations to a base distribution $q_0$.  The building blocks for a planar flow
@@ -49,7 +49,7 @@ flow = create_planar_flow(20, MvNormal(zeros(Float32, 2), I))
 flow_untrained = deepcopy(flow) # keep a copy of the untrained flow for comparison
 ```
 *Notice that here the flow layers are chained together using `fchain` function from [`FunctionChains.jl`](https://github.com/oschulz/FunctionChains.jl). 
-One can of course do*
+Alternatively, one can do*
 ```julia
 ts = reduce(∘, fill(f32(PlanarLayer(d)), 20)) 
 ```
@@ -58,8 +58,8 @@ See [this comment](https://github.com/TuringLang/NormalizingFlows.jl/blob/8f4371
 for how the compilation time might be a concern.*
 
 
-#### Train the flow 
-Then we can train the flow by maximizing the ELBO using the `train_flow` function as follows: 
+#### Flow Training
+Then we can train the flow by maximizing the ELBO using the [`train_flow`](@ref) function as follows: 
 ```julia
 using NormalizingFlows
 using ADTypes
@@ -92,7 +92,7 @@ plot(losses; xlabel = "#iteration", ylabel= "negative ELBO", label="", linewidth
 ```
 ![elbo](elbo.png)
 
-## Evaluate the trained flow 
+## Evaluating Trained Flow 
 Finally, we can evaluate the trained flow by sampling from it and compare it with the target distribution.
 Since the flow is defined as a `Bijectors.TransformedDistribution`, one can
 easily sample from it using `rand` function, or examine the density using `logpdf` function.

@@ -6,8 +6,7 @@
 
 A normalizing flow library for Julia.
 
-The purpose of this package is to provide a simple and flexible interface for 
-variational inference (VI) and normalizing flows (NF) for Bayesian computation or generative modeling.
+The purpose of this package is to provide a simple and flexible interface for variational inference (VI) and normalizing flows (NF) for Bayesian computation or generative modeling.
 The key focus is to ensure modularity and extensibility, so that users can easily 
 construct (e.g., define customized flow layers) and combine various components 
 (e.g., choose different VI objectives or gradient estimates) 
