@@ -34,8 +34,7 @@ Jacobian determinant of $c_{I_1}$ is easy to compute:
 \left|\text{det} \nabla_x c_{I_1}(x)\right| = \left|\text{det} \nabla_{x_{I_1}} f(x_{I_1}; \theta(x_{I\setminus I_1}))\right|
 ```
 
-The affine coupling layer is a special case of the coupling transformation, 
-where the coupling law $f$ is an affine function:
+The affine coupling layer is a special case of the coupling transformation, where the coupling law $f$ is an affine function:
 ```math
 \begin{aligned}
 \boldsymbol{x}_{I_1} &\mapsto \boldsymbol{x}_{I_1} \odot s\left(\boldsymbol{x}_{I\setminus I_1}\right) + t\left(\boldsymbol{x}_{I \setminus I_1}\right) \\
