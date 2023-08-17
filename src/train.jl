@@ -159,5 +159,5 @@ function optimize(
     end
 
     # return status of the optimiser for potential continuation of training
-    return θ, map(identity, opt_stats), st
+    return θ, map(identity, opt_stats[1:(i - 1)]), st
 end

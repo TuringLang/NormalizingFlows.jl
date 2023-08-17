@@ -7,6 +7,7 @@ using Zygote
 using Flux: f32
 using Plots
 include("../common.jl")
+include("AffineCoupling.jl")
 
 Random.seed!(123)
 rng = Random.default_rng()
@@ -21,35 +22,34 @@ p = Banana(2, 1.0f-1, 100.0f0)
 logp = Base.Fix1(logpdf, p)
 
 ######################################
-# learn the target using radial flow 
+# learn the target using Affine coupling flow
 ######################################
-function create_radial_flow(n_layers::Int, q₀)
-    d = length(q₀)
-    Ls = [f32(RadialLayer(d)) for _ in 1:n_layers]
-    ts = fchain(Ls)
-    return transformed(q₀, ts)
-end
-
-# create a 20-layer radial flow
-flow = create_radial_flow(10, MvNormal(zeros(Float32, 2), I))
+d = 2
+hdims = 20
+Ls = [AffineCoupling(d, hdims, [1]) ∘ AffineCoupling(d, hdims, [2]) for i in 1:2]
+q0 = MvNormal(zeros(Float32, 2), I)
+flow = create_flow(Ls, q0)
 flow_untrained = deepcopy(flow)
 
 # train the flow
 sample_per_iter = 10
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
+checkconv(iter, stat, re, θ, st) = stat.gradient_norm < 1e-3
 flow_trained, stats, _ = train_flow(
     elbo,
     flow,
     logp,
     sample_per_iter;
     max_iters=200_00,
-    optimiser=Optimisers.ADAM(),
+    optimiser=Optimisers.Adam(),
     callback=cb,
+    ADbackend=AutoZygote(),
+    hasconverged=checkconv,
 )
 losses = map(x -> x.loss, stats)
 
 ######################################
-# evaluate trained flow
+# evaluate trained flow (one can see that the performance is better than the plannar flow)
 ######################################
 plot(losses; label="Loss", linewidth=2) # plot the loss
-compare_trained_and_untrained_flow(flow_trained, flow_untrained, p, 1000; legend=:bottom)
+compare_trained_and_untrained_flow(flow_trained, flow_untrained, p, 1000)
