@@ -19,7 +19,7 @@ Visualize the contour of the log-density and the sample scatters of the target d
 
 
 
-#### The planar flow 
+#### The Planar Flow 
 
 The planar flow is defined by repeated applying a sequence of invertible
 transformations to a base distribution $q_0$.  The building blocks for a planar flow
