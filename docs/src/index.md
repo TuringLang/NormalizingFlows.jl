@@ -39,7 +39,7 @@ we apply a series of parameterized invertible transformations (called flow layer
 Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim q_0,\quad  Z_N \sim q_{\theta}, 
 ```
 where $\theta = (\theta_1, \dots, \theta_N)$ are the parameters to be learned,
-and $q_{\theta}$ is the transformed distribution (typically called as the
+and $q_{\theta}$ is the transformed distribution (typically called the
 variational distribution or the flow distribution). 
 This describes **sampling procedure** of normalizing flows, which requires
 sending draws from the base distribution through a forward pass of these flow layers.
