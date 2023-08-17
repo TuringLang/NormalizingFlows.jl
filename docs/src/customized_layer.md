@@ -12,7 +12,7 @@ for more details.
 
 
 In this tutorial, we demonstrate how to define a customized normalizing flow
-layer --an **affine coupling layer** (Dinh *et al.*, 2016) -- using `Bijectors.jl` and `Flux.jl`.
+layer -- an `Affine Coupling Layer` (Dinh *et al.*, 2016) -- using `Bijectors.jl` and `Flux.jl`.
 
 ## Affine coupling flow
 
