@@ -19,7 +19,6 @@ See the [documentation](https://turinglang.org/NormalizingFlows.jl/dev/) for mor
 
 ## Installation
 To install the package, run the following command in the Julia REPL:
-```julia
 ]  # enter Pkg mode
 (@v1.9) pkg> add git@github.com:TuringLang/NormalizingFlows.jl.git
 ```
