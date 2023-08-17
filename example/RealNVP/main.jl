@@ -26,8 +26,7 @@ logp = Base.Fix1(logpdf, p)
 ######################################
 d = 2
 hdims = 20
-ls = [AffineCoupling(d, hdims, [1]), AffineCoupling(d, hdims, [2])]
-Ls = reduce(vcat, fill(ls, 2))
+Ls = [AffineCoupling(d, hdims, [1]) ∘ AffineCoupling(d, hdims, [2]) for i in 1:2]
 q0 = MvNormal(zeros(Float32, 2), I)
 flow = create_flow(Ls, q0)
 flow_untrained = deepcopy(flow)
