@@ -104,7 +104,7 @@ end
 By default, we define $s$ and $t$ using the `MLP_3layer` function, which is a
 3-layer MLP with leaky ReLU activation function.
 
-#### Implement the forward and inverse transformation
+#### Implement the Forward and Inverse Transformations
 
 
 ```@example afc
