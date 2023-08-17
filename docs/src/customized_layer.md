@@ -27,7 +27,7 @@ c_{I_1}(\cdot ; f, \theta): & \mathbb{R}^d \rightarrow \mathbb{R}^d & c_{I_1}^{-
 & \boldsymbol{x}_{I_1} \mapsto f\left(\boldsymbol{x}_{I_1} ; \theta\left(\boldsymbol{x}_{I\setminus I_1}\right)\right) & & \boldsymbol{y}_{I_1} \mapsto f^{-1}\left(\boldsymbol{y}_{I_1} ; \theta\left(\boldsymbol{y}_{I\setminus I_1}\right)\right)
 \end{array}
 ```
-Here $\theta$ can be a arbitrary complex function, e.g., a neural network.
+Here $\theta$ can be an arbitrary function, e.g., a neural network.
 As long as $f(\cdot; \theta(\boldsymbol{x}_{I\setminus I_1}))$ is invertible, $c_{I_1}$ is invertible, and the 
 Jacobian determinant of $c_{I_1}$ is easy to compute:
 ```math
