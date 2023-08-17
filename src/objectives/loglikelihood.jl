@@ -32,7 +32,7 @@ function loglikelihood(
     N = length(fulldata)
     @assert batchsize <= N
     idx = sample(rng, 1:N, batchsize; replace=false)
-    xs = @view(fulldata[idx])
+    xs = fulldata[idx]
     return loglikelihood(flow, xs)
 end
 
@@ -45,6 +45,6 @@ function loglikelihood(
     N = size(fulldata, 2)
     @assert batchsize <= N
     idx = sample(rng, 1:N, batchsize; replace=false)
-    xs = @view(fulldata[:, idx])
+    xs = fulldata[:, idx]
     return loglikelihood(flow, xs)
 end
