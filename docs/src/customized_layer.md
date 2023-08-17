@@ -1,4 +1,4 @@
-# Customize your own flow layer
+# Defining Your Own Flow Layer
 
 In practice, user might want to define their own normalizing flow. 
 As briefly noted in [What are normalizing flows?](@ref), the key is to define a
