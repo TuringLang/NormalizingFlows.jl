@@ -1,4 +1,4 @@
-## Planar flow example
+## Example Using Planar Flow
 
 Here we provide a minimal demonstration of learning a synthetic 2d banana distribution
 using *planar flows* (Renzende *et al.* 2015) by maximizing the [Evidence lower bound (ELBO)](@ref).
