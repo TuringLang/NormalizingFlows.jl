@@ -148,7 +148,7 @@ function Bijectors.with_logabsdet_jacobian(
     return combine(af.mask, x_1, y_2, y_3), logjac
 end
 ```
-#### Use it for normalizing flow
+#### Construct Normalizing Flow
 
 Now with all the above implementations, we are ready to use the `AffineCoupling` layer for normalizing flow 
 by applying it to a base distribution $q_0$.
