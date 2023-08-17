@@ -6,7 +6,7 @@ To complete this task, the two key inputs are:
 - the log-density function of the target distribution, 
 - the planar flow. 
 
-#### The target distribution
+#### The Target Distribution
 
 The `Banana` object is defined in `example/targets/banana.jl`, see the [source code](https://github.com/zuhengxu/NormalizingFlows.jl/blob/main/example/targets/banana.jl) for details.
 ```julia
