@@ -125,7 +125,7 @@ function Bijectors.transform(iaf::Inverse{<:AffineCoupling}, y::AbstractVector)
 end
 ```
 
-#### Implement the log-determinant of the Jacobian
+#### Implement the Log-determinant of the Jacobian
 Notice that here we wrap the transformation and the log-determinant of the Jacobian into a single function, `with_logabsdet_jacobian`.
 
 ```@example afc
