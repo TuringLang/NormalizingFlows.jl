@@ -38,7 +38,7 @@ Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim 
 ```
 where $\theta = (\theta_1, \dots, \theta_N)$ is the parameter to be learned, and $q_{\theta}$ is the variational distribution (flow distribution). This describes **sampling procedure** of normalizing flows, which requires sending draws through a forward pass of these flow layers.
 
-Since all the transformations are invertible (techinically diffeomorphic), we can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the change of variable formula:
+Since all the transformations are invertible (techinically [diffeomorphic](https://en.wikipedia.org/wiki/Diffeomorphism)), we can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the change of variable formula:
 ```math
 q_\theta(x)=\frac{q_0\left(T_1^{-1} \circ \cdots \circ
 T_N^{-1}(x)\right)}{\prod_{n=1}^N J_n\left(T_n^{-1} \circ \cdots \circ
