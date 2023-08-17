@@ -33,7 +33,7 @@ Normalizing flows transform a simple reference distribution $q_0$ (sometimes kno
 a complex distribution $q_\theta$ using invertible functions with trainable parameter $\theta$, aiming to approximate a target distribution $p$.
 The approximation is achieved by minimizing some statistical distances between $q$ and $p$.
 
-In more details, given the base distribution, usually a standar Gaussian distribution, i.e., $q_0 = \mathcal{N}(0, I)$,
+In more details, given the base distribution, usually a standard Gaussian distribution, i.e., $q_0 = \mathcal{N}(0, I)$,
 we apply a series of parameterized invertible transformations (called flow layers), $T_{1, \theta_1}, \cdots, T_{N, \theta_k}$, yielding that
 ```math
 Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim q_0,\quad  Z_N \sim q_{\theta}, 
