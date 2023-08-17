@@ -65,11 +65,10 @@ end
 
 #### Construct the object
 
-Following the user interface of `Bijectors.jl`, we define a struct
-`AffineCoupling` as a subtype of `Bijectors.Bijector`.
-The used `parition`, `combine` functions are used used to partition and
-recombine a vector into 3 disjoint "subvectors". 
-And `PartitionMask` is used to store this partition rule. These three functions are
+Following the user interface of `Bijectors.jl`, we define a struct `AffineCoupling` as a subtype of `Bijectors.Bijector`.
+The functions `parition` , `combine` are used to partition and recombine a vector into 3 disjoint subvectors. 
+And `PartitionMask` is used to store this partition rule. 
+These three functions are
 all defined in `Bijectors.jl`; see the [documentaion](https://github.com/TuringLang/Bijectors.jl/blob/49c138fddd3561c893592a75b211ff6ad949e859/src/bijectors/coupling.jl#L3) for more details.
 
 ```@example afc
