@@ -36,7 +36,7 @@ we apply a series of parameterized invertible transformations (called flow layer
 ```math
 Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim q_0,\quad  Z_N \sim q_{\theta}, 
 ```
-where $\theta = (\theta_1, \dots, \theta_N)$ is the parameter to be learned, and $q_{\theta}$ is the variational distribution (flow distribution). This describes **sampling procedure** of normalizing flows, which requires send draws through a forward pass of these flow layers.
+where $\theta = (\theta_1, \dots, \theta_N)$ is the parameter to be learned, and $q_{\theta}$ is the variational distribution (flow distribution). This describes **sampling procedure** of normalizing flows, which requires sending draws through a forward pass of these flow layers.
 
 Since all the transformations are invertible (techinically diffeomorphic), we can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the change of variable formula:
 ```math
