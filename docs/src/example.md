@@ -58,7 +58,7 @@ See [this comment](https://github.com/TuringLang/NormalizingFlows.jl/blob/8f4371
 for how the compilation time might be a concern.*
 
 
-#### Train the flow 
+#### Flow Training
 Then we can train the flow by maximizing the ELBO using the [`train_flow`](@ref) function as follows: 
 ```julia
 using NormalizingFlows
