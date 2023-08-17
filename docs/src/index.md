@@ -44,7 +44,7 @@ variational distribution or the flow distribution).
 This describes **sampling procedure** of normalizing flows, which requires
 sending draws through a forward pass of these flow layers.
 
-Since all the transformations are invertible (techinically diffeomorphic), we
+Since all the transformations are invertible (technically diffeomorphic), we
 can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the
 change of variable formula:
 ```math
