@@ -42,7 +42,7 @@ where $\theta = (\theta_1, \dots, \theta_N)$ are the parameters to be learned,
 and $q_{\theta}$ is the transformed distribution (typically called as the
 variational distribution or the flow distribution). 
 This describes **sampling procedure** of normalizing flows, which requires
-sending draws through a forward pass of these flow layers.
+sending draws from the base distribution through a forward pass of these flow layers.
 
 Since all the transformations are invertible (technically diffeomorphic), we
 can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the
