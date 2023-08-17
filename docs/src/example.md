@@ -49,7 +49,7 @@ flow = create_planar_flow(20, MvNormal(zeros(Float32, 2), I))
 flow_untrained = deepcopy(flow) # keep a copy of the untrained flow for comparison
 ```
 *Notice that here the flow layers are chained together using `fchain` function from [`FunctionChains.jl`](https://github.com/oschulz/FunctionChains.jl). 
-One can of course do*
+Alternatively, one can do*
 ```julia
 ts = reduce(∘, fill(f32(PlanarLayer(d)), 20)) 
 ```
