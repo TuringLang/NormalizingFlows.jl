@@ -59,7 +59,7 @@ for how the compilation time might be a concern.*
 
 
 #### Train the flow 
-Then we can train the flow by maximizing the ELBO using the `train_flow` function as follows: 
+Then we can train the flow by maximizing the ELBO using the [`train_flow`](@ref) function as follows: 
 ```julia
 using NormalizingFlows
 using ADTypes
