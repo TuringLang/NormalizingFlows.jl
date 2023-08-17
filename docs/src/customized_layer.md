@@ -14,7 +14,7 @@ for more details.
 In this tutorial, we demonstrate how to define a customized normalizing flow
 layer -- an `Affine Coupling Layer` (Dinh *et al.*, 2016) -- using `Bijectors.jl` and `Flux.jl`.
 
-## Affine coupling flow
+## Affine Coupling Flow
 
 Given an input vector $\boldsymbol{x}$, the general *coupling transformation* splits it into two
 parts: $\boldsymbol{x}_{I_1}$ and $\boldsymbol{x}_{I\setminus I_1}$. Only one
@@ -41,15 +41,15 @@ The affine coupling layer is a special case of the coupling transformation, wher
 \boldsymbol{x}_{I \backslash I_1} &\mapsto \boldsymbol{x}_{I \backslash I_1}
 \end{aligned}
 ```
-Here, $s$ and $t$ are arbitrary functions (often neural networks) called the
-"scaling" and "translation" functions, respectively. They produce vectors of the
+Here, $s$ and $t$ are arbitrary functions (often neural networks) called the "scaling" and "translation" functions, respectively. 
+They produce vectors of the
 same dimension as $\boldsymbol{x}_{I_1}$.
 
 
 ## Implementing Affine Coupling Layer
 
-We start by defining a simple 3-layer multi-layer perceptron (MLP) using `Flux.jl`, which will be 
-used to define the scaling $s$ and translation functions $t$ in the affine coupling layer.
+We start by defining a simple 3-layer multi-layer perceptron (MLP) using `Flux.jl`, 
+which will be used to define the scaling $s$ and translation functions $t$ in the affine coupling layer.
 ```@example afc
 using Flux
 

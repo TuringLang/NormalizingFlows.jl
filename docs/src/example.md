@@ -1,4 +1,4 @@
-## Example Using Planar Flow
+## Example: Using Planar Flow
 
 Here we provide a minimal demonstration of learning a synthetic 2d banana distribution
 using *planar flows* (Renzende *et al.* 2015) by maximizing the [Evidence lower bound (ELBO)](@ref).
@@ -51,7 +51,7 @@ flow_untrained = deepcopy(flow) # keep a copy of the untrained flow for comparis
 *Notice that here the flow layers are chained together using `fchain` function from [`FunctionChains.jl`](https://github.com/oschulz/FunctionChains.jl). 
 Alternatively, one can do*
 ```julia
-ts = reduce(∘, fill(f32(PlanarLayer(d)), 20)) 
+ts = reduce(∘, [f32(PlanarLayer(d)) for i in 1:20]) 
 ```
 *However, we recommend using `fchain` to reduce the compilation time when the number of layers is large.
 See [this comment](https://github.com/TuringLang/NormalizingFlows.jl/blob/8f4371d48228adf368d851e221af076ff929f1cf/src/NormalizingFlows.jl#L52)
