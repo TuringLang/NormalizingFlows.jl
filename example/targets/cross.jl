@@ -31,16 +31,6 @@ $(FIELDS)
 "MixFlows: principled variational inference via mixed flows."
 International Conference on Machine Learning, 2023
 """
-struct Cross{T<:Real} <: ContinuousMultivariateDistribution
-    "component mean"
-    μ::T
-    "component standard deviation"
-    σ::T
-    function Cross{T}(μ::T, σ::T) where {T<:Real}
-        σ > 0 || error("SD must be > 0")
-        return new{T}(μ, σ)
-    end
-end
 Cross() = Cross(2.0, 0.15)
 function Cross(μ::T, σ::T) where {T<:Real}
     return MixtureModel([
