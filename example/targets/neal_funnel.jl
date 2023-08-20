@@ -45,7 +45,6 @@ Funnel(dim::Int) = Funnel(dim, 0.0, 9.0)
 
 Base.length(p::Funnel) = p.dim
 Base.eltype(p::Funnel{T}) where {T<:Real} = T
-Distributions.sampler(p::Funnel) = p
 
 function Distributions._rand!(rng::AbstractRNG, p::Funnel, x::AbstractVecOrMat)
     T = eltype(x)
