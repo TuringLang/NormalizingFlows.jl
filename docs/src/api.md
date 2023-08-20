@@ -16,7 +16,7 @@ For example of Gaussian VI, we can construct the flow as follows:
 using Distributions, Bijectors
 T= Float32
 q₀ = MvNormal(zeros(T, 2), ones(T, 2))
-flow = Bijectors.transformed(q₀, Bijectors.Shift(zeros(2)) ∘ Bijectors.Scale(ones(T, 2)))
+flow = Bijectors.transformed(q₀, Bijectors.Shift(zeros(T,2)) ∘ Bijectors.Scale(ones(T, 2)))
 ```
 To train the Gaussian VI targeting at distirbution $p$ via ELBO maiximization, we can run
 ```@julia
@@ -44,8 +44,7 @@ where `rng` is the random number generator, `flow` is the flow object, and `args
 additional arguments that users can pass to the objective function.
 
 #### Evidence Lower Bound (ELBO)
-By maximizing the ELBO, it is equivalent to minimizing
-the reverse KL divergence between $q_\theta$ and $p$, i.e., 
+By maximizing the ELBO, it is equivalent to minimizing the reverse KL divergence between $q_\theta$ and $p$, i.e., 
 ```math 
 \begin{aligned}
 &\min _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right]  \quad \text{(Reverse KL)}\\

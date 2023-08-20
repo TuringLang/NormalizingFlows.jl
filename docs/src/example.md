@@ -1,7 +1,7 @@
 ## Example: Using Planar Flow
 
 Here we provide a minimal demonstration of learning a synthetic 2d banana distribution
-using *planar flows* (Renzende *et al.* 2015) by maximizing the [Evidence lower bound (ELBO)](@ref).
+using *planar flows* (Renzende *et al.* 2015) by maximizing the [Evidence Lower Bound (ELBO)](@ref).
 To complete this task, the two key inputs are:
 - the log-density function of the target distribution, 
 - the planar flow. 

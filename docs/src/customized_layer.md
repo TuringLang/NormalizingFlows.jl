@@ -62,7 +62,7 @@ function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux
 end
 ```
 
-#### Construct the object
+#### Construct the Object
 
 Following the user interface of `Bijectors.jl`, we define a struct `AffineCoupling` as a subtype of `Bijectors.Bijector`.
 The functions `parition` , `combine` are used to partition and recombine a vector into 3 disjoint subvectors. 
