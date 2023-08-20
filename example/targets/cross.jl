@@ -41,7 +41,6 @@ struct Cross{T<:Real} <: ContinuousMultivariateDistribution
         return new{T}(μ, σ)
     end
 end
-Cross(μ::T, σ::T) where {T<:Real} = Cross{T}(μ, σ)
 Cross() = Cross(2.0, 0.15)
 function Cross(μ::T, σ::T) where {T<:Real}
     return MixtureModel([
