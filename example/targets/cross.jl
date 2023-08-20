@@ -1,6 +1,6 @@
 using Distributions, Random
 """
-    Cross{T<:Real}
+    Cross(μ::Real=2.0, σ::Real=0.15)
 
 2-dimensional Cross distribution
 
@@ -22,9 +22,6 @@ p(x) =
 
 where ``μ`` and ``σ`` are the mean and standard deviation of the Gaussian components, 
 respectively. See an example of the Cross distribution in Page 18 of [1].
-
-# Fields
-$(FIELDS)
 
 # Reference
 [1] Zuheng Xu, Naitong Chen, Trevor Campbell
