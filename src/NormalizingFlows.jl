@@ -73,7 +73,7 @@ function train_flow(
 end
 
 include("train.jl")
-include("sampler.jl")
+include("sample.jl")
 include("objectives.jl")
 
 # optional dependencies 
