@@ -9,6 +9,7 @@ using ADTypes, DiffResults
 using DocStringExtensions
 
 export train_flow, elbo, loglikelihood, value_and_gradient!
+export rand_device
 
 using ADTypes
 using DiffResults
@@ -72,6 +73,7 @@ function train_flow(
 end
 
 include("train.jl")
+include("sampler.jl")
 include("objectives.jl")
 
 # optional dependencies 
@@ -93,6 +95,9 @@ function __init__()
         )
         @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
             "../ext/NormalizingFlowsZygoteExt.jl"
+        )
+        @require CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba" include(
+            "../ext/NormalizingFlowsCUDAExt.jl"
         )
     end
 end
