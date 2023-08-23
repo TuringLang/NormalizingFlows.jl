@@ -37,11 +37,11 @@ Z_N = T_{N, \theta_N} \circ \cdots \circ T_{1, \theta_1} (Z_0) , \quad Z_0 \sim 
 ```
 where $\theta = (\theta_1, \dots, \theta_N)$ is the parameter to be learned, and $q_{\theta}$ is the variational distribution (flow distribution). This describes **sampling procedure** of normalizing flows, which requires sending draws through a forward pass of these flow layers.
 
-Since all the transformations are invertible (techinically [diffeomorphic](https://en.wikipedia.org/wiki/Diffeomorphism)), we can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the change of variable formula:
+Since all the transformations are invertible (technically [diffeomorphic](https://en.wikipedia.org/wiki/Diffeomorphism)), we can evaluate the density of a normalizing flow distribution $q_{\theta}$ by the change of variable formula:
 ```math
 q_\theta(x)=\frac{q_0\left(T_1^{-1} \circ \cdots \circ
 T_N^{-1}(x)\right)}{\prod_{n=1}^N J_n\left(T_n^{-1} \circ \cdots \circ
-T_N^{-1}(x)\right)} \quad J_n(x)=\left|\operatorname{det} \nabla_x
+T_N^{-1}(x)\right)} \quad J_n(x)=\left|\text{det} \nabla_x
 T_n(x)\right|.
 ```
 Here we drop the subscript $\theta_n, n = 1, \dots, N$ for simplicity. 
@@ -52,17 +52,17 @@ Given the feasibility of i.i.d. sampling and density evaluation, normalizing flo
 ```math
 \begin{aligned}
 \text{Reverse KL:}\quad
-&\argmin _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
-&= \argmin _{\theta} \mathbb{E}_{q_0}\left[\log \frac{q_\theta(T_N\circ \cdots \circ T_1(Z_0))}{p(T_N\circ \cdots \circ T_1(Z_0))}\right] \\
-&= \argmax _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(F_n \circ \cdots \circ F_1(X)\right)\right]
+&\arg\min _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
+&= \arg\min _{\theta} \mathbb{E}_{q_0}\left[\log \frac{q_\theta(T_N\circ \cdots \circ T_1(Z_0))}{p(T_N\circ \cdots \circ T_1(Z_0))}\right] \\
+&= \arg\max _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(F_n \circ \cdots \circ F_1(X)\right)\right]
 \end{aligned}
 ```
 and 
 ```math
 \begin{aligned}
 \text{Forward KL:}\quad
-&\argmin _{\theta} \mathbb{E}_{p}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
-&= \argmin _{\theta} \mathbb{E}_{p}\left[\log q_\theta(Z)\right] 
+&\arg\min _{\theta} \mathbb{E}_{p}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
+&= \arg\min _{\theta} \mathbb{E}_{p}\left[\log q_\theta(Z)\right] 
 \end{aligned}
 ```
 Both problems can be solved via standard stochastic optimization algorithms,
