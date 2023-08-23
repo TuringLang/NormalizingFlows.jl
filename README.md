@@ -4,6 +4,8 @@
 [![Build Status](https://github.com/TuringLang/NormalizingFlows.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/TuringLang/NormalizingFlows.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
+**Last updated: 2023-Aug-23**
+
 A normalizing flow library for Julia.
 
 The purpose of this package is to provide a simple and flexible interface for variational inference (VI) and normalizing flows (NF) for Bayesian computation or generative modeling.
@@ -78,8 +80,10 @@ where one wants to learn the underlying distribution of some data.
 
 - [x] general interface development
 - [x] documentation
-- [ ] including more flow examples
+- [ ] including more NF examples/Tutorials
+    - WIP: [PR#11](https://github.com/TuringLang/NormalizingFlows.jl/pull/11) 
 - [ ] GPU compatibility
+    - WIP: [PR#25](https://github.com/TuringLang/NormalizingFlows.jl/pull/25) 
 - [ ] benchmarking
 
 ## Related packages
@@ -87,5 +91,3 @@ where one wants to learn the underlying distribution of some data.
 - [Flux.jl](https://fluxml.ai/Flux.jl/stable/)
 - [Optimisers.jl](https://github.com/FluxML/Optimisers.jl)
 - [AdvancedVI.jl](https://github.com/TuringLang/AdvancedVI.jl)
-
-
