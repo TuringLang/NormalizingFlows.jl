@@ -71,7 +71,8 @@ such as stochastic gradient descent (SGD) and its variants.
 Reverse KL minimization is typically used for **Bayesian computation**, where one
 wants to approximate a posterior distribution $p$ that is only known up to a
 normalizing constant. 
-In contrast, forward KL minimization is typically used for **generative modeling**, where one wants to approximate a complex distribution $p$ that is known up to a normalizing constant.
+In contrast, forward KL minimization is typically used for **generative modeling**, 
+where one wants to learn the underlying distribution of some data.
 
 ## Current status and TODOs
 
