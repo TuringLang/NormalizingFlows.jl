@@ -1,6 +1,6 @@
 name = "NormalizingFlows"
 uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -39,7 +39,7 @@ Distributions = "0.25"
 DocStringExtensions = "0.9"
 Enzyme = "0.11"
 ForwardDiff = "0.10.25"
-Optimisers = "0.2.16"
+Optimisers = "0.2.16, 0.3"
 ProgressMeter = "1.0.0"
 Requires = "1"
 ReverseDiff = "1.14"
