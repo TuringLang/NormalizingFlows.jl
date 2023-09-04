@@ -127,7 +127,7 @@ function optimize(
     opt_stats = []
 
     θ = copy(θ₀)
-    diff_result = DiffResults.GradientResult(θ)
+    diff_result = DiffResults.DiffResult(zero(eltype(θ)), similar(θ))
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
@@ -141,6 +141,7 @@ function optimize(
         # Save stats
         ls = DiffResults.value(diff_result)
         g = DiffResults.gradient(diff_result)
+
         stat = (iteration=i, loss=ls, gradient_norm=norm(g))
         push!(opt_stats, stat)
 
