@@ -5,6 +5,7 @@ using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes, DiffResults
+using MLUtils, IterTools
 
 using DocStringExtensions
 
