@@ -81,6 +81,10 @@ function Distributions._logpdf(p::Banana, x::AbstractVector)
     return -logz - sum(ϕ⁻¹_x .^ 2 ./ vcat(s, ones(T, d - 1))) / 2
 end
 
+function Distributions._logpdf(p::Banana, xs::AbstractMatrix)
+    return map(_logpdf(p), eachcol(xs))
+end
+
 function visualize(p::Banana, samples=rand(p, 1000))
     xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)
     yrange = range(minimum(samples[2, :]) - 1, maximum(samples[2, :]) + 1; length=100)

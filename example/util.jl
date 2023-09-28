@@ -1,4 +1,4 @@
-using Flux
+using Flux, Bijectors
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
     return Chain(
@@ -6,4 +6,25 @@ function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux
         Flux.Dense(hdims, hdims, activation),
         Flux.Dense(hdims, output_dim),
     )
+end
+
+# require batching input
+function MLP_BN(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
+    return Chain(
+        Flux.Dense(input_dim, hdims),
+        Flux.BatchNorm(hdims, activation; track_stats=true, affine=true),
+        Flux.Dense(hdims, hdims, activation),
+        Flux.BatchNorm(hdims, activation; track_stats=true, affine=true),
+        Flux.Dense(hdims, output_dim),
+        Flux.BatchNorm(output_dim, activation; track_stats=true, affine=true),
+    )
+end
+
+function rand_batch(rng::AbstractRNG, td::Bijectors.MvTransformed, num_samples::Int)
+    samples = rand(rng, td.dist, num_samples)
+    res = td.transform(samples)
+    return res
+end
+function rand_batch(td::Bijectors.MvTransformed, num_samples::Int)
+    return rand_batch(Random.default_rng(), td, num_samples)
 end
