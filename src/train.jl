@@ -56,6 +56,22 @@ function grad!(
     return out
 end
 
+function grad!(
+    xs::AbstractVecOrMat,
+    ad::ADTypes.AbstractADType,
+    vo,
+    θ_flat::AbstractVector{<:Real},
+    reconstruct,
+    out::DiffResults.MutableDiffResult,
+    args...;
+)
+    # define opt loss function
+    loss(θ_) = -vo(reconstruct(θ_), xs, args...)
+    # compute loss value and gradient
+    out = value_and_gradient!(ad, loss, θ_flat, out)
+    return out
+end
+
 #######################################################
 # training loop for variational objectives 
 #######################################################
@@ -174,7 +190,11 @@ function optimize(
     show_progress::Bool=true,
     callback=nothing,
     prog=ProgressMeter.Progress(
-        max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
+        n_epoch * length(data_loader);
+        desc="Training",
+        barlen=31,
+        showspeed=true,
+        enabled=show_progress,
     ),
 )
     opt_stats = []
@@ -184,9 +204,9 @@ function optimize(
     # initialise optimiser state
     st = Optimisers.setup(optimiser, θ)
 
-    time_elapsed = @elapsed for xs in IterTools.ncycle(data_loader, n_epoch)
+    time_elapsed = @elapsed for (i, xs) in enumerate(IterTools.ncycle(data_loader, n_epoch))
         # Compute gradient and objective value; results are stored in `diff_results`
-        grad!(rng, ad, vo, θ, re, diff_result, args...)
+        grad!(xs, ad, vo, θ, re, diff_result, args...)
 
         # Save stats
         ls = DiffResults.value(diff_result)

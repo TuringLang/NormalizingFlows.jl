@@ -8,7 +8,9 @@ struct LeapFrog{T<:Real,I<:Int} <: Bijectors.Bijector
     "dimention of the target space"
     dim::I
     "leapfrog step size"
-    ϵ::AbstractVector{T}
+    logϵ::AbstractVector{T}
+    "tempering"
+    γ::AbstractVector{T}
     "number of leapfrog steps"
     L::I
     "score of the target distribution"
@@ -16,37 +18,61 @@ struct LeapFrog{T<:Real,I<:Int} <: Bijectors.Bijector
     "score of the momentum distribution"
     ∇logm
 end
-@functor LeapFrog (ϵ,)
+@functor LeapFrog (logϵ, γ)
 
-function LeapFrog(dim::Int, ϵ::T, L::Int, ∇logp, ∇logm) where {T<:Real}
-    return LeapFrog(dim, ϵ .* ones(T, dim), L, ∇logp, ∇logm)
+function LeapFrog(dim::Int, logϵ::T, γ::T, L::Int, ∇logp, ∇logm) where {T<:Real}
+    return LeapFrog(dim, logϵ .* ones(T, dim), γ .* ones(T, dims), L, ∇logp, ∇logm)
 end
 
-function Bijectors.inverse(lf::LeapFrog)
-    @unpack d, ϵ, L, ∇logp, ∇logm = lf
-    return LeapFrog(d, -ϵ, L, ∇logp, ∇logm)
-end
+# function Bijectors.inverse(lf::LeapFrog)
+#     @unpack d, ϵ, L, ∇logp, ∇logm = lf
+#     return LeapFrog(d, -ϵ, L, ∇logp, ∇logm)
+# end
 
 function Bijectors.transform(lf::LeapFrog, z::AbstractVector)
-    @unpack dim, ϵ, L, ∇logp, ∇logm = lf
+    @unpack dim, logϵ, γ, L, ∇logp, ∇logm = lf
+    ϵ = exp.(logϵ)
     @assert length(z) == 2dim "dimension of input must be even, z = [x, ρ]"
     # mask = PartitionMask(n, 1:dim)
     # x, ρ, emp = partition(mask, z)
     x, ρ = z[1:dim], z[(dim + 1):end]
 
-    ρ += ϵ ./ 2 .* ∇logp(x)
+    ρ += ϵ ./ 2 .* γ .* ∇logp(x)
     for i in 1:(L - 1)
         x -= ϵ .* ∇logm(ρ)
-        ρ += ϵ .* ∇logp(x)
+        ρ += ϵ .* γ .* ∇logp(x)
     end
     x -= ϵ .* ∇logm(ρ)
-    ρ += ϵ ./ 2 .* ∇logp(x)
+    ρ += ϵ ./ 2 .* γ .* ∇logp(x)
+    # return combine(mask, x, ρ, emp)
+    return vcat(x, ρ)
+end
+
+function Bijectors.transform(ilf::Inverse{<:LeapFrog}, z::AbstractVector)
+    lf = ilf.orig
+    @unpack dim, logϵ, γ, L, ∇logp, ∇logm = lf
+    ϵ = -exp.(logϵ) # flip momentum sign
+    @assert length(z) == 2dim "dimension of input must be even, z = [x, ρ]"
+    # mask = PartitionMask(n, 1:dim)
+    # x, ρ, emp = partition(mask, z)
+    x, ρ = z[1:dim], z[(dim + 1):end]
+
+    ρ += ϵ ./ 2 .* γ .* ∇logp(x)
+    for i in 1:(L - 1)
+        x -= ϵ .* ∇logm(ρ)
+        ρ += ϵ .* γ .* ∇logp(x)
+    end
+    x -= ϵ .* ∇logm(ρ)
+    ρ += ϵ ./ 2 .* γ .* ∇logp(x)
     # return combine(mask, x, ρ, emp)
     return vcat(x, ρ)
 end
 
 function Bijectors.with_logabsdet_jacobian(lf::LeapFrog, z::AbstractVector)
     return Bijectors.transform(lf, z), zero(eltype(z))
+end
+function Bijectors.with_logabsdet_jacobian(ilf::Inverse{<:LeapFrog}, z::AbstractVector)
+    return Bijectors.transform(ilf, z), zero(eltype(z))
 end
 
 abstract type TrainableScore end
