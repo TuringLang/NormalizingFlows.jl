@@ -20,6 +20,12 @@ function MLP_BN(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.lea
     )
 end
 
+function resblock(inputdim::Int, hdim::Int, outputdim::Int; activation=Flux.leakyrelu)
+    mlp_layer = MLP_3layer(inputdim, hdim, outputdim; activation=activation)
+    return Flux.SkipConnection(mlp_layer, +)
+    # return Chain(res, BatchNorm(outputdim, activation; track_stats=true, affine=true))
+end
+
 function rand_batch(rng::AbstractRNG, td::Bijectors.MvTransformed, num_samples::Int)
     samples = rand(rng, td.dist, num_samples)
     res = td.transform(samples)

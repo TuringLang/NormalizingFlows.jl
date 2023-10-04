@@ -11,8 +11,8 @@ Affinecoupling layer
 struct AffineCoupling <: Bijectors.Bijector
     dim::Int
     mask::Bijectors.PartitionMask
-    s::Flux.Chain
-    t::Flux.Chain
+    s
+    t
 end
 
 # let params track field s and t
@@ -38,6 +38,17 @@ function AffineCouplingBN(
     cdims = length(mask_idx) # dimension of parts used to construct coupling law
     s = MLP_BN(cdims, hdims, cdims)
     t = MLP_BN(cdims, hdims, cdims)
+    mask = PartitionMask(dim, mask_idx)
+    return AffineCoupling(dim, mask, s, t)
+end
+function AffineCouplingRes(
+    dim::Int,  # dimension of input
+    hdims::Int, # dimension of hidden units for s and t
+    mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
+)
+    cdims = length(mask_idx) # dimension of parts used to construct coupling law
+    s = resblock(cdims, hdims, cdims)
+    t = resblock(cdims, hdims, cdims)
     mask = PartitionMask(dim, mask_idx)
     return AffineCoupling(dim, mask, s, t)
 end
