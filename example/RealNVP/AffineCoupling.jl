@@ -41,14 +41,15 @@ function AffineCouplingBN(
     mask = PartitionMask(dim, mask_idx)
     return AffineCoupling(dim, mask, s, t)
 end
+
 function AffineCouplingRes(
     dim::Int,  # dimension of input
     hdims::Int, # dimension of hidden units for s and t
     mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
 )
     cdims = length(mask_idx) # dimension of parts used to construct coupling law
-    s = resblock(cdims, hdims, cdims)
-    t = resblock(cdims, hdims, cdims)
+    s = resnet(cdims, hdims, cdims)
+    t = resnet(cdims, hdims, cdims)
     mask = PartitionMask(dim, mask_idx)
     return AffineCoupling(dim, mask, s, t)
 end
