@@ -108,7 +108,6 @@ flow1 = deepcopy(flow_trained_BN)
 flow2 = deepcopy(flow_trained_BN)
 
 using Functors: fmap
-using BigFloat
 setprecision(BigFloat, 256)
 ft = BigFloat
 
