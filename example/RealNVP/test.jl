@@ -1,14 +1,12 @@
 using Random, Distributions, LinearAlgebra, Bijectors
 using ADTypes
 using Optimisers
-using FunctionChains
 using InvertibleNetworks
 using Zygote
 using Flux
 using Plots
 using ProgressMeter, IterTools
 include("../common.jl")
-include("AffineCoupling.jl")
 
 Random.seed!(123)
 rng = Random.default_rng()
@@ -27,7 +25,7 @@ Data = reshape(Data, (1, 1, size(Data)...))
 data_load = Flux.DataLoader(Data; batchsize=200, shuffle=true)
 
 #copy directly from tutorial: https://transform.softwareunderground.org/2022-julia-for-geoscience/normalizing-flow-training
-function loss_inveritble_networks(G, X)
+function loss_invertible_networks(G, X)
     batch_size = size(X)[end]
 
     Z, lgdet = G.forward(X)
@@ -53,7 +51,7 @@ G = NetworkGlow(n_in, n_hidden, levels_L, flowsteps_K;)
 lr = 9.0f-4
 opt = Flux.ADAM(lr)
 
-nnls, _, _ = train_invertible_networks!(G, loss, data_load, 100, opt)
+nnls, _, _ = train_invertible_networks!(G, loss_invertible_networks, data_load, 100, opt)
 
 ####################333
 # examine stability
