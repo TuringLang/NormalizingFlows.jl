@@ -44,6 +44,7 @@ Ls_res = [AffineCouplingRes(d, hdims, 1:2) ∘ AffineCouplingRes(d, hdims, 3:4) 
 ts_res = ∘(Ls_res...)
 flow_res = transformed(q0, ts_res)
 flow_res_untrained = deepcopy(flow_res)
+trainmode!(flow_res)
 
 #########################################
 # samples from the target 
@@ -66,11 +67,15 @@ function train(flow, data_load, opt, n_epoch=1000)
 end
 
 # flow_trained, stats, _ = train(flow, data_load, Optimisers.ADAM(1e-3), 1000)
-flow_res_trained, stats_res, _ = train(flow_res, data_load, Optimisers.ADAM(1e-3), 1000)
-# losses = map(x -> x.loss, stats_res)
+flow_res_trained, stats_res, _ = train(flow_res, data_load, Optimisers.ADAM(1e-4), 1000)
+losses = map(x -> x.loss, stats_res)
 
-θ, re = Optimisers.destructure(flow)
+θ, re = Optimisers.destructure(flow_res)
 loss(θ_) = -llh_batch(re(θ_), rand(p, 20))
 
 pt = compare_trained_and_untrained_flow(flow_res_trained, flow_res_untrained, p, 1000)
 plot!(; xlims=(-50, 50), ylims=(-100, 20))
+
+# using JLD2
+# θ_trained = JLD2.load("res/res_param.jld2")["param"]
+# flow_res_trained = re(θ_trained)
