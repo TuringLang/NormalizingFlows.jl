@@ -35,7 +35,7 @@ function resblock(input_dim::Int, hidden_dim::Int, output_dim::Int; activation=r
 end
 
 function resnet(
-    input_dim::Int, hidden_dim::Int, output_dim::Int; activation=relu, n_blocks=3
+    input_dim::Int, hidden_dim::Int, output_dim::Int; activation=relu, n_blocks=2
 )
     layers = [
         resblock(input_dim, hidden_dim, output_dim; activation=activation) for
