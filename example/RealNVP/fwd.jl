@@ -22,7 +22,7 @@ p = Banana(4, 1.0f-1, 100.0f0)
 logp = Base.Fix1(logpdf, p)
 
 Data = rand(p, 10000)
-data_load = Flux.DataLoader(Data; batchsize=100, shuffle=true)
+data_load = Flux.DataLoader(Data; batchsize=150, shuffle=true)
 
 ######################################
 # learn the target using Affine coupling flow
@@ -82,8 +82,8 @@ testmode!(flow_res_trained)
 pt = compare_trained_and_untrained_flow_BN(flow_res_trained, flow_res_untrained, p, 1000)
 plot!(; xlims=(-50, 50), ylims=(-100, 20))
 
-flow_trained, stats, _ = train(flow, data_load, Optimisers.ADAM(1e-3), 1000)
-pt = compare_trained_and_untrained_flow_BN(flow_trained, flow_untrained, p, 1000)
+flow_trained, stats, _ = train(flow, data_load, Optimisers.ADAM(1e-4), 1000)
+pt = compare_trained_and_untrained_flow_BN(flow_trained, flow_trained, p, 1000)
 plot!(; xlims=(-50, 50), ylims=(-100, 20))
 # using JLD2
 # θ_trained = JLD2.load("res/res_param.jld2")["param"]

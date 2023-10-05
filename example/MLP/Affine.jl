@@ -83,7 +83,7 @@ function Bijectors.transform(iaf::Inverse{<:InvertibleAffineBwd}, ys::AbstractMa
 end
 
 function Bijectors.with_logabsdet_jacobian(
-    iaf::Inverse{<:InvertibleAffine}, ys::AbstractMatrix
+    iaf::Inverse{<:InvertibleAffineBwd}, ys::AbstractMatrix
 )
     af = iaf.orig
     if af.shift === nothing && af.scale === nothing
@@ -92,5 +92,5 @@ function Bijectors.with_logabsdet_jacobian(
     end
     xs = (ys .- af.shift) .* af.scale
     logjacs = sum(log ∘ abs, af.scale) * ones(size(ys, 2))
-    return ys, logjacs
+    return xs, logjacs
 end
