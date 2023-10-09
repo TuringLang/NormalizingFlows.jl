@@ -112,19 +112,13 @@ function train_invertible_networks!(G, loss, data_loader, n_epoch, opt)
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=true
     )
 
-    loss_l2_list = []
-    loss_lgdet_list = []
     nnls = []
 
     # training loop
     time_elapsed = @elapsed for (i, xs) in enumerate(IterTools.ncycle(data_loader, n_epoch))
-        losses = loss(G, xs) #sets gradients of G
+        ls = loss(G, xs) #sets gradients of G
 
-        push!(loss_l2_list, losses[1])
-        push!(loss_lgdet_list, losses[2])
-
-        nnl = losses[1] - losses[2]
-        push!(nnls, nnl)
+        push!(nnls, ls)
 
         grad_norm = 0
         for p in get_params(G)
@@ -133,8 +127,8 @@ function train_invertible_networks!(G, loss, data_loader, n_epoch, opt)
         end
         grad_norm = sqrt(grad_norm)
 
-        stat = (iteration=i, neg_log_llh=nnl, gradient_norm=grad_norm)
+        stat = (iteration=i, neg_log_llh=ls, gradient_norm=grad_norm)
         pm_next!(prog, stat)
     end
-    return nnls, loss_l2_list, loss_lgdet_list
+    return nnls
 end
