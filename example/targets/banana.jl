@@ -63,13 +63,25 @@ function visualize(p::Banana, samples=rand(p, 1000))
     return fig
 end
 
-function Score(p::Banana, x)
+function Score(p::Banana, x::AbstractVector)
+    @assert length(x) == p.dim "Dimension mismatch: expected input dim is $(p.dim), but got $(length(x))"
     b, var = p.b, p.var
     x1, x2 = x[1:2]
-
     y2 = (x2 + b * x1^2 - var * b)
 
     s1 = -x1 / var - 2 * b * x1 * y2
     s2 = -y2
-    return length(x) > 2 ? vcat([s1, s2], -x[3:end]) : [s1, s2]
+    return vcat([s1, s2], -@view(x[3:end]))
+end
+
+function Score(p::Banana, x::AbstractMatrix)
+    @assert size(x, 1) == p.dim "Dimension mismatch: expected input dim is $(p.dim), but got $(size(x, 1))"
+    b, var = p.b, p.var
+    x1, x2 = @view(x[1, :]), @view(x[2, :])
+
+    y2 = (x2 .+ b * x1 .^ 2 .- var * b)
+
+    s1 = @. -x1 / var - 2 * b * x1 * y2
+    s2 = -y2
+    return vcat(hcat(s1, s2)', -@view(x[3:end, :]))
 end

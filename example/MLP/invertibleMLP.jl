@@ -24,7 +24,7 @@ end
 function Bijectors.with_logabsdet_jacobian(mlp::InvertibleMLP, xs::AbstractMatrix)
     scale = abs.(mlp.scale) .+ one.(mlp.scale) ./ 10^3
     xxs = scale .* xs .+ mlp.shift
-    logjacs_affine = sum(log ∘ abs, scale) * ones(size(xs, 2))
+    logjacs_affine = sum(log ∘ abs, scale) * ones(eltype(xs), size(xs, 2))
     ys, logjacs_act = with_logabsdet_jacobian(mlp.invertible_activation, xxs)
     return ys, logjacs_affine .+ logjacs_act
 end
@@ -37,7 +37,7 @@ function Bijectors.with_logabsdet_jacobian(
     iact = inverse(mlp.invertible_activation)
     xxs, logjacs_act = with_logabsdet_jacobian(iact, ys)
     xs = (xxs .- mlp.shift) ./ scale
-    logjacs_affine = -sum(log ∘ abs, scale) * ones(size(xs, 2))
+    logjacs_affine = -sum(log ∘ abs, scale) * ones(eltype(xs), size(xs, 2))
     logjacs = logjacs_affine .+ logjacs_act
     return xs, logjacs
 end
@@ -53,7 +53,7 @@ Functors.@functor ParamLeakyReLU
 
 # Constructor with default alpha value
 ParamLeakyReLU() = ParamLeakyReLU(0.5f0)
-ParamLeakyReLU(dim::Int) = ParamLeakyReLU(0.5f0 * ones(dim))
+ParamLeakyReLU(dim::Int) = ParamLeakyReLU(0.5f0 * ones(Float32, dim))
 ParamLeakyReLU(α) = Bijectors.LeakyReLU(abs.(α) .+ 1.0f-2)
 
 # Inverse transformation method
