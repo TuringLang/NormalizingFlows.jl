@@ -31,7 +31,7 @@ d = p.dim
 μ = zeros(Float32, d)
 Σ = I
 
-nlayers = 17
+nlayers = 15
 maps = [
     [
         InvertibleMLP(d),

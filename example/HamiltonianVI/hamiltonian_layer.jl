@@ -98,13 +98,13 @@ function Bijectors.transform(ilf::Inverse{<:LeapFrog}, zs::AbstractMatrix)
     xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
 
     # run L learpfrog steps
-    ρs -= ϵ ./ 2 .* ∇logp(xs)
+    ρs += ϵ ./ 2 .* ∇logp(xs)
     for i in 1:(L - 1)
-        xs += ϵ .* ∇logm(ρs)
-        ρs -= ϵ .* ∇logp(xs)
+        xs -= ϵ .* ∇logm(ρs)
+        ρs += ϵ .* ∇logp(xs)
     end
-    xs += ϵ .* ∇logm(ρs)
-    ρs -= ϵ ./ 2 .* ∇logp(xs)
+    xs -= ϵ .* ∇logm(ρs)
+    ρs += ϵ ./ 2 .* ∇logp(xs)
     return vcat(xs, ρs)
 end
 function Bijectors.with_logabsdet_jacobian(lf::LeapFrog, zs::AbstractMatrix)
