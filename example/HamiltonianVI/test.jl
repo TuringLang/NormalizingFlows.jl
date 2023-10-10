@@ -39,7 +39,7 @@ end
 
 dims = p.dim
 L = 250
-Ls = [LeapFrog(dims, log(1.0f-2), L, ∇S, ∇logm) ∘ InvertibleMLP(2 * dims) for i in 1:5]
+Ls = [LeapFrog(dims, log(1.0f-2), L, ∇S, ∇logm) ∘ InvertibleMLP(2 * dims) for i in 1:10]
 ts = ∘(Ls...)
 q0 = MvNormal(zeros(Float32, 2dims), I)
 flow = Bijectors.transformed(q0, ∘(Ls...))
@@ -63,37 +63,52 @@ flow_trained, stats, _ = train_flow(
 losses = map(x -> x.loss, stats)
 
 using JLD2
-JLD2.save("res/big_ham.jld2", "model", flow_trained, "elbo", losses)
+# JLD2.save("res/big_ham.jld2", "model", flow_trained, "elbo", losses)
+JLD2.save("res/big_ham2_10.jld2", "model", flow_trained, "elbo", losses)
 
-res = JLD2.load("res/big_ham.jld2")
+# res = JLD2.load("res/big_ham.jld2")
+# flow_trained = res["model"]
 
-# plot(losses; label="Loss", linewidth=2) # plot the loss
-compare_trained_and_untrained_flow_BN(flow_trained, flow_untrained, p, 1000)
+# # plot(losses; label="Loss", linewidth=2) # plot the loss
+# compare_trained_and_untrained_flow_BN(flow_trained, flow_untrained, p, 1000)
 
-# #####################333
-# # test stability
-# #####################333
-using Functors: fmap
-setprecision(BigFloat, 256)
-ft = BigFloat
+# # #####################333
+# # # test stability
+# # #####################333
+# using Functors: fmap
+# setprecision(BigFloat, 2048)
+# ft = BigFloat
 
-@functor MvNormal
-flow_big = Flux._paramtype(BigFloat, flow_trained)
+# ts = flow_trained.transform # extact trained transformation
+# its = inverse(ts) # extact trained inverse transformation
 
-Xs = randn(Float32, 2dims, 1000)
-Xs_big = ft.(Xs)
-ts = flow_trained.transform
-ts_big = flow_big.transform
-its, its_big = inverse(ts), inverse(ts_big)
+# p_big = Banana(2, ft(3.0f-1), ft(100.0f0))
+# ∇S_big = Base.Fix1(Score, p_big)
+# Ls_big = [
+#     LeapFrog(dims, log(ft(1.0f-2)), L, ∇S_big, ∇logm) ∘ InvertibleMLP(2 * dims) for i in 1:5
+# ]
+# ts_untrained_big = Flux._paramtype(ft, ∘(Ls_big...))
+# θ, re = Flux.destructure(ts_untrained_big)
+# θ_trained, re_after = Flux.destructure(ts) # extract trained parameters 
+# ts_big = re(ft.(θ_trained))
+# its_big = inverse(ts_big)
 
-diff = ts(Xs) .- ts_big(Xs_big)
-dd = map(norm, eachcol(diff))
+# Xs = randn(Float32, 2dims, 1000)
+# Xs_big = ft.(Xs)
+
+# # check stability of big flow
+# Xs_big .- its_big(ts_big(Xs_big))
+# diff = ts(Xs) .- ts_big(Xs_big)
+# dd = Float32.(map(norm, eachcol(diff)))
 
 # # density error
-Ys = ts(Xs)
-Ys_big = ft.(Ys)
-diff_inv = its(Ys) .- its_big(Ys_big)
-dd_inv = map(norm, eachcol(diff_inv))
+# # Ys = ts(Xs)
+# Ys = vcat(rand(p, 1000), randn(Float32, 2, 1000))
+# Ys_big = ft.(Ys)
+# diff_inv = its(Ys) .- its_big(Ys_big)
+# dd_inv = Float32.(map(norm, eachcol(diff_inv)))
 
-logpdf(flow_trained, Ys) .- logpdf(flow_big, Ys_big)
-# i = rand(1:1000)
+# Float32.(
+#     abs.(logpdf(flow_trained, Ys) .- logpdf(flow_big, Ys_big)) ./
+#     abs.(logpdf(flow_big, Ys_big))
+# )
