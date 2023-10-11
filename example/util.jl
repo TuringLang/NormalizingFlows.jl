@@ -1,3 +1,5 @@
+using LinearAlgebra
+using BlockBandedMatrices
 using Flux, Bijectors
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
@@ -158,9 +160,6 @@ function flow_bwd_jacobians(its, one_bwd_sample)
     end
     return Ms
 end
-
-using LinearAlgebra
-using BlockBandedMatrices
 
 function construct_shadow_matrix(M)
     Diag = [m * m' + I for m in M]
