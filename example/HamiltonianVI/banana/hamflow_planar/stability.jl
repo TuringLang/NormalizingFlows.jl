@@ -16,9 +16,9 @@ flow = re(param_trained)
 ts = flow.transform
 its = inverse(ts)
 
-ts_big = re_big(bf.(param_trained))
-its_big = inverse(ts_big)
-flow_big = Bijectors.transformed(q0_big, ts_big)
+setprecision(BigFloat, 2048)
+bf = BigFloat
+flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
 #####################
 # test stability

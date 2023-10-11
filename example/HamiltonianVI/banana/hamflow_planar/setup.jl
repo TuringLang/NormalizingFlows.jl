@@ -3,6 +3,7 @@ using ADTypes
 using Optimisers
 using FunctionChains
 using NormalizingFlows
+using Flux
 using Zygote
 include("../../../common.jl")
 include("../../hamiltonian_layer.jl")
@@ -22,7 +23,7 @@ p = Banana(2, 3.0f-1, 100.0f0)
 # visualize(p, samples)
 
 ######################################
-# setup flow
+# ft flow
 ######################################
 logp = Base.Fix1(logpdf, p)
 ∇S = Base.Fix1(Score, p)
@@ -59,35 +60,58 @@ flow_untrained = deepcopy(flow)
 ######################################
 # setup big flow
 ######################################
-setprecision(BigFloat, 2048)
-bf = BigFloat
+# setprecision(BigFloat, 2048)
+# bf = BigFloat
 
-# ts = flow_trained.transform # extract trained transformation
-# its = inverse(ts) # extract trained inverse transformation
+# # ts = flow_trained.transform # extract trained transformation
+# # its = inverse(ts) # extract trained inverse transformation
 
-p_big = Banana(2, bf(3.0f-1), bf(100.0f0))
-∇S_big = Base.Fix1(Score, p_big)
-maps_big = [
-    [
-        LeapFrog(dims, log(bf(1.0f-2)), L, ∇S_big, ∇logm),
-        InvertibleMLP(2 * dims),
-        PlanarLayer(2 * dims),
-    ] for i in 1:6
-]
-Ls_big = reduce(vcat, maps_big)
-ts_untrained_big = Flux._paramtype(bf, fchain(Ls_big))
+# p_big = Banana(2, bf(3.0f-1), bf(100.0f0))
+# ∇S_big = Base.Fix1(Score, p_big)
+# maps_big = [
+#     [
+#         LeapFrog(dims, log(bf(1.0f-2)), L, ∇S_big, ∇logm),
+#         InvertibleMLP(2 * dims),
+#         PlanarLayer(2 * dims),
+#     ] for i in 1:6
+# ]
+# Ls_big = reduce(vcat, maps_big)
+# ts_untrained_big = Flux._paramtype(bf, fchain(Ls_big))
 
-θ_big, re_big = Flux.destructure(ts_untrained_big)
-# θ_trained, re_after = Flux.destructure(ts) # extract trained parameters 
+# θ_big, re_big = Flux.destructure(ts_untrained_big)
+# # θ_trained, re_after = Flux.destructure(ts) # extract trained parameters 
 
-# ts_big = re(bf.(θ_trained)) # construct big transformation
-# its_big = inverse(ts_big) # construct big inverse transformation
+# # ts_big = re(bf.(θ_trained)) # construct big transformation
+# # its_big = inverse(ts_big) # construct big inverse transformation
 
-@functor MvNormal
-q0_big = Flux._paramtype(bf, q0)
-# flow_big = Bijectors.transformed(q0_big, ts_big) # construct big flow
-@functor MvNormal ()
+# @functor MvNormal
+# q0_big = Flux._paramtype(bf, q0)
+# # flow_big = Bijectors.transformed(q0_big, ts_big) # construct big flow
+# @functor MvNormal ()
 
+function set_precision_flow(ft::DataType, θ_trained, q0)
+    p_new = Banana(2, ft(3.0f-1), ft(100.0f0))
+    ∇S_new = Base.Fix1(Score, p_new)
+    maps_new = [
+        [
+            LeapFrog(dims, log(ft(1.0f-2)), L, ∇S_new, ∇logm),
+            InvertibleMLP(2 * dims),
+            Flux._paramtype(ft, PlanarLayer(2 * dims)),
+        ] for i in 1:nlayers
+    ]
+    Ls_new = reduce(vcat, maps_new)
+    ts_untrained_new = Flux._paramtype(ft, fchain(Ls_new))
+
+    θ_, re_new = Optimisers.destructure(ts_untrained_new)
+    @functor MvNormal
+    q0_new = Flux._paramtype(ft, q0)
+    @functor MvNormal ()
+    # construct new ts, itsm and flow
+    ts_new = re_new(ft.(θ_trained))
+    its_new = inverse(ts_new)
+    flow_new = Bijectors.transformed(q0_new, ts_new)
+    return flow_new, ts_new, its_new, q0_new, re_new
+end
 ##################################
 # make dir
 ############################
