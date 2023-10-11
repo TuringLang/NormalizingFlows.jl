@@ -1,63 +1,24 @@
-using Random, Distributions, LinearAlgebra, Bijectors
-using Optimisers
-using FunctionChains
 using JLD2
-using Functors
-using NormalizingFlows
-using Base.Threads
-include("../../common.jl")
-include("../hamiltonian_layer.jl")
-include("../../MLP/invertibleMLP.jl")
+include("setup.jl")
 
 Random.seed!(123)
 rng = Random.default_rng()
 
-######################################
-# 2d Banana as the target distribution
-######################################
-include("../../targets/banana.jl")
-
-# read  target p and trained flow
-res = JLD2.load("res/ham_flow_planar.jld2")
+################################
+# read target and contruct flow, flow_big, ts, its, its_big, its_big
+# q0 and q0_big already defined in setup.jl
+################################
+res = JLD2.load("result/hamflow_planar.jld2")
 p = res["target"]
 param_trained = res["param"]
-L = 200
-# samples = rand(p, 1000)
-# visualize(p, samples)
 
-compare_trained_and_untrained_flow_BN(flow_trained, flow_trained, p, 1000)
-#####################333
-# construct bigfloat transformations
-#####################333
-setprecision(BigFloat, 2048)
-ft = BigFloat
+flow = re(param_trained)
+ts = flow.transform
+its = inverse(ts)
 
-ts = flow_trained.transform # extract trained transformation
-its = inverse(ts) # extract trained inverse transformation
-
-p_big = Banana(2, ft(3.0f-1), ft(100.0f0))
-∇S_big = Base.Fix1(Score, p_big)
-dims = p_big.dim
-maps = [
-    [
-        LeapFrog(dims, log(ft(1.0f-2)), L, ∇S_big, ∇logm),
-        InvertibleMLP(2 * dims),
-        PlanarLayer(2 * dims),
-    ] for i in 1:6
-]
-Ls_big = reduce(vcat, maps)
-ts_untrained_big = Flux._paramtype(ft, fchain(Ls_big))
-
-θ, re = Flux.destructure(ts_untrained_big)
-θ_trained, re_after = Flux.destructure(ts) # extract trained parameters 
-
-ts_big = re(ft.(θ_trained)) # construct big transformation
-its_big = inverse(ts_big) # construct big inverse transformation
-
-q0 = flow_trained.dist # extract initial dist
-@functor MvNormal
-q0_big = Flux._paramtype(ft, q0)
-flow_big = Bijectors.transformed(q0_big, ts_big) # construct big flow
+ts_big = re_big(bf.(param_trained))
+its_big = inverse(ts_big)
+flow_big = Bijectors.transformed(q0_big, ts_big)
 
 #####################
 # test stability
@@ -187,6 +148,6 @@ nlayers = length(fwd_sample)
     Ms_fwd = flow_fwd_jacobians(ts, fwd_trjs)
     Ms_bwd = flow_bwd_jacobians(its, bwd_trjs)
 
-    ϵs_fwd[:, i] = all_shadowing_window(Ms_fwd)
-    ϵs_bwd[:, i] = all_shadowing_window(Ms_bwd)
+    ϵs_fwd[:, i] = all_shadowing_window(Ms_fwd, δ)
+    ϵs_bwd[:, i] = all_shadowing_window(Ms_bwd, δ)
 end

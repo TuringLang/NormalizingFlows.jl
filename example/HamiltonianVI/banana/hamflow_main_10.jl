@@ -37,7 +37,10 @@ end
 
 dims = p.dim
 L = 200
-maps = [[LeapFrog(dims, log(1.0f-2), L, ∇S, ∇logm), InvertibleMLP(2 * dims)] for i in 1:10]
+nlayers = 10
+maps = [
+    [LeapFrog(dims, log(1.0f-2), L, ∇S, ∇logm), InvertibleMLP(2 * dims)] for i in 1:nlayers
+]
 Ls = reduce(vcat, maps)
 ts = fchain(Ls)
 q0 = MvNormal(zeros(Float32, 2dims), I)
@@ -62,11 +65,15 @@ flow_trained, stats, _ = train_flow(
 )
 losses = map(x -> x.loss, stats)
 
+param_trained, re = Optimisers.destructure(flow_trained)
+
 using JLD2
 JLD2.save(
     "res/ham_flow_big.jld2",
-    "model",
+    "flow",
     flow_trained,
+    "param",
+    param_trained,
     "L",
     L,
     "elbo",
@@ -82,7 +89,6 @@ JLD2.save(
     "batch_size",
     sample_per_iter,
 )
-
 # res = JLD2.load("res/big_ham.jld2")
 # flow_trained = res["model"]
 

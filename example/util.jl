@@ -1,6 +1,7 @@
 using LinearAlgebra
 using BlockBandedMatrices
 using Flux, Bijectors
+using Base.Threads
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
     return Chain(

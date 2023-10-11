@@ -1,5 +1,5 @@
 using Random, Distributions, LinearAlgebra, Bijectors
-
+include("util.jl")
 # accessing the trained flow by looking at the first 2 dimensions
 function compare_trained_and_untrained_flow_BN(
     flow_trained::Bijectors.MultivariateTransformed,

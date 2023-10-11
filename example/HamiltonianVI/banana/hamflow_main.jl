@@ -62,11 +62,15 @@ flow_trained, stats, _ = train_flow(
 )
 losses = map(x -> x.loss, stats)
 
+param_trained, re = Optimisers.destructure(flow_trained)
+
 using JLD2
 JLD2.save(
     "res/ham_flow.jld2",
-    "model",
+    "flow",
     flow_trained,
+    "param",
+    param_trained,
     "L",
     L,
     "elbo",
