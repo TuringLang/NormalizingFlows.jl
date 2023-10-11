@@ -62,60 +62,6 @@ flow_big = Bijectors.transformed(q0_big, ts_big) # construct big flow
 #####################
 # test stability
 ######################
-# this is how to extract functions 
-function get_functions(ts)
-    fs = FunctionChains._flatten_composed(ts)[1]
-    return fs.fs
-end
-
-function intermediate_flows(ts, q0)
-    flows = []
-    fs = get_functions(ts)
-    for i in 1:length(fs)
-        push!(flows, Bijectors.transformed(q0, fchain(fs[1:i])))
-    end
-    return flows
-end
-function intermediate_lpdfs(ts, q0, fwd_samples)
-    flows = intermediate_flows(ts, q0)
-    @assert length(flows) == length(fwd_samples) "numder of layers and numbers of sample batches mismatch"
-    lpdfs = Vector{Vector{eltype(fwd_samples[1])}}(undef, length(flows))
-    @threads for i in 1:length(flows)
-        flow = flows[i]
-        ys = fwd_samples[i]
-        lpdf = logpdf(flow, ys)
-        lpdfs[i] = lpdf
-    end
-    return reduce(hcat, lpdfs)
-end
-function inverse_from_intermediate_layers(ts, fwd_samples)
-    inv_ts = []
-    fs = get_functions(ts)
-    for i in 1:length(fs)
-        it = inverse(fchain(fs[1:i]))
-        push!(inv_ts, it)
-    end
-
-    @assert length(inv_ts) == length(fwd_samples) "numder of layers and numbers of sample batches mismatch"
-    X0 = Vector{Matrix{eltype(fwd_samples[1])}}(undef, length(inv_ts))
-    @threads for i in 1:length(inv_ts)
-        f = inv_ts[i]
-        ys = fwd_samples[i]
-        x0 = f(ys)
-        X0[i] = x0
-    end
-    return X0
-end
-function elbo_intermediate(ts, q0, logp, Xs)
-    flows = intermediate_flows(ts, q0)
-    Els = Vector{eltype(Xs)}(undef, length(flows))
-    @threads for i in 1:length(flows)
-        flow = flows[i]
-        el = elbo_batch(flow, logp, Xs)
-        Els[i] = el
-    end
-    return Els
-end
 
 # forward sample stability
 Xs = randn(Float32, 2dims, 1000)
@@ -127,8 +73,8 @@ diff = ts(Xs) .- ts_big(Xs_big)
 dd = Float32.(map(norm, eachcol(diff)))
 
 fwd_sample = with_intermediate_results(ts, Xs)
-# fwd_sample_big = map(x -> Float32.(x), with_intermediate_results(ts_big, Xs_big))
 fwd_sample_big = with_intermediate_results(ts_big, Xs_big)
+fwd_sample_big32 = map(x -> Float32.(x), fwd_sample_big)
 fwd_diff_layer = fwd_sample .- fwd_sample_big
 fwd_err_layer = map(x -> map(norm, eachcol(x)), fwd_diff_layer)
 
@@ -222,3 +168,25 @@ elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 #####################
 #  window computation
 #####################
+
+# compute delta
+delta_fwd = single_fwd_err(ts, fwd_sample_big, Xs)
+delta_bwd = single_bwd_err(its, bwd_sample_big, Ys)
+
+# compute window size
+nsample = 100
+δ = 1.0f-7
+nlayers = length(fwd_sample)
+ϵs_fwd = zeros(Float32, nlayers, nsample)
+ϵs_bwd = zeros(Float32, nlayers, nsample)
+
+@threads for i in 1:nsample
+    fwd_trjs = vcat(Xs[:, i], [fwd_sample[j][:, i] for j in 1:(nlayers - 1)])
+    bwd_trjs = vcat(Ys[:, i], [bwd_sample[j][:, i] for j in 1:(nlayers - 1)])
+
+    Ms_fwd = flow_fwd_jacobians(ts, fwd_trjs)
+    Ms_bwd = flow_bwd_jacobians(its, bwd_trjs)
+
+    ϵs_fwd[:, i] = all_shadowing_window(Ms_fwd)
+    ϵs_bwd[:, i] = all_shadowing_window(Ms_bwd)
+end

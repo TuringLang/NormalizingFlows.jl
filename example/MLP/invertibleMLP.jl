@@ -15,7 +15,7 @@ function InvertibleMLP(dims::Int)
     return InvertibleMLP(glorot_uniform(dims), glorot_uniform(dims), ParamLeakyReLU(dims))
 end
 
-function Bijectors.transform(mlp::InvertibleMLP, xs::AbstractMatrix)
+function Bijectors.transform(mlp::InvertibleMLP, xs::AbstractVecOrMat)
     scale = abs.(mlp.scale) .+ one.(mlp.scale) ./ 10^3
     xxs = scale .* xs .+ mlp.shift
     return mlp.invertible_activation(xxs)
@@ -41,8 +41,13 @@ function Bijectors.with_logabsdet_jacobian(
     logjacs = logjacs_affine .+ logjacs_act
     return xs, logjacs
 end
-function Bijectors.transform(imlp::Inverse{<:InvertibleMLP}, ys::AbstractVector)
-    return Bijectors.with_logabsdet_jacobian(imlp, ys)[1]
+function Bijectors.transform(imlp::Inverse{<:InvertibleMLP}, ys::AbstractVecOrMat)
+    mlp = imlp.orig
+    scale = abs.(mlp.scale) .+ one.(mlp.scale) ./ 10^3
+    iact = inverse(mlp.invertible_activation)
+    xxs, logjacs_act = with_logabsdet_jacobian(iact, ys)
+    xs = (xxs .- mlp.shift) ./ scale
+    return xs
 end
 
 struct ParamLeakyReLU{T} <: Bijectors.Bijector
@@ -71,3 +76,20 @@ function Bijectors.with_logabsdet_jacobian(b::LeakyReLU, xs::AbstractMatrix{<:Re
     J = mask .* b.α .+ (!).(mask)
     return J .* xs, map(x_ -> sum(log.(abs.(x_))), eachcol(J))
 end
+function Bijectors.with_logabsdet_jacobian(b::LeakyReLU, xs::AbstractVector{<:Real})
+    mask = xs .< zero(eltype(xs))
+    J = mask .* b.α .+ (!).(mask)
+    return J .* xs, sum(log.(abs.(J)))
+end
+
+# #######################
+# # define customized jacobian for planar flow
+# #####################3
+# using Zygote: jacobian
+# using Bijectors
+# function Zygote.jacobian(l::Bijectors.PlanarLayer, z::AbstractVector)
+#     w, b, u = l.w, l.b, l.u
+#     û, wT_û = Bijectors.get_u_hat(l.u, w)
+#     wT_z = Bijectors.aT_b(w, z)
+#     return diagm(one.(z)) .+ û * ((1 .- tanh.(wT_z .+ b) .^ 2) .* w)'
+# end
