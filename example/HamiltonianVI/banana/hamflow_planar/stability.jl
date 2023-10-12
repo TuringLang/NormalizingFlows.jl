@@ -12,33 +12,37 @@ res = JLD2.load("result/hamflow_planar.jld2")
 p = res["target"]
 param_trained = res["param"]
 
-flow = re(param_trained)
-ts = flow.transform
-its = inverse(ts)
+# flow = re(param_trained)
+# ts = flow.transform
+# its = inverse(ts)
+ft = Float32
+flow, ts, its, q0n, r64 = set_precision_flow(ft, param_trained, q0)
 
 setprecision(BigFloat, 2048)
 bf = BigFloat
 flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
+compare_trained_and_untrained_flow_BN(flow, flow, p, 1000)
 #####################
 # test stability
 ######################
 
 # forward sample stability
-Xs = randn(Float32, 2dims, 1000)
-Xs_big = ft.(Xs)
+Xs = randn(ft, 2dims, 1000)
+Xs_big = bf.(Xs)
 
 # # check stability of big flow
 # Xs_big .- its_big(ts_big(Xs_big))
 diff = ts(Xs) .- ts_big(Xs_big)
-dd = Float32.(map(norm, eachcol(diff)))
+dd = ft.(map(norm, eachcol(diff)))
 
 fwd_sample = with_intermediate_results(ts, Xs)
 fwd_sample_big = with_intermediate_results(ts_big, Xs_big)
-fwd_sample_big32 = map(x -> Float32.(x), fwd_sample_big)
+fwd_sample_big32 = map(x -> ft.(x), fwd_sample_big)
 fwd_diff_layer = fwd_sample .- fwd_sample_big
-fwd_err_layer = map(x -> map(norm, eachcol(x)), fwd_diff_layer)
-
+fwd_err_layer = reduce(
+    hcat, map(x -> bf.(x), map(x -> map(norm, eachcol(x)), fwd_diff_layer))
+)
 #####################
 # fwd sample error scaling
 #####################
@@ -60,47 +64,68 @@ s1_layer_diff = abs.(s1_layer .- s1_layer_big)
 s2_layer_diff = abs.(s2_layer .- s2_layer_big)
 s3_layer_diff = abs.(s3_layer .- s3_layer_big)
 #= small fwd err in general: should see small window size =#
+JLD2.save(
+    "result/hamflow_planar_fwd_err.jld2",
+    "fwd_err_layer",
+    fwd_err_layer,
+    "fwd_sample",
+    fwd_sample,
+    "fwd_sample_big",
+    fwd_sample_big32,
+    "Xs",
+    Xs,
+)
 
 #####################
 # density error
 #####################
 Ys = ts(Xs)
-# Ys = vcat(rand(p, 100), randn(Float32, 2, 100))
-Ys_big = ft.(Ys)
+# Ys = vcat(rand(p, 100), randn(ft, 2, 100))
+Ys_big = bf.(Ys)
 diff_inv = its(Ys) .- its_big(Ys_big)
-dd_inv = Float32.(map(norm, eachcol(diff_inv)))
+dd_inv = ft.(map(norm, eachcol(diff_inv)))
 
 bwd_sample = with_intermediate_results(its, Ys)
-# bwd_sample_big = map(x -> Float32.(x), with_intermediate_results(its_big, Ys_big))
+# bwd_sample_big = map(x -> ft.(x), with_intermediate_results(its_big, Ys_big))
 bwd_sample_big = with_intermediate_results(its_big, Ys_big)
 bwd_diff_layer = bwd_sample .- bwd_sample_big
-bwd_err_layer = map(x -> map(norm, eachcol(x)), bwd_diff_layer)
+bwd_err_layer = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), bwd_diff_layer)))
 
-# err_lpdf = Float32.(abs.(logpdf(flow_trained, Ys) .- logpdf(flow_big, Ys_big)))
+# err_lpdf = ft.(abs.(logpdf(flow_trained, Ys) .- logpdf(flow_big, Ys_big)))
 
 # err_lpdf_rel =
-#     Float32.(
+#     ft.(
 #         abs.(logpdf(flow_trained, Ys) .- logpdf(flow_big, Ys_big)) ./
 #         abs.(logpdf(flow_big, Ys_big))
 #     )
 
-x0_layers = inverse_from_intermediate_layers(ts, map(x -> Float32.(x), fwd_sample_big))
-x0_layers_big = map(
-    x -> Float32.(x), inverse_from_intermediate_layers(ts_big, fwd_sample_big)
-)
+x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), fwd_sample_big))
+x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, fwd_sample_big))
 inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
 inv_err_layers = map(x -> map(norm, eachcol(x)), inv_diff_layers)
 
-lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> Float32.(x), fwd_sample_big))
+lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), fwd_sample_big))
 lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, fwd_sample_big)
-lpdfs_layer_big32 = Float32.(lpdfs_layer_big)
+lpdfs_layer_big32 = ft.(lpdfs_layer_big)
 
 lpdfs_layer_diff = lpdfs_layer .- lpdfs_layer_big32
 lpdfs_layer_diff_rel = abs.(lpdfs_layer_diff ./ lpdfs_layer_big32)
 
 # exact density err is not small -- rough same magnitude as the sample inversion err
 # but the relative lpdf err is smaller
-
+JLD2.save(
+    "result/hamflow_planar_bwd_err.jld2",
+    "bwd_err_layer",
+    bwd_err_layer,
+    "lpdfs_layer",
+    lpdfs_layer,
+    "lpdfs_layer_big",
+    lpdfs_layer_big32,
+    "lpdfs_layer_diff",
+    lpdfs_layer_diff,
+    "lpdfs_layer_diff_rel",
+    lpdfs_layer_diff_rel,
+)
 #####################
 # elbo err 
 #####################
@@ -126,28 +151,43 @@ end
 elbos = elbo_intermediate(ts, q0, logp_joint, Xs)
 elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 
+JLD2.save("result/hamflow_planar_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 #####################
 #  window computation
 #####################
 
 # compute delta
-delta_fwd = single_fwd_err(ts, fwd_sample_big, Xs)
-delta_bwd = single_bwd_err(its, bwd_sample_big, Ys)
+delta_fwd = reduce(
+    hcat, map(x -> map(norm, eachcol(x)), single_fwd_err(ts, fwd_sample_big, Xs))
+)
+delta_bwd = reduce(
+    hcat, map(x -> map(norm, eachcol(x)), single_bwd_err(its, bwd_sample_big, Ys))
+)
 
 # compute window size
 nsample = 100
-δ = 1.0f-7
+δ = 1.0e-7
 nlayers = length(fwd_sample)
-ϵs_fwd = zeros(Float32, nlayers, nsample)
-ϵs_bwd = zeros(Float32, nlayers, nsample)
+window_fwd = zeros(nlayers, nsample)
+window_bwd = zeros(nlayers, nsample)
 
 @threads for i in 1:nsample
-    fwd_trjs = vcat(Xs[:, i], [fwd_sample[j][:, i] for j in 1:(nlayers - 1)])
-    bwd_trjs = vcat(Ys[:, i], [bwd_sample[j][:, i] for j in 1:(nlayers - 1)])
-
-    Ms_fwd = flow_fwd_jacobians(ts, fwd_trjs)
-    Ms_bwd = flow_bwd_jacobians(its, bwd_trjs)
-
-    ϵs_fwd[:, i] = all_shadowing_window(Ms_fwd, δ)
-    ϵs_bwd[:, i] = all_shadowing_window(Ms_bwd, δ)
+    x0 = randn(4)
+    y0 = ts(x0)
+    window_fwd[:, i] = all_shadowing_window(ts, x0, δ)
+    window_bwd[:, i] = all_shadowing_window(its, y0, δ)
 end
+
+JLD2.save(
+    "result/hamflow_planar_shadowing.jld2",
+    "delta",
+    δ,
+    "window_fwd",
+    window_fwd,
+    "window_bwd",
+    window_bwd,
+    "delta_fwd",
+    delta_fwd,
+    "delta_bwd",
+    delta_bwd,
+)
