@@ -1,7 +1,9 @@
 using LinearAlgebra
+using StatsBase
 using BlockBandedMatrices
 using Flux, Bijectors
 using Base.Threads
+using DiffResults
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
     return Chain(
@@ -118,6 +120,16 @@ function elbo_intermediate(ts, q0, logp, Xs)
     end
     return Els
 end
+function llh_intermediate(ts, q0, Xs)
+    flows = intermediate_flows(ts, q0)
+    Els = Vector{eltype(Xs)}(undef, length(flows))
+    @threads for i in 1:length(flows)
+        flow = flows[i]
+        el = llh_batch(flow, Xs)
+        Els[i] = el
+    end
+    return Els
+end
 function single_fwd_err(ts, fwd_sample_big, Xs)
     layers = get_functions(ts)
     fwd_sample_big32 = map(x -> Float32.(x), fwd_sample_big)
@@ -141,26 +153,30 @@ function single_bwd_err(its, bwd_sample_big, Ys)
     return diff
 end
 
-function flow_fwd_jacobians(ts, one_fwd_sample)
+function flow_jacobians(ts, x)
     layers = get_functions(ts)
+    rs = DiffResults.JacobianResult(x)
+    ft = eltype(x)
     Ms = []
-    for i in 1:length(one_fwd_sample)
-        layer = layers[i]
-        J = Zygote.jacobianlayer(layer, one_fwd_sample[i])[1]
-        push!(Ms, J)
+    for i in 1:length(layers)
+        l = Flux._paramtype(ft, layers[i])
+        rs = ForwardDiff.jacobian!(rs, l, x)
+        x, J = DiffResults.value(rs), DiffResults.jacobian(rs)
+        push!(Ms, copy(J))
     end
     return Ms
 end
-function flow_bwd_jacobians(its, one_bwd_sample)
-    layers = get_functions(its)
-    Ms = []
-    for i in 1:length(one_bwd_sample)
-        layer = layers[i]
-        J = Zygote.jacobianlayer(layer, one_bwd_sample[i])[1]
-        push!(Ms, J)
-    end
-    return Ms
-end
+
+# function flow_bwd_jacobians(its, one_bwd_sample)
+#     layers = get_functions(its)
+#     Ms = []
+#     for i in 1:length(one_bwd_sample)
+#         layer = layers[i]
+#         J = ForwardDiff.jacobian(layer, one_bwd_sample[i])
+#         push!(Ms, J)
+#     end
+#     return Ms
+# end
 
 function construct_shadow_matrix(M)
     Diag = [m * m' + I for m in M]
@@ -174,10 +190,36 @@ function shadowing_window(L, δ)
     return 2 * δ / σ
 end
 
-function all_shadowing_window(Ms, δ)
-    L0 = construct_shadow_matrix(Ms[1])
+function all_shadowing_window(Ms::Tuple, δ)
+    L0 = Symmetric(Ms[1] * Ms[1] + I, :L)
     w0 = [shadowing_window(L0, δ)]
     Ls = [construct_shadow_matrix(Ms[1:i]) for i in 2:length(Ms)]
     ws = [shadowing_window(L, δ) for L in Ls]
     return vcat(w0, ws)
+end
+
+function all_shadowing_window(ts::FunctionChain, x0, δ)
+    Ms = flow_jacobians(ts, x0)
+    return all_shadowing_window(Ms, δ)
+end
+
+# aux function for generating ribbon plot
+function get_percentiles(dat; p1=25, p2=75, byrow=true)
+    # if a single batch is listed by row, flip the datmat 
+    if byrow
+        dat = Matrix(dat')
+    end
+    n = size(dat, 2)
+
+    plow = zeros(n)
+    phigh = zeros(n)
+
+    for i in 1:n
+        dat_remove_nan = (dat[:, i])[iszero.(isnan.(dat[:, i]))]
+        median_remove_nan = median(dat_remove_nan)
+        plow[i] = median_remove_nan - percentile(vec(dat_remove_nan), p1)
+        phigh[i] = percentile(vec(dat_remove_nan), p2) - median_remove_nan
+    end
+
+    return plow, phigh
 end

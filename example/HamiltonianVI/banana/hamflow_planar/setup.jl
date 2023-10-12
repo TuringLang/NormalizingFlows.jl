@@ -60,34 +60,6 @@ flow_untrained = deepcopy(flow)
 ######################################
 # setup big flow
 ######################################
-# setprecision(BigFloat, 2048)
-# bf = BigFloat
-
-# # ts = flow_trained.transform # extract trained transformation
-# # its = inverse(ts) # extract trained inverse transformation
-
-# p_big = Banana(2, bf(3.0f-1), bf(100.0f0))
-# ∇S_big = Base.Fix1(Score, p_big)
-# maps_big = [
-#     [
-#         LeapFrog(dims, log(bf(1.0f-2)), L, ∇S_big, ∇logm),
-#         InvertibleMLP(2 * dims),
-#         PlanarLayer(2 * dims),
-#     ] for i in 1:6
-# ]
-# Ls_big = reduce(vcat, maps_big)
-# ts_untrained_big = Flux._paramtype(bf, fchain(Ls_big))
-
-# θ_big, re_big = Flux.destructure(ts_untrained_big)
-# # θ_trained, re_after = Flux.destructure(ts) # extract trained parameters 
-
-# # ts_big = re(bf.(θ_trained)) # construct big transformation
-# # its_big = inverse(ts_big) # construct big inverse transformation
-
-# @functor MvNormal
-# q0_big = Flux._paramtype(bf, q0)
-# # flow_big = Bijectors.transformed(q0_big, ts_big) # construct big flow
-# @functor MvNormal ()
 
 function set_precision_flow(ft::DataType, θ_trained, q0)
     p_new = Banana(2, ft(3.0f-1), ft(100.0f0))
