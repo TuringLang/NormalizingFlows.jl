@@ -111,15 +111,15 @@ err_lpdf_rel =
         abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)) ./ abs.(logpdf(flow_big, Ys_big))
     )
 
-x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), bwd_sample_big[end:-1:1]))
-x0_layers_big = map(
-    x -> ft.(x), inverse_from_intermediate_layers(ts_big, bwd_sample_big[end:-1:1])
-)
+test_seq = bwd_sample_big[end:-1:1]
+test_seq = fwd_sample_big
+x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), test_seq))
+x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, test_seq))
 inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
 inv_err_layers = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), inv_diff_layers)))
 
-lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), bwd_sample_big[end:-1:1]))
-lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, bwd_sample_big[end:-1:1])
+lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), test_seq))
+lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, test_seq)
 lpdfs_layer_big32 = ft.(lpdfs_layer_big)
 
 lpdfs_layer_diff = lpdfs_layer .- lpdfs_layer_big32
@@ -145,30 +145,30 @@ JLD2.save(
 #####################
 # elbo err 
 #####################
-logp = Base.Fix1(logpdf, p)
-# function logp_joint(z::AbstractVector{T}) where {T}
-#     dim = div(length(z), 2)
-#     x, ρ = z[1:dim], z[(dim + 1):end]
-#     return logp(x) + logpdf(MvNormal(zeros(eltype(z), dim), I), ρ)
+# logp = Base.Fix1(logpdf, p)
+# # function logp_joint(z::AbstractVector{T}) where {T}
+# #     dim = div(length(z), 2)
+# #     x, ρ = z[1:dim], z[(dim + 1):end]
+# #     return logp(x) + logpdf(MvNormal(zeros(eltype(z), dim), I), ρ)
+# # end
+# function logp_joint(zs::AbstractMatrix{T}) where {T}
+#     dim = div(size(zs, 1), 2)
+#     xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
+#     return logp(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
 # end
-function logp_joint(zs::AbstractMatrix{T}) where {T}
-    dim = div(size(zs, 1), 2)
-    xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
-    return logp(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
-end
 
-p_big = Banana(2, bf(1.0e-1), bf(100.0e0))
-logp_big = Base.Fix1(logpdf, p_big)
-function logp_joint_big(zs::AbstractMatrix{T}) where {T}
-    dim = div(size(zs, 1), 2)
-    xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
-    return logp_big(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
-end
+# p_big = Banana(2, bf(1.0e-1), bf(100.0e0))
+# logp_big = Base.Fix1(logpdf, p_big)
+# function logp_joint_big(zs::AbstractMatrix{T}) where {T}
+#     dim = div(size(zs, 1), 2)
+#     xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
+#     return logp_big(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
+# end
 
-elbos = elbo_intermediate(ts, q0, logp_joint, Xs)
-elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
+# elbos = elbo_intermediate(ts, q0, logp_joint, Xs)
+# elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 
-JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
+# JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 
 #####################
 #  window computation

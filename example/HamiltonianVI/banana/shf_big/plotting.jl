@@ -1,6 +1,8 @@
 using Plots, JLD2, StatsPlots
 using StatsBase
-
+using Random
+using FunctionChains
+ft = Float64
 include("../../../util.jl")
 
 ##########################
@@ -233,9 +235,9 @@ plot!(;
 )
 savefig("figure/lpdf_err_rel.png")
 
-# ###################3
-# # elbo
-# #####################
+#####################
+# elbo
+#####################
 elbos = res_elbo["elbo"]
 elbos_big = Float64.(res_elbo["elbo_big"])
 
@@ -260,9 +262,9 @@ plot!(;
 )
 savefig("figure/elbo.png")
 
-# ###################3
-# shadowing
-# #####################
+# #####################3
+# # shadowing
+# ######################
 
 # delta = res_shadowing["delta"]
 # window_fwd = res_shadowing["window_fwd"]
