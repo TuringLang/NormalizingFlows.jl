@@ -11,7 +11,8 @@ include("../../../util.jl")
 res_fwd = JLD2.load("result/hamflow_fwd_err.jld2")
 res_bwd = JLD2.load("result/hamflow_bwd_err.jld2")
 res_elbo = JLD2.load("result/hamflow_elbo_err.jld2")
-# res_shadowing = JLD2.load("result/hamflow_shadowing.jld2")
+res_shadowing = JLD2.load("result/hamflow_shadowing.jld2")
+res_delta = JLD2.load("result/hamflow_delta.jld2")
 
 function ribbon_plot(x, y; byrow=false, kwargs...)
     pp = plot(
@@ -45,7 +46,7 @@ plot(
     label="Fwd",
     xlabel="#transformations",
     ylabel="Error",
-    title="NF numerical error",
+    title="HamFlow numerical error",
     legend=:bottomright,
 )
 plot!(
@@ -75,7 +76,7 @@ plot(
     label="Fwd",
     xlabel="#transformations",
     ylabel="Error",
-    title="NF numerical error",
+    title="HamFlow numerical error",
     legend=:topleft,
 )
 plot!(
@@ -111,6 +112,7 @@ plot(
     label=["|x|" "sin(x)+1" "sigmoid"],
     xlabel="#transformations",
     ylabel="Rel. err.",
+    title="HamFlow sampling error",
 )
 plot!(;
     yaxis=:log10,
@@ -133,6 +135,7 @@ plot(
     label=["|x|" "sin(x)+1" "sigmoid"],
     xlabel="#transformations",
     ylabel="Rel. err.",
+    title="HamFlow sampling error",
 )
 plot!(;
     size=(800, 500),
@@ -160,7 +163,7 @@ plot(
     label="",
     xlabel="#transformations",
     ylabel="error",
-    title="NF log-density error",
+    title="HamFlow log-density error",
 )
 plot!(;
     yaxis=:log10,
@@ -181,7 +184,7 @@ plot(
     label="",
     xlabel="#transformations",
     ylabel="error",
-    title="NF log-density error",
+    title="HamFlow log-density error",
 )
 plot!(;
     size=(800, 500),
@@ -201,7 +204,7 @@ plot(
     label="",
     xlabel="#transformations",
     ylabel="Rel. error",
-    title="NF log-density error",
+    title="HamFlow log-density error",
 )
 plot!(;
     yaxis=:log10,
@@ -223,7 +226,7 @@ plot(
     label="",
     xlabel="#transformations",
     ylabel="Rel. error",
-    title="NF log-density error",
+    title="HamFlow log-density error",
 )
 plot!(;
     size=(800, 500),
@@ -248,7 +251,7 @@ plot(
     label="numerical",
     xlabel="#transformations",
     ylabel="ELBO",
-    title="NF ELBO est.",
+    title="HamFlow ELBO est.",
 )
 plot!(1:nlayers, elbos_big; lw=3, label="exact")
 plot!(;
@@ -266,93 +269,94 @@ savefig("figure/elbo.png")
 # # shadowing
 # ######################
 
-# delta = res_shadowing["delta"]
-# window_fwd = res_shadowing["window_fwd"]
-# window_bwd = res_shadowing["window_bwd"]
-# delta_fwd = res_shadowing["delta_fwd"]
-# delta_bwd = res_shadowing["delta_bwd"]
+delta = res_shadowing["delta"]
+window_fwd = res_shadowing["window_fwd"]
+window_bwd = res_shadowing["window_bwd"]
+delta_fwd = res_shadowing["delta_fwd"]
+delta_bwd = res_shadowing["delta_bwd"]
 
-# p1 = boxplot(
-#     ["Fwd err." "Bwd err."],
-#     [vec(delta_fwd) vec(delta_bwd)];
-#     legend=false,
-#     title="NF single map err.",
-# )
-# plot!(p1; xlabel="", ylabel="Error", yaxis=:log10)
-# plot!(;
-#     size=(800, 500),
-#     # yticks=[1e-3, 1e-6, 1e-10],
-#     xtickfontsize=30,
-#     ytickfontsize=30,
-#     margin=10Plots.mm,
-#     guidefontsize=30,
-#     legendfontsize=20,
-#     titlefontsize=30,
-# )
-# savefig(p1, joinpath("figure/", "delta.png"))
+p1 = boxplot(
+    ["Fwd err." "Bwd err."],
+    [vec(delta_fwd) vec(delta_bwd)];
+    legend=false,
+    title="HamFlow single map err.",
+)
+plot!(p1; xlabel="", ylabel="Error", yaxis=:log10)
+plot!(;
+    size=(800, 500),
+    # yticks=[1e-3, 1e-6, 1e-10],
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10Plots.mm,
+    guidefontsize=30,
+    legendfontsize=20,
+    titlefontsize=30,
+)
+savefig(p1, joinpath("figure/", "delta.png"))
 
-# p1 = plot(
-#     1:nlayers,
-#     vec(median(window_fwd; dims=2));
-#     ribbon=get_percentiles(window_fwd),
-#     lw=3,
-#     label="Fwd",
-#     xlabel="#transformations",
-#     ylabel="",
-# )
-# p2 = plot(
-#     1:nlayers,
-#     vec(median(window_bwd; dims=2));
-#     ribbon=get_percentiles(window_bwd),
-#     lw=3,
-#     label="Bwd",
-#     xlabel="#transformations",
-#     ylabel="",
-# )
-# # put them side by side
-# pp = plot(p1, p2; layout=(1, 2), title="NF window size")
-# plot!(;
-#     size=(1200, 600),
-#     xtickfontsize=30,
-#     ytickfontsize=30,
-#     margin=10Plots.mm,
-#     guidefontsize=30,
-#     legendfontsize=20,
-#     titlefontsize=30,
-# )
+p1 = plot(
+    1:nlayers,
+    vec(median(window_fwd; dims=2));
+    ribbon=get_percentiles(window_fwd),
+    lw=3,
+    label="Fwd",
+    xlabel="#transformations",
+    ylabel="",
+)
+plot!(
+    1:nlayers,
+    vec(median(window_bwd; dims=2));
+    ribbon=get_percentiles(window_bwd),
+    lw=3,
+    label="Bwd",
+    xlabel="#transformations",
+    ylabel="",
+)
+plot!(;
+    title="HamFlow window size",
+    size=(800, 500),
+    # yticks=[1e-3, 1e-6, 1e-10],
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10Plots.mm,
+    guidefontsize=30,
+    legendfontsize=20,
+    titlefontsize=30,
+)
 
-# savefig(pp, "figure/window.png")
+savefig(p1, "figure/window.png")
 
-# p1 = plot(
-#     1:nlayers,
-#     vec(median(window_fwd; dims=2));
-#     ribbon=get_percentiles(window_fwd),
-#     lw=3,
-#     label="Fwd",
-#     xlabel="#transformations",
-#     ylabel="",
-#     yaxis=:log10,
-# )
-# p2 = plot(
-#     1:nlayers,
-#     vec(median(window_bwd; dims=2));
-#     ribbon=get_percentiles(window_bwd),
-#     lw=3,
-#     label="Bwd",
-#     xlabel="#transformations",
-#     ylabel="",
-#     yaxis=:log10,
-# )
-# # put them side by side
-# pp = plot(p1, p2; layout=(1, 2), title="NF window size")
-# plot!(;
-#     size=(1200, 600),
-#     xtickfontsize=30,
-#     ytickfontsize=30,
-#     margin=10Plots.mm,
-#     guidefontsize=30,
-#     legendfontsize=20,
-#     titlefontsize=30,
-# )
+p1 = plot(
+    1:nlayers,
+    vec(median(window_fwd; dims=2));
+    ribbon=get_percentiles(window_fwd),
+    lw=3,
+    label="Fwd",
+    xlabel="#transformations",
+    ylabel="",
+    yaxis=:log10,
+)
+plot!(
+    1:nlayers,
+    vec(median(window_bwd; dims=2));
+    ribbon=get_percentiles(window_bwd),
+    lw=3,
+    label="Bwd",
+    xlabel="#transformations",
+    ylabel="",
+    yaxis=:log10,
+)
+plot!(;
+    title="HamFlow window size",
+    size=(800, 500),
+    # yticks=[1e-3, 1e-6, 1e-10],
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10Plots.mm,
+    guidefontsize=30,
+    legendfontsize=20,
+    titlefontsize=30,
+    legend=:bottomright,
+)
 
-# savefig(pp, "figure/window_log.png")
+savefig(p1, "figure/window_log.png")

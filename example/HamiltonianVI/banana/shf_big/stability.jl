@@ -22,8 +22,8 @@ setprecision(BigFloat, 2048)
 bf = BigFloat
 flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
-# compare_trained_and_untrained_flow_BN(flow, flow, p, 1000)
-
+pp = check_trained_flow(flow, p, 1000)
+savefig(pp, "figure/trained_flow.png")
 #####################
 # test stability
 ######################
@@ -47,47 +47,47 @@ fwd_err_layer = reduce(
 #####################
 # fwd sample error scaling
 #####################
-f1(x) = abs.(x)
-f2(x) = sin.(x) .+ 1
-f3(x) = 1 ./ (1 .+ exp.(-x))
-s1(x) = sum(f1, x)
-s2(x) = sum(f2, x)
-s3(x) = sum(f3, x)
-s1_layer = map(x -> mean(map(s1, eachcol(x))), fwd_sample)
-s2_layer = map(x -> mean(map(s2, eachcol(x))), fwd_sample)
-s3_layer = map(x -> mean(map(s3, eachcol(x))), fwd_sample)
+# f1(x) = abs.(x)
+# f2(x) = sin.(x) .+ 1
+# f3(x) = 1 ./ (1 .+ exp.(-x))
+# s1(x) = sum(f1, x)
+# s2(x) = sum(f2, x)
+# s3(x) = sum(f3, x)
+# s1_layer = map(x -> mean(map(s1, eachcol(x))), fwd_sample)
+# s2_layer = map(x -> mean(map(s2, eachcol(x))), fwd_sample)
+# s3_layer = map(x -> mean(map(s3, eachcol(x))), fwd_sample)
 
-s1_layer_big = map(x -> mean(map(s1, eachcol(x))), fwd_sample_big)
-s2_layer_big = map(x -> mean(map(s2, eachcol(x))), fwd_sample_big)
-s3_layer_big = map(x -> mean(map(s3, eachcol(x))), fwd_sample_big)
+# s1_layer_big = map(x -> mean(map(s1, eachcol(x))), fwd_sample_big)
+# s2_layer_big = map(x -> mean(map(s2, eachcol(x))), fwd_sample_big)
+# s3_layer_big = map(x -> mean(map(s3, eachcol(x))), fwd_sample_big)
 
-s1_layer_diff = abs.(s1_layer .- s1_layer_big)
-s2_layer_diff = abs.(s2_layer .- s2_layer_big)
-s3_layer_diff = abs.(s3_layer .- s3_layer_big)
-#= small fwd err in general: should see small window size =#
-JLD2.save(
-    "result/hamflow_fwd_err.jld2",
-    "fwd_err_layer",
-    fwd_err_layer,
-    "fwd_sample",
-    fwd_sample,
-    "fwd_sample_big",
-    fwd_sample_big32,
-    "Xs",
-    Xs,
-    "s1",
-    s1_layer_big,
-    "s2",
-    s2_layer_big,
-    "s3",
-    s3_layer_big,
-    "s1_err",
-    s1_layer_diff,
-    "s2_err",
-    s2_layer_diff,
-    "s3_err",
-    s3_layer_diff,
-)
+# s1_layer_diff = abs.(s1_layer .- s1_layer_big)
+# s2_layer_diff = abs.(s2_layer .- s2_layer_big)
+# s3_layer_diff = abs.(s3_layer .- s3_layer_big)
+# #= small fwd err in general: should see small window size =#
+# JLD2.save(
+#     "result/hamflow_fwd_err.jld2",
+#     "fwd_err_layer",
+#     fwd_err_layer,
+#     "fwd_sample",
+#     fwd_sample,
+#     "fwd_sample_big",
+#     fwd_sample_big32,
+#     "Xs",
+#     Xs,
+#     "s1",
+#     s1_layer_big,
+#     "s2",
+#     s2_layer_big,
+#     "s3",
+#     s3_layer_big,
+#     "s1_err",
+#     s1_layer_diff,
+#     "s2_err",
+#     s2_layer_diff,
+#     "s3_err",
+#     s3_layer_diff,
+# )
 
 #####################
 # density error
@@ -104,44 +104,49 @@ bwd_sample_big = with_intermediate_results(its_big, Ys_big)
 bwd_diff_layer = bwd_sample .- bwd_sample_big
 bwd_err_layer = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), bwd_diff_layer)))
 
-err_lpdf = ft.(abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)))
+# err_lpdf = ft.(abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)))
 
-err_lpdf_rel =
-    ft.(
-        abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)) ./ abs.(logpdf(flow_big, Ys_big))
-    )
+# err_lpdf_rel =
+#     ft.(
+#         abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)) ./ abs.(logpdf(flow_big, Ys_big))
+#     )
 
-test_seq = bwd_sample_big[end:-1:1]
-test_seq = fwd_sample_big
-x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), test_seq))
-x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, test_seq))
-inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
-inv_err_layers = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), inv_diff_layers)))
+# test_seq = bwd_sample_big[end:-1:1]
+# test_seq = fwd_sample_big
+# x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), test_seq))
+# x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, test_seq))
+# inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
+# inv_err_layers = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), inv_diff_layers)))
 
-lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), test_seq))
-lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, test_seq)
-lpdfs_layer_big32 = ft.(lpdfs_layer_big)
+# lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), test_seq))
+# lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, test_seq)
+# lpdfs_layer_big32 = ft.(lpdfs_layer_big)
 
-lpdfs_layer_diff = lpdfs_layer .- lpdfs_layer_big32
-lpdfs_layer_diff_rel = abs.(lpdfs_layer_diff ./ lpdfs_layer_big32)
+# lpdfs_layer_diff = lpdfs_layer .- lpdfs_layer_big32
+# lpdfs_layer_diff_rel = abs.(lpdfs_layer_diff ./ lpdfs_layer_big32)
 
-# exact density err is not small -- rough same magnitude as the sample inversion err
-# but the relative lpdf err is smaller
-JLD2.save(
-    "result/hamflow_bwd_err.jld2",
-    "bwd_err_layer",
-    bwd_err_layer,
-    "inv_err_layer",
-    inv_err_layers,
-    "lpdfs_layer",
-    lpdfs_layer,
-    "lpdfs_layer_big",
-    lpdfs_layer_big32,
-    "lpdfs_layer_diff",
-    lpdfs_layer_diff,
-    "lpdfs_layer_diff_rel",
-    lpdfs_layer_diff_rel,
-)
+# # exact density err is not small -- rough same magnitude as the sample inversion err
+# # but the relative lpdf err is smaller
+# JLD2.save(
+#     "result/hamflow_bwd_err.jld2",
+#     "bwd_sample_big",
+#     bwd_sample_big,
+#     "bwd_sample",
+#     bwd_sample,
+#     "bwd_err_layer",
+#     bwd_err_layer,
+#     "inv_err_layer",
+#     inv_err_layers,
+#     "lpdfs_layer",
+#     lpdfs_layer,
+#     "lpdfs_layer_big",
+#     lpdfs_layer_big32,
+#     "lpdfs_layer_diff",
+#     lpdfs_layer_diff,
+#     "lpdfs_layer_diff_rel",
+#     lpdfs_layer_diff_rel,
+# )
+
 #####################
 # elbo err 
 #####################
@@ -170,42 +175,48 @@ JLD2.save(
 
 # JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 
-#####################
-#  window computation
-#####################
+####################
+# window computation
+####################
 
-# # compute delta
-# delta_fwd = reduce(
-#     hcat, map(x -> map(norm, eachcol(x)), single_fwd_err(ts, fwd_sample_big, Xs))
-# )
-# delta_bwd = reduce(
-#     hcat, map(x -> map(norm, eachcol(x)), single_bwd_err(its, bwd_sample_big, Ys))
-# )
+# compute delta
+delta_fwd = reduce(
+    hcat, map(x -> map(norm, eachcol(x)), single_fwd_err(ts, fwd_sample_big, Xs))
+)
+delta_bwd = reduce(
+    hcat, map(x -> map(norm, eachcol(x)), single_bwd_err(its, bwd_sample_big, Ys))
+)
+println(median(vec(delta_fwd)))
+println(median(vec(delta_bwd)))
+JLD2.save("result/hamflow_delta.jld2", "delta_fwd", delta_fwd, "delta_bwd", delta_bwd)
 
-# # compute window size
-# nsample = 100
-# δ = 1.0e-16
-# nlayers = length(fwd_sample)
-# window_fwd = zeros(nlayers, nsample)
-# window_bwd = zeros(nlayers, nsample)
+# compute window size
+nsample = 40
+δ = 1.0e-7
+nlayers = length(fwd_sample)
+window_fwd = zeros(nlayers, nsample)
+window_bwd = zeros(nlayers, nsample)
 
-# @threads for i in 1:nsample
-#     x0 = randn(4)
-#     y0 = ts(x0)
-#     window_fwd[:, i] = all_shadowing_window(ts, x0, δ)
-#     window_bwd[:, i] = all_shadowing_window(its, y0, δ)
-# end
+using ProgressMeter
+prog = ProgressMeter.Progress(nsample; desc="computing window", barlen=31, showspeed=true)
+for i in 1:nsample
+    x0 = rand(q0n)
+    y0 = ts(x0)
+    window_fwd[:, i] = all_shadowing_window(ts, x0, δ)
+    window_bwd[:, i] = all_shadowing_window_inverse(its, y0, δ)
+    ProgressMeter.next!(prog)
+end
 
-# JLD2.save(
-#     "result/hamflow_shadowing.jld2",
-#     "delta",
-#     δ,
-#     "window_fwd",
-#     window_fwd,
-#     "window_bwd",
-#     window_bwd,
-#     "delta_fwd",
-#     delta_fwd,
-#     "delta_bwd",
-#     delta_bwd,
-# )
+JLD2.save(
+    "result/hamflow_shadowing.jld2",
+    "delta",
+    δ,
+    "window_fwd",
+    window_fwd,
+    "window_bwd",
+    window_bwd,
+    "delta_fwd",
+    delta_fwd,
+    "delta_bwd",
+    delta_bwd,
+)

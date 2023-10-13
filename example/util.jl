@@ -4,6 +4,7 @@ using BlockBandedMatrices
 using Flux, Bijectors
 using Base.Threads
 using DiffResults
+using ForwardDiff
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
     return Chain(
@@ -190,10 +191,17 @@ function shadowing_window(L, δ)
     return 2 * δ / σ
 end
 
-function all_shadowing_window(Ms::Tuple, δ)
-    L0 = Symmetric(Ms[1] * Ms[1] + I, :L)
+function all_shadowing_window(Ms, δ)
+    L0 = Symmetric(Ms[1] * Ms[1]' + I, :L)
     w0 = [shadowing_window(L0, δ)]
     Ls = [construct_shadow_matrix(Ms[1:i]) for i in 2:length(Ms)]
+    ws = [shadowing_window(L, δ) for L in Ls]
+    return vcat(w0, ws)
+end
+function all_shadowing_window_inverse(Ms, δ)
+    L0 = Symmetric(Ms[1] * Ms[1]' + I, :L)
+    w0 = [shadowing_window(L0, δ)]
+    Ls = [construct_shadow_matrix(Ms[i:-1:1]) for i in 2:length(Ms)]
     ws = [shadowing_window(L, δ) for L in Ls]
     return vcat(w0, ws)
 end
@@ -201,6 +209,11 @@ end
 function all_shadowing_window(ts::FunctionChain, x0, δ)
     Ms = flow_jacobians(ts, x0)
     return all_shadowing_window(Ms, δ)
+end
+
+function all_shadowing_window_inverse(its::FunctionChain, y0, δ)
+    Ms = flow_jacobians(its, y0)
+    return all_shadowing_window_inverse(Ms[end:-1:1], δ)
 end
 
 # aux function for generating ribbon plot
