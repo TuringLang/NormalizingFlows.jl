@@ -33,7 +33,7 @@ end
 # sample pass err
 ###########################
 fwd_err_layer = res_fwd["fwd_err_layer"]
-bwd_err_layer = res_bwd["bwd_err_layer"]
+bwd_err_layer = res_bwd["inv_err_layer"]
 nlayers = size(fwd_err_layer, 2)
 plot(
     1:nlayers,
@@ -94,17 +94,21 @@ plot!(;
 )
 savefig("figure/flow_err.png")
 
-s1_layer_diff = res_fwd["s1"]
-s2_layer_diff = res_fwd["s2"]
-s3_layer_diff = res_fwd["s3"]
+s1_layer = ft.(res_fwd["s1"])
+s2_layer = ft.(res_fwd["s2"])
+s3_layer = ft.(res_fwd["s3"])
+
+s1_layer_diff = res_fwd["s1_err"]
+s2_layer_diff = res_fwd["s2_err"]
+s3_layer_diff = res_fwd["s3_err"]
 
 plot(
     1:nlayers,
-    [s1_layer_diff s2_layer_diff s3_layer_diff];
+    [s1_layer_diff ./ s1_layer s2_layer_diff ./ s2_layer s3_layer_diff ./ s3_layer];
     lw=3,
     label=["|x|" "sin(x)+1" "sigmoid"],
     xlabel="#transformations",
-    ylabel="Error",
+    ylabel="Rel. err.",
 )
 plot!(;
     yaxis=:log10,
@@ -115,16 +119,18 @@ plot!(;
     margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
+    legend=:bottomright,
+    yticks=[1e-15, 1e-10, 1e-5, 1e-1],
 )
 savefig("figure/stat_err_log.png")
 
 plot(
     1:nlayers,
-    [s1_layer_diff s2_layer_diff s3_layer_diff];
+    [s1_layer_diff ./ s1_layer s2_layer_diff ./ s2_layer s3_layer_diff ./ s3_layer];
     lw=3,
     label=["|x|" "sin(x)+1" "sigmoid"],
     xlabel="#transformations",
-    ylabel="Error",
+    ylabel="Rel. err.",
 )
 plot!(;
     size=(800, 500),
@@ -134,6 +140,7 @@ plot!(;
     margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
+    legend=:topleft,
 )
 savefig("figure/stat_err.png")
 
@@ -155,7 +162,7 @@ plot(
 )
 plot!(;
     yaxis=:log10,
-    # size=(800, 500),
+    size=(800, 500),
     xtickfontsize=30,
     ytickfontsize=30,
     margin=10Plots.mm,
@@ -202,6 +209,7 @@ plot!(;
     margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
+    yticks=[1e-15, 1e-10, 1e-5, 1e-1],
 )
 savefig("figure/lpdf_err_rel_log.png")
 

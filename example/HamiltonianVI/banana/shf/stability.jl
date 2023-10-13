@@ -76,10 +76,16 @@ JLD2.save(
     "Xs",
     Xs,
     "s1",
-    s1_layer_diff,
+    s1_layer_big,
     "s2",
-    s2_layer_diff,
+    s2_layer_big,
     "s3",
+    s3_layer_big,
+    "s1_err",
+    s1_layer_diff,
+    "s2_err",
+    s2_layer_diff,
+    "s3_err",
     s3_layer_diff,
 )
 
@@ -105,13 +111,15 @@ err_lpdf_rel =
         abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)) ./ abs.(logpdf(flow_big, Ys_big))
     )
 
-x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), fwd_sample_big))
-x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, fwd_sample_big))
+x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), bwd_sample_big[end:-1:1]))
+x0_layers_big = map(
+    x -> ft.(x), inverse_from_intermediate_layers(ts_big, bwd_sample_big[end:-1:1])
+)
 inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
 inv_err_layers = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), inv_diff_layers)))
 
-lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), fwd_sample_big))
-lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, fwd_sample_big)
+lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), bwd_sample_big[end:-1:1]))
+lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, bwd_sample_big[end:-1:1])
 lpdfs_layer_big32 = ft.(lpdfs_layer_big)
 
 lpdfs_layer_diff = lpdfs_layer .- lpdfs_layer_big32
@@ -161,6 +169,7 @@ elbos = elbo_intermediate(ts, q0, logp_joint, Xs)
 elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 
 JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
+
 #####################
 #  window computation
 #####################
