@@ -18,8 +18,9 @@ include("../../../targets/banana.jl")
 
 # create target p
 p = Banana(2, 1.0e-1, 100.0e0)
-samples = rand(p, 1000)
-visualize(p, samples)
+# samples = rand(p, 1000)
+# visualize(p, samples)
+
 ######################################
 # setup flow
 ######################################
@@ -39,13 +40,11 @@ end
 
 dims = p.dim
 L = 200
-nlayers = 100
+nlayers = 200
 maps = [[LeapFrog(dims, log(2.0e-2), L, ∇S, ∇logm), MomentumNorm(dims)] for i in 1:nlayers]
 Ls = reduce(vcat, maps)
 ts = fchain(Ls)
-μ = [0.002425117471866356, 9.507934763850985, 0, 0]
-D = [2.2246650032120625, 0.9937402081540186, 1, 1]
-q0 = MvNormal(μ, Diagonal(D .^ 2))
+q0 = MvNormal(zeros(2dims), I)
 flow = Bijectors.transformed(q0, ts)
 flow_untrained = deepcopy(flow)
 

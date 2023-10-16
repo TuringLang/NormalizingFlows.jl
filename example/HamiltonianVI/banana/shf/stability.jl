@@ -22,14 +22,14 @@ setprecision(BigFloat, 2048)
 bf = BigFloat
 flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
-# compare_trained_and_untrained_flow_BN(flow, flow, p, 1000)
-
+pp = check_trained_flow(flow, p, 1000)
+savefig(pp, "figure/trained_flow.png")
 #####################
 # test stability
 ######################
 
 # forward sample stability
-Xs = rand(q0, 50)
+Xs = rand(q0, 200)
 Xs_big = bf.(Xs)
 
 # # check stability of big flow
@@ -76,24 +76,24 @@ JLD2.save(
     "Xs",
     Xs,
     "s1",
-    s1_layer_big,
+    ft.(s1_layer_big),
     "s2",
-    s2_layer_big,
+    ft.(s2_layer_big),
     "s3",
-    s3_layer_big,
+    ft.(s3_layer_big),
     "s1_err",
-    s1_layer_diff,
+    ft.(s1_layer_diff),
     "s2_err",
-    s2_layer_diff,
+    ft.(s2_layer_diff),
     "s3_err",
-    s3_layer_diff,
+    ft.(s3_layer_diff),
 )
 
 #####################
 # density error
 #####################
 # Ys = ts(Xs)
-Ys = vcat(rand(p, 50), randn(ft, 2, 50))
+Ys = vcat(rand(p, 200), randn(ft, 2, 200))
 Ys_big = bf.(Ys)
 diff_inv = its(Ys) .- its_big(Ys_big)
 dd_inv = ft.(map(norm, eachcol(diff_inv)))
@@ -111,15 +111,15 @@ err_lpdf_rel =
         abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)) ./ abs.(logpdf(flow_big, Ys_big))
     )
 
-x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), bwd_sample_big[end:-1:1]))
-x0_layers_big = map(
-    x -> ft.(x), inverse_from_intermediate_layers(ts_big, bwd_sample_big[end:-1:1])
-)
+test_seq = bwd_sample_big[end:-1:1]
+test_seq = fwd_sample_big
+x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), test_seq))
+x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, test_seq))
 inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
 inv_err_layers = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), inv_diff_layers)))
 
-lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), bwd_sample_big[end:-1:1]))
-lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, bwd_sample_big[end:-1:1])
+lpdfs_layer = intermediate_lpdfs(ts, q0, map(x -> ft.(x), test_seq))
+lpdfs_layer_big = intermediate_lpdfs(ts_big, q0_big, test_seq)
 lpdfs_layer_big32 = ft.(lpdfs_layer_big)
 
 lpdfs_layer_diff = lpdfs_layer .- lpdfs_layer_big32
@@ -129,19 +129,24 @@ lpdfs_layer_diff_rel = abs.(lpdfs_layer_diff ./ lpdfs_layer_big32)
 # but the relative lpdf err is smaller
 JLD2.save(
     "result/hamflow_bwd_err.jld2",
+    "bwd_sample_big",
+    ft.(bwd_sample_big),
+    "bwd_sample",
+    ft.(bwd_sample),
     "bwd_err_layer",
-    bwd_err_layer,
+    ft.(bwd_err_layer),
     "inv_err_layer",
-    inv_err_layers,
+    ft.(inv_err_layers),
     "lpdfs_layer",
-    lpdfs_layer,
+    ft.(lpdfs_layer),
     "lpdfs_layer_big",
-    lpdfs_layer_big32,
+    ft.(lpdfs_layer_big32),
     "lpdfs_layer_diff",
-    lpdfs_layer_diff,
+    ft.(lpdfs_layer_diff),
     "lpdfs_layer_diff_rel",
-    lpdfs_layer_diff_rel,
+    ft.(lpdfs_layer_diff_rel),
 )
+
 #####################
 # elbo err 
 #####################
@@ -170,9 +175,9 @@ elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 
 JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 
-#####################
-#  window computation
-#####################
+####################
+# window computation
+####################
 
 # compute delta
 delta_fwd = reduce(
@@ -181,19 +186,25 @@ delta_fwd = reduce(
 delta_bwd = reduce(
     hcat, map(x -> map(norm, eachcol(x)), single_bwd_err(its, bwd_sample_big, Ys))
 )
+println(median(vec(delta_fwd)))
+println(median(vec(delta_bwd)))
+JLD2.save("result/hamflow_delta.jld2", "delta_fwd", delta_fwd, "delta_bwd", delta_bwd)
 
 # compute window size
-nsample = 100
-δ = 1.0e-16
+nsample = 50
+δ = 1.0e-7
 nlayers = length(fwd_sample)
 window_fwd = zeros(nlayers, nsample)
 window_bwd = zeros(nlayers, nsample)
 
-@threads for i in 1:nsample
-    x0 = randn(4)
+using ProgressMeter
+prog = ProgressMeter.Progress(nsample; desc="computing window", barlen=31, showspeed=true)
+for i in 1:nsample
+    x0 = rand(q0n)
     y0 = ts(x0)
     window_fwd[:, i] = all_shadowing_window(ts, x0, δ)
-    window_bwd[:, i] = all_shadowing_window(its, y0, δ)
+    window_bwd[:, i] = all_shadowing_window_inverse(its, y0, δ)
+    ProgressMeter.next!(prog)
 end
 
 JLD2.save(
