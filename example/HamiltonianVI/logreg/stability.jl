@@ -16,7 +16,7 @@ ft = Float64
 # flow = re(param_trained)
 # ts = flow.transform
 # its = inverse(ts)
-flow, ts, its, q0n, r64 = set_precision_flow(ft, param_trained, q0)
+flow, ts, its, q0n, logp_new, r64 = set_precision_flow(ft, param_trained, q0)
 
 setprecision(BigFloat, 2048)
 bf = BigFloat
@@ -24,8 +24,6 @@ flow_big, ts_big, its_big, q0_big, logp_big, re_big = set_precision_flow(
     bf, param_trained, q0
 )
 
-pp = check_trained_flow(flow, p, 1000)
-savefig(pp, "figure/trained_flow.png")
 #####################
 # test stability
 ######################
@@ -109,8 +107,8 @@ JLD2.save(
     ],
 )
 nsample = 100
-T = nuts(μ, 0.7, logp, ∇logp, 20000 + nsample, 20000)[20001:end, :]
-Ys = vcat(T', randn(ft, 2, nsample))
+T = nuts(μ, 0.7, logp, ∇S, 20000 + nsample, 20000)[20001:end, :]
+Ys = vcat(T', randn(ft, dims, nsample))
 Ys_big = bf.(Ys)
 diff_inv = its(Ys) .- its_big(Ys_big)
 dd_inv = ft.(map(norm, eachcol(diff_inv)))
@@ -147,21 +145,21 @@ lpdfs_layer_diff_rel = abs.(lpdfs_layer_diff ./ lpdfs_layer_big32)
 JLD2.save(
     "result/hamflow_bwd_err.jld2",
     "bwd_sample_big",
-    bwd_sample_big,
+    ft.(bwd_sample_big),
     "bwd_sample",
-    bwd_sample,
+    ft.(bwd_sample),
     "bwd_err_layer",
-    bwd_err_layer,
+    ft.(bwd_err_layer),
     "inv_err_layer",
-    inv_err_layers,
+    ft.(inv_err_layers),
     "lpdfs_layer",
-    lpdfs_layer,
+    ft.(lpdfs_layer),
     "lpdfs_layer_big",
-    lpdfs_layer_big32,
+    ft.(lpdfs_layer_big32),
     "lpdfs_layer_diff",
-    lpdfs_layer_diff,
+    ft.(lpdfs_layer_diff),
     "lpdfs_layer_diff_rel",
-    lpdfs_layer_diff_rel,
+    ft.(lpdfs_layer_diff_rel),
 )
 
 #####################

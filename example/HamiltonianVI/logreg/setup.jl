@@ -53,8 +53,12 @@ function set_precision_flow(ft::DataType, θ_trained, q0)
 
     ∇S_new(x) = ∇logp(x, ft.(X), ft.(Y), ft(aa), ft(bb), p)
     maps_new = [
-        [LeapFrog(dims, log(ft(2.0e-3)), L, ∇S_new, ∇logm), MomentumNorm(dims)] for
-        i in 1:nlayers
+        [
+            LeapFrog(dims, log(ft(2.0e-3)), L, ∇S_new, ∇logm),
+            MomentumNorm(
+                dims, ft.(zeros(dims)), ft.(randn(dims, dims)), ft.(randn(dims, dims))
+            ),
+        ] for i in 1:nlayers
     ]
     Ls_new = reduce(vcat, maps_new)
     ts_untrained_new = Flux._paramtype(ft, fchain(Ls_new))
