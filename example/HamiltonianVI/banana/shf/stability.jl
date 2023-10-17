@@ -145,78 +145,80 @@ JLD2.save(
     ft.(lpdfs_layer_diff),
     "lpdfs_layer_diff_rel",
     ft.(lpdfs_layer_diff_rel),
+    "Ys",
+    Ys,
 )
 
 #####################
 # elbo err 
 #####################
-logp = Base.Fix1(logpdf, p)
-# function logp_joint(z::AbstractVector{T}) where {T}
-#     dim = div(length(z), 2)
-#     x, ρ = z[1:dim], z[(dim + 1):end]
-#     return logp(x) + logpdf(MvNormal(zeros(eltype(z), dim), I), ρ)
+# logp = Base.Fix1(logpdf, p)
+# # function logp_joint(z::AbstractVector{T}) where {T}
+# #     dim = div(length(z), 2)
+# #     x, ρ = z[1:dim], z[(dim + 1):end]
+# #     return logp(x) + logpdf(MvNormal(zeros(eltype(z), dim), I), ρ)
+# # end
+# function logp_joint(zs::AbstractMatrix{T}) where {T}
+#     dim = div(size(zs, 1), 2)
+#     xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
+#     return logp(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
 # end
-function logp_joint(zs::AbstractMatrix{T}) where {T}
-    dim = div(size(zs, 1), 2)
-    xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
-    return logp(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
-end
 
-p_big = Banana(2, bf(1.0e-1), bf(100.0e0))
-logp_big = Base.Fix1(logpdf, p_big)
-function logp_joint_big(zs::AbstractMatrix{T}) where {T}
-    dim = div(size(zs, 1), 2)
-    xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
-    return logp_big(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
-end
+# p_big = Banana(2, bf(1.0e-1), bf(100.0e0))
+# logp_big = Base.Fix1(logpdf, p_big)
+# function logp_joint_big(zs::AbstractMatrix{T}) where {T}
+#     dim = div(size(zs, 1), 2)
+#     xs, ρs = zs[1:dim, :], zs[(dim + 1):end, :]
+#     return logp_big(xs) + logpdf(MvNormal(zeros(eltype(zs), dim), I), ρs)
+# end
 
-elbos = elbo_intermediate(ts, q0, logp_joint, Xs)
-elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
+# elbos = elbo_intermediate(ts, q0, logp_joint, Xs)
+# elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 
-JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
+# JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 
-####################
-# window computation
-####################
+# ####################
+# # window computation
+# ####################
 
-# compute delta
-delta_fwd = reduce(
-    hcat, map(x -> map(norm, eachcol(x)), single_fwd_err(ts, fwd_sample_big, Xs))
-)
-delta_bwd = reduce(
-    hcat, map(x -> map(norm, eachcol(x)), single_bwd_err(its, bwd_sample_big, Ys))
-)
-println(median(vec(delta_fwd)))
-println(median(vec(delta_bwd)))
-JLD2.save("result/hamflow_delta.jld2", "delta_fwd", delta_fwd, "delta_bwd", delta_bwd)
+# # compute delta
+# delta_fwd = reduce(
+#     hcat, map(x -> map(norm, eachcol(x)), single_fwd_err(ts, fwd_sample_big, Xs))
+# )
+# delta_bwd = reduce(
+#     hcat, map(x -> map(norm, eachcol(x)), single_bwd_err(its, bwd_sample_big, Ys))
+# )
+# println(median(vec(delta_fwd)))
+# println(median(vec(delta_bwd)))
+# JLD2.save("result/hamflow_delta.jld2", "delta_fwd", delta_fwd, "delta_bwd", delta_bwd)
 
-# compute window size
-nsample = 50
-δ = 1.0e-7
-nlayers = length(fwd_sample)
-window_fwd = zeros(nlayers, nsample)
-window_bwd = zeros(nlayers, nsample)
+# # compute window size
+# nsample = 50
+# δ = 1.0e-7
+# nlayers = length(fwd_sample)
+# window_fwd = zeros(nlayers, nsample)
+# window_bwd = zeros(nlayers, nsample)
 
-using ProgressMeter
-prog = ProgressMeter.Progress(nsample; desc="computing window", barlen=31, showspeed=true)
-for i in 1:nsample
-    x0 = rand(q0n)
-    y0 = ts(x0)
-    window_fwd[:, i] = all_shadowing_window(ts, x0, δ)
-    window_bwd[:, i] = all_shadowing_window_inverse(its, y0, δ)
-    ProgressMeter.next!(prog)
-end
+# using ProgressMeter
+# prog = ProgressMeter.Progress(nsample; desc="computing window", barlen=31, showspeed=true)
+# for i in 1:nsample
+#     x0 = rand(q0n)
+#     y0 = ts(x0)
+#     window_fwd[:, i] = all_shadowing_window(ts, x0, δ)
+#     window_bwd[:, i] = all_shadowing_window_inverse(its, y0, δ)
+#     ProgressMeter.next!(prog)
+# end
 
-JLD2.save(
-    "result/hamflow_shadowing.jld2",
-    "delta",
-    δ,
-    "window_fwd",
-    window_fwd,
-    "window_bwd",
-    window_bwd,
-    "delta_fwd",
-    delta_fwd,
-    "delta_bwd",
-    delta_bwd,
-)
+# JLD2.save(
+#     "result/hamflow_shadowing.jld2",
+#     "delta",
+#     δ,
+#     "window_fwd",
+#     window_fwd,
+#     "window_bwd",
+#     window_bwd,
+#     "delta_fwd",
+#     delta_fwd,
+#     "delta_bwd",
+#     delta_bwd,
+# )
