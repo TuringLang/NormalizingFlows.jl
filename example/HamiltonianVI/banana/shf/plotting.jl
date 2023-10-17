@@ -27,6 +27,7 @@ function ribbon_plot(x, y; byrow=false, kwargs...)
         margin=10Plots.mm,
         guidefontsize=30,
         titlefontsize=30,
+        legendfontsize=20,
         kwargs...,
     )
     return pp
@@ -65,6 +66,7 @@ plot!(;
     margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
+    legendfontsize=20,
 )
 savefig("figure/flow_err_log.png")
 
@@ -93,6 +95,7 @@ plot!(;
     ytickfontsize=30,
     margin=10Plots.mm,
     guidefontsize=30,
+    legendfontsize=20,
     titlefontsize=30,
 )
 savefig("figure/flow_err.png")
@@ -118,6 +121,7 @@ plot!(;
     yaxis=:log10,
     size=(800, 500),
     xrotation=0,
+    legendfontsize=20,
     xtickfontsize=30,
     ytickfontsize=30,
     margin=10Plots.mm,
@@ -141,6 +145,7 @@ plot!(;
     size=(800, 500),
     xrotation=0,
     xtickfontsize=30,
+    legendfontsize=20,
     ytickfontsize=30,
     margin=10Plots.mm,
     guidefontsize=30,
@@ -162,7 +167,7 @@ plot(
     lw=3,
     label="",
     xlabel="#transformations",
-    ylabel="error",
+    ylabel="Error",
     title="HamFlow log-density error",
 )
 plot!(;
@@ -170,6 +175,7 @@ plot!(;
     size=(800, 500),
     xtickfontsize=30,
     ytickfontsize=30,
+    legendfontsize=20,
     margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
@@ -183,7 +189,7 @@ plot(
     lw=3,
     label="",
     xlabel="#transformations",
-    ylabel="error",
+    ylabel="Error",
     title="HamFlow log-density error",
 )
 plot!(;
@@ -191,6 +197,7 @@ plot!(;
     xtickfontsize=30,
     ytickfontsize=30,
     margin=10Plots.mm,
+    legendfontsize=20,
     guidefontsize=30,
     titlefontsize=30,
 )
@@ -213,6 +220,7 @@ plot!(;
     ytickfontsize=30,
     margin=10Plots.mm,
     guidefontsize=30,
+    legendfontsize=20,
     titlefontsize=30,
     # yticks=[1e-15, 1e-10, 1e-5, 1e-1],
 )
@@ -235,6 +243,7 @@ plot!(;
     margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
+    legendfontsize=20,
 )
 savefig("figure/lpdf_err_rel.png")
 
@@ -257,6 +266,7 @@ plot!(1:nlayers, elbos_big; lw=3, label="exact")
 plot!(;
     # yaxis=:log10,
     size=(800, 500),
+    legendfontsize=20,
     xtickfontsize=30,
     ytickfontsize=30,
     margin=10Plots.mm,
@@ -322,6 +332,7 @@ plot!(;
     guidefontsize=30,
     legendfontsize=20,
     titlefontsize=30,
+    legend=:topleft,
 )
 
 savefig(p1, "figure/window.png")
