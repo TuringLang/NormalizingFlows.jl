@@ -22,10 +22,10 @@ setprecision(BigFloat, 1024)
 bf = BigFloat
 flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
-pp = check_trained_flow(flow, p, 1000)
-savefig(pp, "figure/trained_flow.png")
+# pp = check_trained_flow(flow, p, 1000)
+# savefig(pp, "figure/trained_flow.png")
 #####################
-# test stability
+@info "test stability"
 ######################
 
 # forward sample stability
@@ -42,10 +42,10 @@ fwd_sample_big = with_intermediate_results(ts_big, Xs_big)
 fwd_sample_big32 = map(x -> ft.(x), fwd_sample_big)
 fwd_diff_layer = fwd_sample .- fwd_sample_big
 fwd_err_layer = reduce(
-    hcat, map(x -> bf.(x), map(x -> map(norm, eachcol(x)), fwd_diff_layer))
+    hcat, map(x -> ft.(x), map(x -> map(norm, eachcol(x)), fwd_diff_layer))
 )
 ####################
-# fwd sample error scaling
+@info "fwd sample error scaling"
 ####################
 f1(x) = abs.(x)
 f2(x) = sin.(x) .+ 1
@@ -90,7 +90,7 @@ JLD2.save(
 )
 
 #####################
-# density error
+@info "density error"
 #####################
 # Ys = ts(Xs)
 Ys = vcat(rand(p, 100), randn(ft, 2, 100))
@@ -151,7 +151,7 @@ JLD2.save(
 )
 
 #####################
-# elbo err 
+@info "elbo err"
 #####################
 logp = Base.Fix1(logpdf, p)
 function logp_joint(zs::AbstractMatrix{T}) where {T}
@@ -174,7 +174,7 @@ elbos_big = elbo_intermediate(ts_big, q0_big, logp_joint_big, Xs_big)
 JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 
 # ####################
-# # window computation
+@info "window computation"
 # ####################
 
 # compute delta
