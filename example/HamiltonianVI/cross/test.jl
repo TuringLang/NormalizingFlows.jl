@@ -43,8 +43,8 @@ savefig(pp, "figure/trained_flow.png")
 # ########################
 # # lpdf vis
 # ######################
-X = [-5.001:0.1:5;]
-Y = [-5.001:0.1:5;]
+X = [-5:0.1:5;]
+Y = [-5:0.1:5;]
 Ds = zeros(length(X), length(Y))
 Dd = zeros(length(X), length(Y))
 

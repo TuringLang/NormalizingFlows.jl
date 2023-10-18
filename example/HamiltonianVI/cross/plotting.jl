@@ -1,4 +1,6 @@
-using Plots, JLD2, StatsPlots
+using JLD2, StatsPlots
+using Plots
+using Plots: plot, plot!, savefig
 using StatsBase
 using Random
 using FunctionChains
@@ -39,7 +41,7 @@ end
 fwd_err_layer = res_fwd["fwd_err_layer"]
 bwd_err_layer = res_bwd["inv_err_layer"]
 nlayers = size(fwd_err_layer, 2)
-plot(
+Plots.plot(
     1:nlayers,
     vec(median(fwd_err_layer; dims=1));
     ribbon=get_percentiles(fwd_err_layer; byrow=false),
@@ -48,16 +50,16 @@ plot(
     xlabel="#transformations",
     ylabel="Error",
     title="HamFlow numerical error",
-    legend=:bottomright,
+    legend=:topleft,
 )
-plot!(
+Plots.plot!(
     1:nlayers,
     vec(median(bwd_err_layer; dims=1));
     ribbon=get_percentiles(bwd_err_layer; byrow=false),
     lw=3,
     label="Bwd",
 )
-plot!(;
+Plots.plot!(;
     yaxis=:log10,
     size=(800, 500),
     xrotation=0,
@@ -70,7 +72,7 @@ plot!(;
 )
 savefig("figure/flow_err_log.png")
 
-plot(
+Plots.plot(
     1:nlayers,
     vec(median(fwd_err_layer; dims=1));
     ribbon=get_percentiles(fwd_err_layer; byrow=false),
@@ -81,14 +83,14 @@ plot(
     title="HamFlow numerical error",
     legend=:topleft,
 )
-plot!(
+Plots.plot!(
     1:nlayers,
     vec(median(bwd_err_layer; dims=1));
     ribbon=get_percentiles(bwd_err_layer; byrow=false),
     lw=3,
     label="Bwd",
 )
-plot!(;
+Plots.plot!(;
     size=(800, 500),
     xrotation=0,
     xtickfontsize=30,
@@ -251,7 +253,7 @@ savefig("figure/lpdf_err_rel.png")
 # elbo
 #####################
 elbos = res_elbo["elbo"]
-elbos_big = Float64.(res_elbo["elbo_big"])
+elbos_big = res_elbo["elbo_big"]
 
 plot(
     1:nlayers,
@@ -259,21 +261,39 @@ plot(
     lw=3,
     label="numerical",
     xlabel="#transformations",
-    ylabel="ELBO",
-    title="HamFlow ELBO est.",
+    ylabel="elbo",
+    title="hamflow elbo est.",
 )
-plot!(1:nlayers, elbos_big; lw=3, label="exact")
+plot!(1:nlayers, float64.(elbos_big); lw=3, label="exact")
 plot!(;
     # yaxis=:log10,
     size=(800, 500),
     legendfontsize=20,
     xtickfontsize=30,
     ytickfontsize=30,
-    margin=10Plots.mm,
+    margin=10plots.mm,
     guidefontsize=30,
     titlefontsize=30,
 )
 savefig("figure/elbo.png")
+
+p1 = Plots.plot(
+    1:nlayers,
+    Float64.(abs.(elbos .- elbos_big));
+    lw=3,
+    xlabel="#transformations",
+    ylabel="err",
+    title="HamFlow elbo error",
+    yaxis=:log10,
+    size=(800, 500),
+    legendfontsize=20,
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10plots.mm,
+    guidefontsize=30,
+    titlefontsize=30,
+)
+savefig(p1, "figure/elbo_err.png")
 
 # #####################3
 # # shadowing
