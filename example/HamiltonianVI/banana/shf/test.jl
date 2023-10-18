@@ -1,5 +1,6 @@
 using JLD2, ProgressMeter
 using PlotlyJS, Plots
+using LaTeXStrings
 const pjs = PlotlyJS
 include("setup.jl")
 
@@ -24,7 +25,19 @@ setprecision(BigFloat, 2048)
 bf = BigFloat
 flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
-pp = check_trained_flow(flow, p, 1000)
+pp = check_trained_flow(
+    flow,
+    p,
+    1000;
+    size=(800, 500),
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10Plots.mm,
+    guidefontsize=30,
+    legendfontsize=20,
+    titlefontsize=30,
+    legend=:bottom,
+)
 savefig(pp, "figure/trained_flow.png")
 
 # ########################
@@ -87,14 +100,35 @@ end
 logq = Base.Fix1(logpdf, flow)
 ∇logq_joint(x) = Zygote.gradient(logq, x)[1]
 
-Ys = vcat(rand(p, 200), randn(ft, 2, 200))
+Ys = vcat(rand(p, 100), randn(ft, 2, 100))
 
 Gp = ∇logp_joint(Ys)
-Gq = map(∇logq_joint, eachcol(Ys))
+Gq = reduce(hcat, map(∇logq_joint, eachcol(Ys)))
 Lp = map(norm, eachcol(Gp))
-Lp = map(norm, eachcol(Gq))
+Lq = map(norm, eachcol(Gq))
 
 JLD2.save("result/Lip.jld2", "Lp", Lp, "Lq", Lq, "Ys", Ys, "Gp", Gp, "Gq", Gq)
 
 res = JLD2.load("result/Lip.jld2")
-boxplot(res["Lp"], res["Lq"]; label=["Lp", "Lq"], legend=:topleft)
+p1 = boxplot(
+    [L"$||\nabla\log p ||$" L"$||\nabla \log q||$"],
+    [res["Lp"] res["Lq"]];
+    legend=false,
+    yaxis=:log10,
+)
+plot!(;
+    size=(800, 500),
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10Plots.mm,
+    guidefontsize=30,
+    legendfontsize=20,
+    titlefontsize=30,
+    title="Comp. of local Lip. const.",
+)
+savefig(p1, "figure/LipConst_last_layer.png")
+
+# derive 
+Lq_layers = intermediate_Lqs(ts, q0, Ys)
+
+JLD2.save("result/LipLayer.jld2", "Lq", Lq_layers, "Ys", Ys)

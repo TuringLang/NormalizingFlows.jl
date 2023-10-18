@@ -105,6 +105,31 @@ function intermediate_lpdfs(ts, q0, fwd_samples)
     end
     return reduce(hcat, lpdfs)
 end
+
+function intermediate_Lqs(ts, q0, Ys)
+    flows = intermediate_flows(ts, q0)
+    Lqs = Matrix{eltype(Ys)}(undef, size(Ys, 2), length(flows))
+
+    prog_bar = ProgressMeter.Progress(
+        length(flows);
+        desc="intermediate lpdfs",
+        dt=0.5,
+        barglyphs=ProgressMeter.BarGlyphs("[=> ]"),
+        barlen=50,
+        color=:yellow,
+    )
+    for i in 1:length(flows)
+        flow = flows[i]
+        logq = Base.Fix1(logpdf, flow)
+        ∇logq_joint(x) = Zygote.gradient(logq, x)[1]
+        Gq = reduce(hcat, map(∇logq_joint, eachcol(Ys)))
+        Lq = map(norm, eachcol(Gq))
+        Lqs[:, i] = Lq
+        ProgressMeter.next!(prog_bar)
+    end
+    return Lqs
+end
+
 function inverse_from_intermediate_layers(ts, fwd_samples)
     inv_ts = []
     fs = get_functions(ts)

@@ -376,10 +376,10 @@ savefig(p1, "figure/window_log.png")
 T_fwd = res_shadowing["T_fwd"]
 T_bwd = res_shadowing["T_bwd"]
 
-p1 = plot(
+p1 = Plots.plot(
     1:nlayers,
     vec(median(T_fwd; dims=2));
-    ribbon=get_percentiles(T_fwd; byrow=true),
+    ribbon=get_percentiles(T_fwd),
     lw=3,
     label="Fwd",
     xlabel="#transformations",

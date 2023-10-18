@@ -121,9 +121,7 @@ function check_trained_flow(
     )
     plot!(; kwargs...)
 
-    xlabel!(p, "X")
-    ylabel!(p, "Y")
-    title!(p, "Comparison of trained flow and True distribution")
+    title!(p, "Trained HamFlow")
 
     return p
 end
