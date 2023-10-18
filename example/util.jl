@@ -121,7 +121,7 @@ function intermediate_Lqs(ts, q0, Ys)
     for i in 1:length(flows)
         flow = flows[i]
         logq = Base.Fix1(logpdf, flow)
-        ∇logq_joint(x) = Zygote.gradient(logq, x)[1]
+        ∇logq_joint(x) = ForwardDiff.gradient(logq, x)
         Gq = reduce(hcat, map(∇logq_joint, eachcol(Ys)))
         Lq = map(norm, eachcol(Gq))
         Lqs[:, i] = Lq

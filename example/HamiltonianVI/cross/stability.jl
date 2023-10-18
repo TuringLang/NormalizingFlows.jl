@@ -131,9 +131,9 @@ lpdfs_layer_diff_rel = abs.(lpdfs_layer_diff ./ lpdfs_layer_big32)
 JLD2.save(
     "result/hamflow_bwd_err.jld2",
     "bwd_sample_big",
-    ft.(bwd_sample_big),
+    map(x -> ft.(x), bwd_sample_big),
     "bwd_sample",
-    ft.(bwd_sample),
+    bwd_sample,
     "bwd_err_layer",
     ft.(bwd_err_layer),
     "inv_err_layer",
