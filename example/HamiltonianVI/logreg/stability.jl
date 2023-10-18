@@ -29,7 +29,7 @@ flow_big, ts_big, its_big, q0_big, logp_big, re_big = set_precision_flow(
 ######################
 
 # forward sample stability
-Xs = rand(q0, 100)
+Xs = rand(q0, 40)
 Xs_big = bf.(Xs)
 
 # # check stability of big flow
@@ -106,7 +106,7 @@ JLD2.save(
         0.14156211903420354
     ],
 )
-nsample = 100
+nsample = 40
 T = nuts(μ, 0.7, logp, ∇S, 20000 + nsample, 20000)[20001:end, :]
 Ys = vcat(T', randn(ft, dims, nsample))
 Ys_big = bf.(Ys)
@@ -193,7 +193,7 @@ println(median(vec(delta_bwd)))
 JLD2.save("result/hamflow_delta.jld2", "delta_fwd", delta_fwd, "delta_bwd", delta_bwd)
 
 # compute window size
-nsample = 50
+nsample = 40
 δ = 1.0e-7
 nlayers = length(fwd_sample)
 window_fwd = zeros(nlayers, nsample)

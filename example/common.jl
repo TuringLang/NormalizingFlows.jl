@@ -123,7 +123,7 @@ function check_trained_flow(
 
     xlabel!(p, "X")
     ylabel!(p, "Y")
-    title!(p, "Comparison of Trained and Untrained Flow")
+    title!(p, "Comparison of trained flow and True distribution")
 
     return p
 end

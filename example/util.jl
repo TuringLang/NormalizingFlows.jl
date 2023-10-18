@@ -5,6 +5,8 @@ using Flux, Bijectors
 using Base.Threads
 using DiffResults
 using ForwardDiff
+using ProgressMeter
+using TickTock
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
     return Chain(
@@ -85,11 +87,21 @@ function intermediate_lpdfs(ts, q0, fwd_samples)
     flows = intermediate_flows(ts, q0)
     @assert length(flows) == length(fwd_samples) "numder of layers and numbers of sample batches mismatch"
     lpdfs = Vector{Vector{eltype(fwd_samples[1])}}(undef, length(flows))
+
+    prog_bar = ProgressMeter.Progress(
+        length(flows);
+        desc="intermediate lpdfs",
+        dt=0.5,
+        barglyphs=ProgressMeter.BarGlyphs("[=> ]"),
+        barlen=50,
+        color=:yellow,
+    )
     @threads for i in 1:length(flows)
         flow = flows[i]
         ys = fwd_samples[i]
         lpdf = logpdf(flow, ys)
         lpdfs[i] = lpdf
+        ProgressMeter.next!(prog_bar)
     end
     return reduce(hcat, lpdfs)
 end
@@ -101,6 +113,14 @@ function inverse_from_intermediate_layers(ts, fwd_samples)
         push!(inv_ts, it)
     end
 
+    prog_bar = ProgressMeter.Progress(
+        length(inv_ts);
+        desc="inverse_from_intermediate_layers",
+        dt=0.5,
+        barglyphs=ProgressMeter.BarGlyphs("[=> ]"),
+        barlen=50,
+        color=:yellow,
+    )
     @assert length(inv_ts) == length(fwd_samples) "numder of layers and numbers of sample batches mismatch"
     X0 = Vector{Matrix{eltype(fwd_samples[1])}}(undef, length(inv_ts))
     @threads for i in 1:length(inv_ts)
@@ -108,16 +128,27 @@ function inverse_from_intermediate_layers(ts, fwd_samples)
         ys = fwd_samples[i]
         x0 = f(ys)
         X0[i] = x0
+        ProgressMeter.next!(prog_bar)
     end
     return X0
 end
 function elbo_intermediate(ts, q0, logp, Xs)
     flows = intermediate_flows(ts, q0)
     Els = Vector{eltype(Xs)}(undef, length(flows))
+
+    prog_bar = ProgressMeter.Progress(
+        length(flows);
+        desc="elbo",
+        dt=0.5,
+        barglyphs=ProgressMeter.BarGlyphs("[=> ]"),
+        barlen=50,
+        color=:yellow,
+    )
     @threads for i in 1:length(flows)
         flow = flows[i]
         el = elbo_batch(flow, logp, Xs)
         Els[i] = el
+        ProgressMeter.next!(prog_bar)
     end
     return Els
 end
@@ -187,8 +218,10 @@ function construct_shadow_matrix(M)
 end
 
 function shadowing_window(L, δ)
+    tick()
     σ = sqrt(eigmin(L))
-    return 2 * δ / σ
+    t = tok()
+    return [2 * δ / σ, t]
 end
 
 function all_shadowing_window(Ms, δ)
@@ -196,14 +229,20 @@ function all_shadowing_window(Ms, δ)
     w0 = [shadowing_window(L0, δ)]
     Ls = [construct_shadow_matrix(Ms[1:i]) for i in 2:length(Ms)]
     ws = [shadowing_window(L, δ) for L in Ls]
-    return vcat(w0, ws)
+    res = reduce(hcat, vcat(w0, ws))
+    window_size = res[1, :]
+    times = res[2, :]
+    return window_size, times
 end
 function all_shadowing_window_inverse(Ms, δ)
     L0 = Symmetric(Ms[1] * Ms[1]' + I, :L)
     w0 = [shadowing_window(L0, δ)]
     Ls = [construct_shadow_matrix(Ms[i:-1:1]) for i in 2:length(Ms)]
     ws = [shadowing_window(L, δ) for L in Ls]
-    return vcat(w0, ws)
+    res = reduce(hcat, vcat(w0, ws))
+    window_size = res[1, :]
+    times = res[2, :]
+    return window_size, times
 end
 
 function all_shadowing_window(ts::FunctionChain, x0, δ)
