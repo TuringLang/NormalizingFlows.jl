@@ -264,14 +264,14 @@ plot(
     ylabel="elbo",
     title="hamflow elbo est.",
 )
-plot!(1:nlayers, float64.(elbos_big); lw=3, label="exact")
+plot!(1:nlayers, Float64.(elbos_big); lw=3, label="exact")
 plot!(;
     # yaxis=:log10,
     size=(800, 500),
     legendfontsize=20,
     xtickfontsize=30,
     ytickfontsize=30,
-    margin=10plots.mm,
+    margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
 )
@@ -289,7 +289,7 @@ p1 = Plots.plot(
     legendfontsize=20,
     xtickfontsize=30,
     ytickfontsize=30,
-    margin=10plots.mm,
+    margin=10Plots.mm,
     guidefontsize=30,
     titlefontsize=30,
 )
