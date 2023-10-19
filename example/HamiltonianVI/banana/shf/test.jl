@@ -198,7 +198,7 @@ end
 
 res = JLD2.load("result/hamflow_shadowing.jld2")
 window_fwd = res["window_fwd"]
-ϵs = vec(median(window_fwd; dims=2))
+ϵs = vec(maximum(window_fwd; dims=2))
 Lp_layer = local_lip_scaling(p, fwd_sample, ϵs)
 
 JLD2.save(
@@ -230,3 +230,12 @@ Plots.plot!(;
     title=L"HamFlow upper bound of $L_{p, ϵ}$",
 )
 Plots.savefig(p1, "figure/Lp_scaling.png")
+
+# 
+# el_err = abs.(elbos .- elbos_big)
+# ϵs = res["ϵs"]
+# Lp_layers = res["Lp"]
+
+# bdd = ϵs .* (Lp_layer .+ 2) .+ ϵs .^ 2
+# plot(el_err; lw=3, label="el")
+# plot!(bdd; lw=3)

@@ -322,7 +322,7 @@ plot!(;
     legendfontsize=20,
     titlefontsize=30,
 )
-savefig(p1, joinpath("figure/", "delta.png"))
+Plots.savefig(p1, joinpath("figure/", "delta.png"))
 
 p1 = plot(
     1:nlayers,
@@ -355,7 +355,7 @@ plot!(;
     legend=:topleft,
 )
 
-savefig(p1, "figure/window.png")
+Plots.savefig(p1, "figure/window.png")
 
 p1 = plot(
     1:nlayers,
@@ -390,4 +390,4 @@ plot!(;
     legend=:bottomright,
 )
 
-savefig(p1, "figure/window_log.png")
+Plots.savefig(p1, "figure/window_log.png")

@@ -176,7 +176,8 @@ JLD2.save("result/hamflow_elbo_err.jld2", "elbo", elbos, "elbo_big", elbos_big)
 # ####################
 @info "window computation"
 # ####################
-
+fwd_sample_big = JLD2.load("result/hamflow_fwd_err.jld2")["fwd_sample_big"]
+bwd_sample_big = JLD2.load("result/hamflow_bwd_err.jld2")["bwd_sample_big"]
 # compute delta
 delta_fwd = reduce(
     hcat, map(x -> map(norm, eachcol(x)), single_fwd_err(ts, fwd_sample_big, Xs))

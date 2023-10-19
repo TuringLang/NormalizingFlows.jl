@@ -102,7 +102,7 @@ function check_trained_flow(
     samples_trained = rand_batch(flow_trained, n_samples)
     samples_true = rand(true_dist, n_samples)
 
-    p = scatter(
+    p = Plots.scatter(
         samples_true[1, :],
         samples_true[2, :];
         label="True Distribution",
@@ -110,7 +110,7 @@ function check_trained_flow(
         markersize=2,
         alpha=0.5,
     )
-    scatter!(
+    Plots.scatter!(
         p,
         samples_trained[1, :],
         samples_trained[2, :];
@@ -119,9 +119,9 @@ function check_trained_flow(
         markersize=2,
         alpha=0.5,
     )
-    plot!(; kwargs...)
+    Plots.plot!(; kwargs...)
 
-    title!(p, "Trained HamFlow")
+    Plots.title!(p, "Trained HamFlow")
 
     return p
 end

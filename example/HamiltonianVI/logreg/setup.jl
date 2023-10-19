@@ -34,9 +34,12 @@ function logp_joint(zs::AbstractMatrix{T}) where {T}
 end
 
 dims = d # defined in model
-L = 50
+L = 60
 nlayers = 150
-maps = [[LeapFrog(dims, log(2.0e-3), L, ∇S, ∇logm), MomentumNorm(dims)] for i in 1:nlayers]
+stepsize = 2e-2
+maps = [
+    [LeapFrog(dims, log(stepsize), L, ∇S, ∇logm), MomentumNorm(dims)] for i in 1:nlayers
+]
 Ls = reduce(vcat, maps)
 ts = fchain(Ls)
 q0 = MvNormal(zeros(2dims), I)
@@ -54,9 +57,9 @@ function set_precision_flow(ft::DataType, θ_trained, q0)
     ∇S_new(x) = ∇logp(x, ft.(X), ft.(Y), ft(aa), ft(bb), p)
     maps_new = [
         [
-            LeapFrog(dims, log(ft(2.0e-3)), L, ∇S_new, ∇logm),
+            LeapFrog(dims, log(ft(stepsize)), L, ∇S_new, ∇logm),
             MomentumNorm(
-                dims, ft.(zeros(dims)), ft.(randn(dims, dims)), ft.(randn(dims, dims))
+                dims, zeros(ft, dims), randn(ft, dims, dims), randn(ft, dims, dims)
             ),
         ] for i in 1:nlayers
     ]

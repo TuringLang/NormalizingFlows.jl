@@ -13,27 +13,30 @@ res = JLD2.load("result/hamflow.jld2")
 param_trained = res["param"]
 
 ft = Float64
-# flow = re(param_trained)
-# ts = flow.transform
-# its = inverse(ts)
 flow, ts, its, q0n, logp_new, r64 = set_precision_flow(ft, param_trained, q0)
 
-setprecision(BigFloat, 2048)
+setprecision(BigFloat, 1024)
 bf = BigFloat
-flow_big, ts_big, its_big, q0_big, logp_big, re_big = set_precision_flow(
-    bf, param_trained, q0
-)
+flow_big, ts_big, its_big, q0_big, logp_big = flow, ts, its, q0, logp
+# flow_big, ts_big, its_big, q0_big, logp_big, re_big = set_precision_flow(
+#     bf, param_trained, q0
+# )
 
 #####################
 # test stability
 ######################
 
 # forward sample stability
-Xs = rand(q0, 40)
+Xs = rand(q0, 20)
 Xs_big = bf.(Xs)
 
 # # check stability of big flow
 # Xs_big .- its_big(ts_big(Xs_big))
+diff = similar(Xs)
+@threads for i in 1:size(Xs, 2)
+    diff[:, i] = ft.(ts(Xs[:, i]) .- ts_big(Xs_big[:, i]))
+end
+
 diff = ts(Xs) .- ts_big(Xs_big)
 dd = ft.(map(norm, eachcol(diff)))
 
@@ -42,11 +45,11 @@ fwd_sample_big = with_intermediate_results(ts_big, Xs_big)
 fwd_sample_big32 = map(x -> ft.(x), fwd_sample_big)
 fwd_diff_layer = fwd_sample .- fwd_sample_big
 fwd_err_layer = reduce(
-    hcat, map(x -> bf.(x), map(x -> map(norm, eachcol(x)), fwd_diff_layer))
+    hcat, map(x -> ft.(x), map(x -> map(norm, eachcol(x)), fwd_diff_layer))
 )
-#####################
+####################
 # fwd sample error scaling
-#####################
+####################
 f1(x) = abs.(x)
 f2(x) = sin.(x) .+ 1
 f3(x) = 1 ./ (1 .+ exp.(-x))
@@ -107,8 +110,8 @@ JLD2.save(
     ],
 )
 nsample = 40
-T = nuts(μ, 0.7, logp, ∇S, 20000 + nsample, 20000)[20001:end, :]
-Ys = vcat(T', randn(ft, dims, nsample))
+T = nuts(μ, 0.7, logp, ∇S, 20000 + 4000, 20000)[20001:end, :]
+Ys = vcat(T'[:, 1:100:end], randn(ft, dims, nsample))
 Ys_big = bf.(Ys)
 diff_inv = its(Ys) .- its_big(Ys_big)
 dd_inv = ft.(map(norm, eachcol(diff_inv)))
@@ -121,13 +124,9 @@ bwd_err_layer = ft.(reduce(hcat, map(x -> map(norm, eachcol(x)), bwd_diff_layer)
 
 err_lpdf = ft.(abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)))
 
-err_lpdf_rel =
-    ft.(
-        abs.(logpdf(flow, Ys) .- logpdf(flow_big, Ys_big)) ./ abs.(logpdf(flow_big, Ys_big))
-    )
-
-test_seq = bwd_sample_big[end:-1:1]
-test_seq = fwd_sample_big
+# test_seq = bwd_sample_big[end:-1:1]
+# test_seq = fwd_sample_big
+test_seq = [Ys for i in 1:length(bwd_sample)]
 x0_layers = inverse_from_intermediate_layers(ts, map(x -> ft.(x), test_seq))
 x0_layers_big = map(x -> ft.(x), inverse_from_intermediate_layers(ts_big, test_seq))
 inv_diff_layers = [x .- y for (x, y) in zip(x0_layers, x0_layers_big)]
