@@ -50,20 +50,15 @@ Dd = zeros(length(X), length(Y))
 
 # lpdf_est, Error
 n1, n2 = size(X, 1), size(Y, 1)
-@showprogress for i in 1:n1
-    grid = reduce(hcat, [[X[i], y, 0.0, 0.0] for y in Y])
+prog = ProgressMeter.Progress(n1; desc="computing lpdfs", barlen=31, showspeed=true)
+@threads for i in 1:n1
+    grid = reduce(hcat, [bf.([X[i], y, 0.0, 0.0]) for y in Y])
     Ds[i, :] = logpdf(flow, grid)
     Dd[i, :] = logp(grid[1:2, :])
+    ProgressMeter.next!(prog)
 end
 
-# @showprogress for i in 1:n1
-#     @threads for j in 1:n2
-#         Ds[i, j] = logpdf(flow, [X[i], Y[j], 0.0, 0.0])
-#         Dd[i, j] = logp([X[i], Y[j]])
-#     end
-# end
-
-JLD2.save("result/lpdfs_vis.jld2", "lpdfs", Ds, "true", Dd)
+JLD2.save("result/lpdfs_vis.jld2", "lpdfs", ft.(Ds), "true", Dd)
 
 res = JLD2.load("result/lpdfs_vis.jld2")
 Ds = res["lpdfs"]
