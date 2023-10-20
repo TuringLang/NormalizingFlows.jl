@@ -106,7 +106,7 @@ function check_trained_flow(
         samples_true[1, :],
         samples_true[2, :];
         label="True Distribution",
-        color=:blue,
+        color=:green,
         markersize=2,
         alpha=0.5,
     )
@@ -115,7 +115,7 @@ function check_trained_flow(
         samples_trained[1, :],
         samples_trained[2, :];
         label="Trained Flow",
-        color=:green,
+        color=:red,
         markersize=2,
         alpha=0.5,
     )
