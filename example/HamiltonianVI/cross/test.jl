@@ -38,7 +38,7 @@ pp = check_trained_flow(
     titlefontsize=30,
     legend=:bottomright,
 )
-savefig(pp, "figure/trained_flow.png")
+Plots.savefig(pp, "figure/trained_flow.png")
 
 # ########################
 # # lpdf vis
@@ -68,9 +68,9 @@ layout = pjs.Layout(;
     width=500,
     height=500,
     scene=pjs.attr(;
-        xaxis=pjs.attr(; showticklabels=true, visible=true),
-        yaxis=pjs.attr(; showticklabels=true, visible=true),
-        zaxis=pjs.attr(; showticklabels=true, visible=true),
+        xaxis=pjs.attr(; showticklabels=false, visible=false),
+        yaxis=pjs.attr(; showticklabels=false, visible=false),
+        zaxis=pjs.attr(; showticklabels=false, visible=false),
     ),
     margin=pjs.attr(; l=0, r=0, b=0, t=0, pad=0),
     colorscale="Vird",

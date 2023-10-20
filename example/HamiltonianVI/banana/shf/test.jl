@@ -38,7 +38,7 @@ pp = check_trained_flow(
     titlefontsize=30,
     legend=:bottom,
 )
-savefig(pp, "figure/trained_flow.png")
+Plots.savefig(pp, "figure/trained_flow.png")
 
 # ########################
 # # lpdf vis
@@ -50,20 +50,15 @@ Dd = zeros(length(X), length(Y))
 
 # lpdf_est, Error
 n1, n2 = size(X, 1), size(Y, 1)
-@showprogress for i in 1:n1
-    grid = reduce(hcat, [[X[i], y, 0.0, 0.0] for y in Y])
+prog = ProgressMeter.Progress(n1; desc="computing window", barlen=31, showspeed=true)
+@threads for i in 1:n1
+    grid = reduce(hcat, [bf.([X[i], y, 0.0, 0.0]) for y in Y])
     Ds[i, :] = logpdf(flow, grid)
     Dd[i, :] = logp(grid[1:2, :])
+    ProgressMeter.next!(prog)
 end
 
-# @showprogress for i in 1:n1
-#     @threads for j in 1:n2
-#         Ds[i, j] = logpdf(flow, [X[i], Y[j], 0.0, 0.0])
-#         Dd[i, j] = logp([X[i], Y[j]])
-#     end
-# end
-
-JLD2.save("result/lpdfs_vis.jld2", "lpdfs", Ds, "true", Dd)
+JLD2.save("result/lpdfs_vis.jld2", "lpdfs", ft.(Ds), "true", Dd)
 
 res = JLD2.load("result/lpdfs_vis.jld2")
 Ds = res["lpdfs"]
@@ -73,14 +68,19 @@ layout = pjs.Layout(;
     width=500,
     height=500,
     scene=pjs.attr(;
-        xaxis=pjs.attr(; showticklabels=true, visible=true),
-        yaxis=pjs.attr(; showticklabels=true, visible=true),
-        zaxis=pjs.attr(; showticklabels=true, visible=true),
+        xaxis=pjs.attr(; showticklabels=false, visible=false),
+        yaxis=pjs.attr(; showticklabels=false, visible=false),
+        zaxis=pjs.attr(; showticklabels=false, visible=false, range=[-10000, 0]),
     ),
     margin=pjs.attr(; l=0, r=0, b=0, t=0, pad=0),
     colorscale="Vird",
 )
-p_est = pjs.plot(pjs.surface(; z=Ds, x=X, y=Y, showscale=false), layout)
+p_est = pjs.plot(
+    pjs.surface(;
+        z=Ds, x=X, y=Y[end:-1:1], showscale=false, cuto=false, cmax=0, cmin=-10000
+    ),
+    layout,
+)
 pjs.savefig(p_est, joinpath("figure/", "lpdf_est.png"))
 
 p_target = pjs.plot(pjs.surface(; z=Dd, x=X, y=Y, showscale=false), layout)
