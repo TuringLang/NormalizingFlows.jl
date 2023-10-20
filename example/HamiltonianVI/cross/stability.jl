@@ -188,6 +188,7 @@ delta_bwd = reduce(
 JLD2.save("result/hamflow_delta.jld2", "delta_fwd", delta_fwd, "delta_bwd", delta_bwd)
 
 # compute window size
+Random.seed!(123)
 nsample = 50
 δ = 1.0e-7
 nlayers = length(fwd_sample)
@@ -212,15 +213,15 @@ JLD2.save(
     "delta",
     δ,
     "window_fwd",
-    window_fwd,
+    window_fwd[:, 1:29],
     "window_bwd",
-    window_bwd,
+    window_bwd[:, 1:29],
     "delta_fwd",
     delta_fwd,
     "delta_bwd",
     delta_bwd,
     "T_fwd",
-    T_fwd,
+    T_fwd[:, 1:29],
     "T_bwd",
-    T_bwd,
+    T_bwd[:, 1:29],
 )

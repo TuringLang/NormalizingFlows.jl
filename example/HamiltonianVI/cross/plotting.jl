@@ -391,3 +391,39 @@ plot!(;
 )
 
 Plots.savefig(p1, "figure/window_log.png")
+
+# window computation times 
+T_fwd = res_shadowing["T_fwd"]
+T_bwd = res_shadowing["T_bwd"]
+
+p1 = Plots.plot(
+    1:nlayers,
+    vec(median(T_fwd; dims=2));
+    ribbon=get_percentiles(T_fwd),
+    lw=3,
+    label="Fwd",
+    xlabel="#transformations",
+    ylabel="Wall time in sec.",
+)
+plot!(
+    1:nlayers,
+    vec(median(T_bwd; dims=2));
+    ribbon=get_percentiles(T_bwd),
+    lw=3,
+    label="Bwd",
+    xlabel="#transformations",
+    ylabel="",
+)
+plot!(;
+    title="ϵ computation time",
+    size=(800, 500),
+    xtickfontsize=30,
+    ytickfontsize=30,
+    margin=10Plots.mm,
+    guidefontsize=30,
+    legendfontsize=20,
+    titlefontsize=30,
+    legend=:topleft,
+)
+
+Plots.savefig(p1, "figure/time.png")

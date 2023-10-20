@@ -165,23 +165,10 @@ fwd_sample = with_intermediate_results(ts, Xs)
 #     g2 = -@view(xs[3:4, :])
 #     return vec(sqrt.(sum(abs2, g1; dims = 1).+ sum(abs2, g2; dims = 1)))
 # end
-function norm_∇logp_joint(x::AbstractVector)
-    g1 = ∇S(@view(x[1:2]))
-    g2 = -@view(x[3:4])
-    return sqrt(sum(abs2, g1) + sum(abs2, g2))
-end
-
-function local_smooth(p, x, ϵ)
-    b, var = p.b, p.var
-    x1, x2, x3, x4 = x
-    m11 = abs(6b^2 * x1^2 + 2b * x2 - 2var * b^2 + 1 / var)
-    m1 = max(m11, 1)
-    m21 = 12b^2 * abs(x1) + 12b^2(ϵ + ϵ^2)
-    m2 = max(m21, 2b * ϵ)
-    return 2b * abs(x1) + m1 + m2
-end
 function local_lip(p, x::AbstractVector, ϵ::Real)
-    return norm_∇logp_joint(x) + local_smooth(p, x, ϵ) * ϵ
+    return 1 / 0.15^2 * (max(norm(x[1:2] .- [2, 0]), norm(x[1:2] .- [0, 2])) + ϵ) +
+           norm(x[3:4]) +
+           ϵ
 end
 function local_lip(p, xs::AbstractMatrix, ϵ::Real)
     return map(x -> local_lip(p, x, ϵ), eachcol(xs))
