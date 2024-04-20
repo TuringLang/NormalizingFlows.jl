@@ -28,7 +28,7 @@ NormalizingFlowsReverseDiffExt = "ReverseDiff"
 NormalizingFlowsZygoteExt = "Zygote"
 
 [compat]
-ADTypes = "0.1"
+ADTypes = "0.1, 1"
 Bijectors = "0.12.6, 0.13"
 DiffResults = "1"
 Distributions = "0.25"
