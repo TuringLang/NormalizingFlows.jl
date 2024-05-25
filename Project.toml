@@ -31,7 +31,7 @@ NormalizingFlowsZygoteExt = "Zygote"
 NormalizingFlowsCUDAExt = "CUDA"
 
 [compat]
-ADTypes = "0.1, 0.2"
+ADTypes = "0.1, 0.2, 1"
 Bijectors = "0.12.6, 0.13"
 CUDA = "3, 4"
 DiffResults = "1"
