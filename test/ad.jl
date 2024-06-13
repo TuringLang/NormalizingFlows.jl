@@ -33,7 +33,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), I)
             flow = Bijectors.transformed(q₀, Bijectors.Shift(zero.(μ)))
 
             sample_per_iter = 10

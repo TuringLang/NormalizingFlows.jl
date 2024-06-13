@@ -13,7 +13,7 @@
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), I)
             flow = Bijectors.transformed(
                 q₀, Bijectors.Shift(zero.(μ)) ∘ Bijectors.Scale(ones(T, 2))
             )
@@ -27,7 +27,7 @@
                 logp,
                 sample_per_iter;
                 max_iters=5_000,
-                optimiser=Optimisers.ADAM(0.01 * one(T)),
+                optimiser=Optimisers.Adam(0.01 * one(T)),
                 ADbackend=adtype,
                 show_progress=false,
                 callback=cb,
