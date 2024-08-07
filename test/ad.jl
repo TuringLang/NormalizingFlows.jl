@@ -41,9 +41,17 @@ end
             out = DiffResults.GradientResult(θ)
 
             # check grad computation for elbo
+            # Enzyme needs a workaround
+            if at isa ADTypes.AutoEnzyme
+                activity = Enzyme.API.runtimeActivity()
+                Enzyme.API.runtimeActivity!(true)
+            end
             NormalizingFlows.grad!(
                 Random.default_rng(), at, elbo, θ, re, out, logp, sample_per_iter
             )
+            if at isa ADTypes.AutoEnzyme
+                Enzyme.API.runtimeActivity!(activity)
+            end
 
             @test DiffResults.value(out) != nothing
             @test all(DiffResults.gradient(out) .!= nothing)
