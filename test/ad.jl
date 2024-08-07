@@ -25,7 +25,7 @@ end
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
-        # ADTypes.AutoEnzyme(), # not working now
+        ADTypes.AutoEnzyme(),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
