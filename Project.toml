@@ -32,8 +32,7 @@ NormalizingFlowsCUDAExt = "CUDA"
 
 [compat]
 ADTypes = "0.1, 0.2, 1"
-Bijectors = "0.12.6, 0.13"
-CUDA = "3, 4"
+Bijectors = "0.12.6, 0.13, 0.14"
 DiffResults = "1"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
