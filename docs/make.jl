@@ -17,5 +17,3 @@ makedocs(;
         "Customize your own flow layer" => "customized_layer.md",
     ],
 )
-
-deploydocs(; repo="github.com/TuringLang/NormalizingFlows.jl", devbranch="main")
