@@ -4,8 +4,8 @@
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(; chunksize=chunksize),
         ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(false),
-        # ADTypes.AutoEnzyme(), # doesn't work for Enzyme
+        ADTypes.AutoReverseDiff(),
+        ADTypes.AutoMooncake(; config = ADTypes.Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)

@@ -1,8 +1,10 @@
-@testset "AD correctness" begin
-    f(x) = sum(abs2, x)
+@testset "DI.AD with context wrapper" begin
+    f(x, y, z) = sum(abs2, x .+ y .+ z)
 
     @testset "$T" for T in [Float32, Float64]
         x = randn(T, 10)
+        y = randn(T, 10)
+        z = randn(T, 10)
         chunksize = size(x, 1)
 
         @testset "$at" for at in [
@@ -10,12 +12,11 @@
             ADTypes.AutoForwardDiff(; chunksize=chunksize),
             ADTypes.AutoForwardDiff(),
             ADTypes.AutoReverseDiff(false),
-            ADTypes.AutoEnzyme(),
+            ADTypes.AutoMooncake(; config=ADTypes.Mooncake.Config()),
         ]
-            out = DiffResults.GradientResult(x)
-            NormalizingFlows.value_and_gradient!(at, f, x, out)
-            @test DiffResults.value(out) ≈ f(x)
-            @test DiffResults.gradient(out) ≈ 2x
+            value, grad = NormalizingFlows._value_and_gradient(f, at, x, y, z)
+            @test DiffResults.value(out) ≈ f(x, y, z)
+            @test DiffResults.gradient(out) ≈ 2 * (x .+ y .+ z)
         end
     end
 end
@@ -25,7 +26,7 @@ end
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
-        # ADTypes.AutoEnzyme(), # not working now
+        ADTypes.AutoMooncake(; config=ADTypes.Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
@@ -38,15 +39,15 @@ end
 
             sample_per_iter = 10
             θ, re = Optimisers.destructure(flow)
-            out = DiffResults.GradientResult(θ)
 
             # check grad computation for elbo
-            NormalizingFlows.grad!(
-                Random.default_rng(), at, elbo, θ, re, out, logp, sample_per_iter
+            loss(θ, args...) = -NormalizingFlows.elbo(re(θ), args...)
+            value, grad = NormalizingFlows._value_and_gradient(
+                loss, at, θ, logp, randn(T, 2, sample_per_iter)
             )
 
-            @test DiffResults.value(out) != nothing
-            @test all(DiffResults.gradient(out) .!= nothing)
+            @test !isnothing(value)
+            @test all(grad .!= nothing)
         end
     end
 end

@@ -3,7 +3,8 @@ using Distributions
 using Bijectors, Optimisers
 using LinearAlgebra
 using Random
-using ADTypes, DiffResults
+using ADTypes
+import DifferentiationInterface as DI
 using ForwardDiff, Zygote, Enzyme, ReverseDiff
 using Test
 
