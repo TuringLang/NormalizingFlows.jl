@@ -4,14 +4,12 @@ using Bijectors
 using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
-using ADTypes, DiffResults
+using ADTypes
+using DifferentiationInterface
 
 using DocStringExtensions
 
-export train_flow, elbo, loglikelihood, value_and_gradient!
-
-using ADTypes
-using DiffResults
+export train_flow, elbo, loglikelihood
 
 """
     train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
@@ -56,47 +54,29 @@ function train_flow(
     # use FunctionChains instead of simple compositions to construct the flow when many flow layers are involved
     # otherwise the compilation time for destructure will be too long
     θ_flat, re = Optimisers.destructure(flow)
+    
+    loss(θ, rng, args...) = -vo(rng, re(θ), args...)
 
     # Normalizing flow training loop 
-    θ_flat_trained, opt_stats, st = optimize(
-        rng,
+    θ_flat_trained, opt_stats, st, time_elapsed = optimize(
         ADbackend,
-        vo,
+        loss,
         θ_flat,
-        re,
-        args...;
+        re, 
+        (rng, args...)...;
         max_iters=max_iters,
         optimiser=optimiser,
         kwargs...,
     )
 
     flow_trained = re(θ_flat_trained)
-    return flow_trained, opt_stats, st
+    return flow_trained, opt_stats, st, time_elapsed
 end
 
-include("train.jl")
+
+
+include("optimize.jl")
 include("objectives.jl")
 
-# optional dependencies 
-if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
-    using Requires
-end
 
-# Question: should Exts be loaded here or in train.jl? 
-function __init__()
-    @static if !isdefined(Base, :get_extension)
-        @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" include(
-            "../ext/NormalizingFlowsForwardDiffExt.jl"
-        )
-        @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(
-            "../ext/NormalizingFlowsReverseDiffExt.jl"
-        )
-        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
-            "../ext/NormalizingFlowsEnzymeExt.jl"
-        )
-        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
-            "../ext/NormalizingFlowsZygoteExt.jl"
-        )
-    end
-end
 end

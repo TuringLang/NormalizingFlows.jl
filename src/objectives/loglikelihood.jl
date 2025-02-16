@@ -2,12 +2,13 @@
 # training by minimizing forward KL (MLE)
 ####################################    
 """
-    loglikelihood(flow::Bijectors.TransformedDistribution, xs::AbstractVecOrMat)
+    loglikelihood(rng, flow::Bijectors.TransformedDistribution, xs::AbstractVecOrMat)
 
 Compute the log-likelihood for variational distribution flow at a batch of samples xs from 
 the target distribution p. 
 
 # Arguments
+- `rng`: random number generator (empty argument, only needed to ensure the same signature as other variational objectives)
 - `flow`: variational distribution to be trained. In particular 
   "flow = transformed(q₀, T::Bijectors.Bijector)", 
   q₀ is a reference distribution that one can easily sample and compute logpdf
@@ -15,6 +16,7 @@ the target distribution p.
 
 """
 function loglikelihood(
+    rng::AbstractRNG,                         # empty argument
     flow::Bijectors.UnivariateTransformed,    # variational distribution to be trained
     xs::AbstractVector,                       # sample batch from target dist p
 )
@@ -22,6 +24,7 @@ function loglikelihood(
 end
 
 function loglikelihood(
+    rng::AbstractRNG,                           # empty argument
     flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
     xs::AbstractMatrix,                         # sample batch from target dist p
 )
