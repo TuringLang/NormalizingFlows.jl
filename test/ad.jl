@@ -12,7 +12,7 @@
             ADTypes.AutoForwardDiff(; chunksize=chunksize),
             ADTypes.AutoForwardDiff(),
             ADTypes.AutoReverseDiff(false),
-            ADTypes.AutoMooncake(; config=ADTypes.Mooncake.Config()),
+            ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
             value, grad = NormalizingFlows._value_and_gradient(f, at, x, y, z)
             @test DiffResults.value(out) ≈ f(x, y, z)
@@ -26,7 +26,7 @@ end
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(false),
-        ADTypes.AutoMooncake(; config=ADTypes.Mooncake.Config()),
+        ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)

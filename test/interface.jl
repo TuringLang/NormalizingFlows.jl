@@ -5,7 +5,7 @@
         ADTypes.AutoForwardDiff(; chunksize=chunksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
-        ADTypes.AutoMooncake(; config = ADTypes.Mooncake.Config()),
+        ADTypes.AutoMooncake(; config = Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
