@@ -14,7 +14,8 @@
             ADTypes.AutoReverseDiff(false),
             ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
-            value, grad = NormalizingFlows._value_and_gradient(f, at, x, y, z)
+            prep = NormalizingFlows._prepare_gradient(f, at, x, y, z)
+            value, grad = NormalizingFlows._value_and_gradient(f, prep, at, x, y, z)
             @test DiffResults.value(out) ≈ f(x, y, z)
             @test DiffResults.gradient(out) ≈ 2 * (x .+ y .+ z)
         end
@@ -42,8 +43,9 @@ end
 
             # check grad computation for elbo
             loss(θ, args...) = -NormalizingFlows.elbo(re(θ), args...)
+            prep = NormalizingFlows._prepare_gradient(loss, at, θ, logp, randn(T, 2, sample_per_iter))
             value, grad = NormalizingFlows._value_and_gradient(
-                loss, at, θ, logp, randn(T, 2, sample_per_iter)
+                loss, prep, at, θ, logp, randn(T, 2, sample_per_iter)
             )
 
             @test !isnothing(value)
