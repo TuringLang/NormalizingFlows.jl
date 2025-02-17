@@ -13,6 +13,7 @@
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
+            @leaf MvNormal
             q₀ = MvNormal(zeros(T, 2), ones(T, 2))
             flow = Bijectors.transformed(
                 q₀, Bijectors.Shift(zero.(μ)) ∘ Bijectors.Scale(ones(T, 2))
@@ -21,7 +22,7 @@
             sample_per_iter = 10
             cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
             checkconv(iter, stat, re, θ, st) = stat.gradient_norm < 1e-3
-            flow_trained, stats, _ = train_flow(
+            flow_trained, stats, _, _ = train_flow(
                 elbo,
                 flow,
                 logp,

@@ -66,9 +66,9 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 """
 function optimize(
     adbackend,
-    loss::Function, 
+    loss,
     θ₀::AbstractVector{<:Real}, 
-    reconstruct::Function,
+    reconstruct,
     args...;
     max_iters::Int=10000,
     optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
