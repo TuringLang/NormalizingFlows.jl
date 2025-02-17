@@ -15,11 +15,11 @@
             ADTypes.AutoReverseDiff(; compile=false),
             ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
-            at = ADTypes.AutoMooncake(; config=Mooncake.Config())
+            # at = ADTypes.AutoMooncake(; config=Mooncake.Config())
             prep = NormalizingFlows._prepare_gradient(f, at, x, y, z)
             value, grad = NormalizingFlows._value_and_gradient(f, prep, at, x, y, z)
-            @test DiffResults.value(out) ≈ f(x, y, z)
-            @test DiffResults.gradient(out) ≈ 2 * (x .+ y .+ z)
+            @test value ≈ f(x, y, z)
+            @test grad ≈ 2 * (x .+ y .+ z)
         end
     end
 end
