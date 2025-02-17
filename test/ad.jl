@@ -1,5 +1,6 @@
 @testset "DI.AD with context wrapper" begin
     f(x, y, z) = sum(abs2, x .+ y .+ z)
+    T = Float32
 
     @testset "$T" for T in [Float32, Float64]
         x = randn(T, 10)
@@ -11,9 +12,10 @@
             ADTypes.AutoZygote(),
             ADTypes.AutoForwardDiff(; chunksize=chunksize),
             ADTypes.AutoForwardDiff(),
-            ADTypes.AutoReverseDiff(false),
+            ADTypes.AutoReverseDiff(; false),
             ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
+            at = ADTypes.AutoMooncake(; config=Mooncake.Config())
             prep = NormalizingFlows._prepare_gradient(f, at, x, y, z)
             value, grad = NormalizingFlows._value_and_gradient(f, prep, at, x, y, z)
             @test DiffResults.value(out) ≈ f(x, y, z)
@@ -26,7 +28,7 @@ end
     @testset "$at" for at in [
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(false),
+        ADTypes.AutoReverseDiff(; false),
         ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
@@ -34,7 +36,10 @@ end
             Σ = Diagonal(4 * ones(T, 2))
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
-
+            
+            # necessary for Zygote/mooncake to differentiate through the flow
+            # prevent opt q0
+            @leaf MvNormal 
             q₀ = MvNormal(zeros(T, 2), ones(T, 2))
             flow = Bijectors.transformed(q₀, Bijectors.Shift(zero.(μ)))
 

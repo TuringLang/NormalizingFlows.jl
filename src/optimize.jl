@@ -5,17 +5,17 @@ function pm_next!(pm, stats::NamedTuple)
     return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
 end
 
-_wrap_in_DI_context(args...) = DifferentiationInterface.Constant.([args...]) 
+_wrap_in_DI_context(args) = DifferentiationInterface.Constant.([args...]) 
 
 function _prepare_gradient(loss, adbackend, θ, args...)
-    if isempty(args...)
+    if isempty(args)
         return DifferentiationInterface.prepare_gradient(loss, adbackend, θ)
     end
     return DifferentiationInterface.prepare_gradient(loss, adbackend, θ, _wrap_in_DI_context(args)...)
 end
 
 function _value_and_gradient(loss, prep, adbackend, θ, args...)
-    if isempty(args...)
+    if isempty(args)
         return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ)
     end
     return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ, _wrap_in_DI_context(args)...)

@@ -4,7 +4,7 @@ using Bijectors, Optimisers
 using LinearAlgebra
 using Random
 using ADTypes
-import DifferentiationInterface as DI
+# import DifferentiationInterface as DI
 using ForwardDiff, Zygote, ReverseDiff, Mooncake
 using Test
 
