@@ -8,6 +8,10 @@
         ADTypes.AutoMooncake(; config = Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
+            # adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+            # T = Float32
+            
+            Random.seed!(1234)
             μ = 10 * ones(T, 2)
             Σ = Diagonal(4 * ones(T, 2))
             target = MvNormal(μ, Σ)
@@ -28,9 +32,9 @@
                 logp,
                 sample_per_iter;
                 max_iters=5_000,
-                optimiser=Optimisers.ADAM(0.01 * one(T)),
+                optimiser=Optimisers.Adam(0.01 * one(T)),
                 ADbackend=adtype,
-                show_progress=false,
+                show_progress=true,
                 callback=cb,
                 hasconverged=checkconv,
             )

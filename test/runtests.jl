@@ -5,7 +5,6 @@ using LinearAlgebra
 using Random
 using ADTypes
 using Functors
-# import DifferentiationInterface as DI
 using ForwardDiff, Zygote, ReverseDiff, Mooncake
 using Test
 
