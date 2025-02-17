@@ -15,6 +15,7 @@ For example of Gaussian VI, we can construct the flow as follows:
 ```@julia
 using Distributions, Bijectors
 T= Float32
+@leaf MvNormal # to prevent params in q₀ from being optimized
 q₀ = MvNormal(zeros(T, 2), ones(T, 2))
 flow = Bijectors.transformed(q₀, Bijectors.Shift(zeros(T,2)) ∘ Bijectors.Scale(ones(T, 2)))
 ```
@@ -23,7 +24,7 @@ To train the Gaussian VI targeting at distirbution $p$ via ELBO maiximization, w
 using NormalizingFlows
 
 sample_per_iter = 10
-flow_trained, stats, _ = train_flow(
+flow_trained, stats, _ , _ = train_flow(
     elbo,
     flow,
     logp,
@@ -83,11 +84,3 @@ NormalizingFlows.loglikelihood
 ```@docs
 NormalizingFlows.optimize
 ```
-
-
-## Utility Functions for Taking Gradient
-```@docs
-NormalizingFlows.grad!
-NormalizingFlows.value_and_gradient!
-```
-
