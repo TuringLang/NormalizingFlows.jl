@@ -36,6 +36,7 @@ Here we used the `PlanarLayer()` from `Bijectors.jl` to construct a
 
 ```julia
 using Bijectors, FunctionChains
+using Functors
 
 function create_planar_flow(n_layers::Int, q₀)
     d = length(q₀)
@@ -45,7 +46,9 @@ function create_planar_flow(n_layers::Int, q₀)
 end
 
 # create a 20-layer planar flow
-flow = create_planar_flow(20, MvNormal(zeros(Float32, 2), I))
+@leaf MvNormal # to prevent params in q₀ from being optimized
+q₀ = MvNormal(zeros(Float32, 2), I)
+flow = create_planar_flow(20, q₀)
 flow_untrained = deepcopy(flow) # keep a copy of the untrained flow for comparison
 ```
 *Notice that here the flow layers are chained together using `fchain` function from [`FunctionChains.jl`](https://github.com/oschulz/FunctionChains.jl). 
