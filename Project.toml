@@ -1,6 +1,6 @@
 name = "NormalizingFlows"
 uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
-version = "0.1.2"
+version = "0.2.0"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -15,33 +15,14 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
-[weakdeps]
-Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
-
-[extensions]
-
 [compat]
 ADTypes = "0.1, 0.2, 1"
 Bijectors = "0.12.6, 0.13, 0.14, 0.15"
 DifferentiationInterface = "0.6"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
-Mooncake = "0.4.95"
-Enzyme = "0.11, 0.12, 0.13"
-ForwardDiff = "0.10.25"
 Optimisers = "0.2.16, 0.3, 0.4"
 ProgressMeter = "1.0.0"
 Requires = "1"
-ReverseDiff = "1.14"
 StatsBase = "0.33, 0.34"
-Zygote = "0.6, 0.7"
 julia = "1.10"
-
-[extras]
-Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
