@@ -2,23 +2,23 @@
 # training loop for variational objectives 
 #######################################################
 function pm_next!(pm, stats::NamedTuple)
-    return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
+    return ProgressMeter.next!(pm; showvalues=map(tuple, keys(stats), values(stats)))
 end
 
-_wrap_in_DI_context(args) = DifferentiationInterface.Constant.([args...]) 
+_wrap_in_DI_context(args) = map(DifferentiationInterface.Constant, args)
 
 function _prepare_gradient(loss, adbackend, θ, args...)
     if isempty(args)
         return DifferentiationInterface.prepare_gradient(loss, adbackend, θ)
     end
-    return DifferentiationInterface.prepare_gradient(loss, adbackend, θ, _wrap_in_DI_context(args)...)
+    return DifferentiationInterface.prepare_gradient(loss, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
 end
 
 function _value_and_gradient(loss, prep, adbackend, θ, args...)
     if isempty(args)
         return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ)
     end
-    return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ, _wrap_in_DI_context(args)...)
+    return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
 end
 
 
@@ -41,7 +41,6 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 - `θ₀::AbstractVector{T}`: initial parameters for the loss function (in the context of normalizing flows, it will be the flattened flow parameters)
 - `re`: reconstruction function that maps the flattened parameters to the normalizing flow
 - `args...`: additional arguments for `loss` (will be set as DifferentiationInterface.Constant)
-
 
 # Keyword Arguments
 - `max_iters::Int=10000`: maximum number of iterations
@@ -102,9 +101,9 @@ function optimize(
             stat = (iteration=i, loss=ls, gradient_norm=norm(g))
 
             # callback
-            if !isnothing(callback)
+            if callback !== nothing
                 new_stat = callback(i, opt_stats, reconstruct, θ)
-                stat = !isnothing(new_stat) ? merge(stat, new_stat) : stat
+                stat = new_stat !== nothing ? merge(stat, new_stat) : stat
             end
             push!(opt_stats, stat)
 

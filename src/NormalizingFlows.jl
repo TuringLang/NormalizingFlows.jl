@@ -11,7 +11,8 @@ using DocStringExtensions
 
 export train_flow, elbo, loglikelihood
 
-""" train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
+""" 
+    train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
 
 Train the given normalizing flow `flow` by calling `optimize`.
 
@@ -61,7 +62,7 @@ function train_flow(
         ADbackend,
         loss,
         θ_flat,
-        re, 
+        re,
         (rng, args...)...;
         max_iters=max_iters,
         optimiser=optimiser,
