@@ -3,8 +3,9 @@ using Distributions
 using Bijectors, Optimisers
 using LinearAlgebra
 using Random
-using ADTypes, DiffResults
-using ForwardDiff, Zygote, Enzyme, ReverseDiff
+using ADTypes
+using Functors
+using ForwardDiff, Zygote, ReverseDiff, Enzyme, Mooncake
 using Test
 
 include("ad.jl")
