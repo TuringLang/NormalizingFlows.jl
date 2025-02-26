@@ -13,6 +13,7 @@
             ADTypes.AutoForwardDiff(; chunksize=chunksize),
             ADTypes.AutoForwardDiff(),
             ADTypes.AutoReverseDiff(; compile=false),
+            ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
             ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
             # at = ADTypes.AutoMooncake(; config=Mooncake.Config())
@@ -29,6 +30,7 @@ end
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(; compile = false),
+        ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
         ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]

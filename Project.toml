@@ -16,7 +16,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-ADTypes = "0.1, 0.2, 1"
+ADTypes = "1"
 Bijectors = "0.12.6, 0.13, 0.14, 0.15"
 DifferentiationInterface = "0.6"
 Distributions = "0.25"
