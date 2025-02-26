@@ -5,7 +5,7 @@ using LinearAlgebra
 using Random
 using ADTypes
 using Functors
-using ForwardDiff, Zygote, ReverseDiff, Mooncake
+using ForwardDiff, Zygote, ReverseDiff, Enzyme, Mooncake
 using Test
 
 include("ad.jl")
