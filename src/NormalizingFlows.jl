@@ -6,6 +6,7 @@ using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes
 using DifferentiationInterface
+using EnzymeCore
 
 using DocStringExtensions
 

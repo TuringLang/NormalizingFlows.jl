@@ -21,6 +21,21 @@ function _value_and_gradient(loss, prep, adbackend, θ, args...)
     return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
 end
 
+# TODO: move to ext
+# deal with Enzyme readonly error: see https://discourse.julialang.org/t/enzyme-autodiff-readonly-error-and-working-with-batches-of-data/123012
+function _prepare_gradient(loss, adbackend::ADTypes.AutoEnzyme, θ, args...)
+    if isempty(args)
+        return DifferentiationInterface.prepare_gradient(EnzymeCore.Const(loss), adbackend, θ)
+    end
+    return DifferentiationInterface.prepare_gradient(EnzymeCore.Const(loss), adbackend, θ, map(DifferentiationInterface.Constant, args)...)
+end
+function _value_and_gradient(loss, prep, adbackend::ADTypes.AutoEnzyme, θ, args...)
+    if isempty(args)
+        return DifferentiationInterface.value_and_gradient(EnzymeCore.Const(loss), prep, adbackend, θ)
+    end
+    return DifferentiationInterface.value_and_gradient(EnzymeCore.Const(loss), prep, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
+end
+
 
 """
     optimize(
@@ -82,10 +97,9 @@ function optimize(
         opt_stats = []
 
         # prepare loss and autograd
-        θ = copy(θ₀)
+        θ = deepcopy(θ₀)
         # grad = similar(θ)
         prep = _prepare_gradient(loss, adbackend, θ₀, args...)
-
 
         # initialise optimiser state
         st = Optimisers.setup(optimiser, θ)
