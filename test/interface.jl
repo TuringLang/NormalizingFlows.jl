@@ -5,6 +5,7 @@
         ADTypes.AutoForwardDiff(; chunksize=chunksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
+        ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
         # ADTypes.AutoMooncake(; config = Mooncake.Config()), # somehow Mooncake does not work with Float64
     ]
         @testset "$T" for T in [Float32, Float64]
@@ -29,7 +30,7 @@
                 logp,
                 sample_per_iter;
                 max_iters=5_000,
-                optimiser=Optimisers.Adam(0.01 * one(T)),
+                optimiser=Optimisers.Adam(one(T)/100),
                 ADbackend=adtype,
                 show_progress=false,
                 callback=cb,

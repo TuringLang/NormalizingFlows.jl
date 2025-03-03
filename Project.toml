@@ -15,6 +15,12 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
+[weakdeps]
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+
+[extensions]
+NormalizingFlowsEnzymeExt = "Enzyme"
+
 [compat]
 ADTypes = "1"
 Bijectors = "0.12.6, 0.13, 0.14, 0.15"

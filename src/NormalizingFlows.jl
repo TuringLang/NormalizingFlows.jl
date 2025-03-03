@@ -6,7 +6,6 @@ using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes
 using DifferentiationInterface
-using EnzymeCore
 
 using DocStringExtensions
 
@@ -78,6 +77,21 @@ end
 
 include("optimize.jl")
 include("objectives.jl")
+
+
+# optional dependencies 
+if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
+    using Requires
+end
+
+# Question: should Exts be loaded here or in train.jl? 
+function __init__()
+    @static if !isdefined(Base, :get_extension)
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
+            "../ext/NormalizingFlowsEnzymeExt.jl"
+        )
+    end
+end
 
 
 end

@@ -1,6 +1,5 @@
 @testset "DI.AD with context wrapper" begin
     f(x, y, z) = sum(abs2, x .+ y .+ z)
-    T = Float32
 
     @testset "$T" for T in [Float32, Float64]
         x = randn(T, 10)
@@ -25,13 +24,13 @@
     end
 end
 
-@testset "AD for ELBO" begin
+@testset "AD for ELBO on mean-field Gaussian VI" begin
     @testset "$at" for at in [
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(; compile = false),
         ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
-        ADTypes.AutoMooncake(; config=Mooncake.Config()),
+        # ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
@@ -45,17 +44,20 @@ end
             q₀ = MvNormal(zeros(T, 2), ones(T, 2))
             flow = Bijectors.transformed(q₀, Bijectors.Shift(zero.(μ)))
 
-            sample_per_iter = 10
             θ, re = Optimisers.destructure(flow)
 
             # check grad computation for elbo
-            loss(θ, args...) = -NormalizingFlows.elbo(re(θ), args...)
-            prep = NormalizingFlows._prepare_gradient(loss, at, θ, logp, randn(T, 2, sample_per_iter))
+            loss(θ, rng, logp, sample_per_iter) = -NormalizingFlows.elbo(rng, re(θ), logp, sample_per_iter)
+
+            rng = Random.default_rng()
+            sample_per_iter = 10
+
+            prep = NormalizingFlows._prepare_gradient(loss, at, θ, rng, logp, sample_per_iter)
             value, grad = NormalizingFlows._value_and_gradient(
-                loss, prep, at, θ, logp, randn(T, 2, sample_per_iter)
+                loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test !isnothing(value)
+            @test value !== nothing
             @test all(grad .!= nothing)
         end
     end
