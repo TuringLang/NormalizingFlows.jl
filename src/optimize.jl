@@ -93,7 +93,6 @@ function optimize(
         converged = false
         i = 1
         while (i ≤ max_iters) && !converged
-            # ls, g = DifferentiationInterface.value_and_gradient!(loss, grad, prep, adbackend, θ)
             ls, g = _value_and_gradient(loss, prep, adbackend, θ, args...)
 
             # Save stats

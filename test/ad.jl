@@ -15,7 +15,6 @@
             ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
             ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
-            # at = ADTypes.AutoMooncake(; config=Mooncake.Config())
             prep = NormalizingFlows._prepare_gradient(f, at, x, y, z)
             value, grad = NormalizingFlows._value_and_gradient(f, prep, at, x, y, z)
             @test value ≈ f(x, y, z)
@@ -39,11 +38,13 @@ end
             logp(z) = logpdf(target, z)
             
             # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent opt q0
+            # prevent updating params of q0
             @leaf MvNormal 
             q₀ = MvNormal(zeros(T, 2), ones(T, 2))
-            flow = Bijectors.transformed(q₀, Bijectors.Shift(zero.(μ)))
-
+            flow = Bijectors.transformed(
+                q₀, Bijectors.Shift(zeros(T, 2)) ∘ Bijectors.Scale(ones(T, 2))
+            )
+    
             θ, re = Optimisers.destructure(flow)
 
             # check grad computation for elbo

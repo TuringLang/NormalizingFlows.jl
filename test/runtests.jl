@@ -6,7 +6,9 @@ using Random
 using ADTypes
 using Functors
 using ForwardDiff, Zygote, ReverseDiff, Enzyme, Mooncake
+using Flux: f32
 import DifferentiationInterface as DI
+
 using Test
 
 include("ad.jl")
