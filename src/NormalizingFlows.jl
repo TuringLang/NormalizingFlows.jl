@@ -79,9 +79,6 @@ include("optimize.jl")
 include("objectives.jl")
 
 
-if !isdefined(Base, :get_extension)
-    using Requires
-end
 
 
 @static if !isdefined(Base, :get_extension)
