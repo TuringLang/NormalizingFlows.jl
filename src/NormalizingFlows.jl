@@ -54,7 +54,7 @@ function train_flow(
     # use FunctionChains instead of simple compositions to construct the flow when many flow layers are involved
     # otherwise the compilation time for destructure will be too long
     θ_flat, re = Optimisers.destructure(flow)
-    
+
     loss(θ, rng, args...) = -vo(rng, re(θ), args...)
 
     # Normalizing flow training loop 
@@ -73,13 +73,7 @@ function train_flow(
     return flow_trained, opt_stats, st, time_elapsed
 end
 
-
-
 include("optimize.jl")
 include("objectives.jl")
-
-
-
-
 
 end
