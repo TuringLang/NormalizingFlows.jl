@@ -1,2 +1,2 @@
 include("objectives/elbo.jl")
-include("objectives/loglikelihood.jl") # not tested
+include("objectives/loglikelihood.jl") # not fully tested

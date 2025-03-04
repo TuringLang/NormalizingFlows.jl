@@ -16,7 +16,7 @@ the target distribution p.
 
 """
 function loglikelihood(
-   ::AbstractRNG,                         # empty argument
+    ::AbstractRNG,                          # empty argument
     flow::Bijectors.UnivariateTransformed,    # variational distribution to be trained
     xs::AbstractVector,                       # sample batch from target dist p
 )
@@ -24,10 +24,20 @@ function loglikelihood(
 end
 
 function loglikelihood(
-    rng::AbstractRNG,                           # empty argument
+    ::AbstractRNG,                           # empty argument
     flow::Bijectors.MultivariateTransformed,    # variational distribution to be trained
     xs::AbstractMatrix,                         # sample batch from target dist p
 )
     llhs = map(x -> logpdf(flow, x), eachcol(xs))
     return mean(llhs)
 end
+
+## TODO:will need to implement the version that takes a dataloader 
+# function loglikelihood(
+#     rng::AbstractRNG,
+#     flow::Bijectors.TransformedDistribution,
+#     dataloader
+# )
+#     xs = dataloader(rng)
+#     return loglikelihood(rng, flow, collect(dataloader))
+# end
