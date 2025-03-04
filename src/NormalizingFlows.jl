@@ -81,12 +81,5 @@ include("objectives.jl")
 
 
 
-@static if !isdefined(Base, :get_extension)
-    function __init__()
-        @require EnzymeCore = "f151be2c-9106-41f4-ab19-57ee4f262869" include(
-            joinpath(@__DIR__, "../ext/NormalizingFlowsEnzymeCoreExt.jl")
-        )
-    end
-end
 
 end
