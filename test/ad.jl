@@ -29,7 +29,7 @@ end
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(; compile = false),
         ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
-        # ADTypes.AutoMooncake(; config=Mooncake.Config()),
+        ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)

@@ -6,7 +6,7 @@
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
         ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
-        # ADTypes.AutoMooncake(; config = Mooncake.Config()), # somehow Mooncake does not work with Float64
+        ADTypes.AutoMooncake(; config = Mooncake.Config()), 
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
@@ -67,7 +67,7 @@ end
 #         ADTypes.AutoForwardDiff(),
 #         ADTypes.AutoReverseDiff(),
 #         ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
-#         # ADTypes.AutoMooncake(; config = Mooncake.Config()), # somehow Mooncake does not work with Float64
+#         ADTypes.AutoMooncake(; config = Mooncake.Config()), # somehow Mooncake does not work with Float64
 #     ]
 #         @testset "$T" for T in [Float32, Float64]
 #             μ = 10 * ones(T, 2)
