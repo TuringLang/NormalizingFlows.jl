@@ -19,7 +19,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 EnzymeCore = "f151be2c-9106-41f4-ab19-57ee4f262869"
 
 [extensions]
-NormalizingFlowsEnzymeCoreExt = "EnzymeCore"
+NormalizingFlowsEnzymeCoreExt = ["EnzymeCore", "ADTypes", "DifferentiationInterface"]
 
 [compat]
 ADTypes = "1"
