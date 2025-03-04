@@ -8,16 +8,10 @@ end
 _wrap_in_DI_context(args) = map(DifferentiationInterface.Constant, args)
 
 function _prepare_gradient(loss, adbackend, θ, args...)
-    if isempty(args)
-        return DifferentiationInterface.prepare_gradient(loss, adbackend, θ)
-    end
     return DifferentiationInterface.prepare_gradient(loss, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
 end
 
 function _value_and_gradient(loss, prep, adbackend, θ, args...)
-    if isempty(args)
-        return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ)
-    end
     return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
 end
 
