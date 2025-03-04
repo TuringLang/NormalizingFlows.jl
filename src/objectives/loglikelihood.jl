@@ -16,7 +16,7 @@ the target distribution p.
 
 """
 function loglikelihood(
-    rng::AbstractRNG,                         # empty argument
+   ::AbstractRNG,                         # empty argument
     flow::Bijectors.UnivariateTransformed,    # variational distribution to be trained
     xs::AbstractVector,                       # sample batch from target dist p
 )
