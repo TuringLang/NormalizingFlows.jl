@@ -63,7 +63,8 @@ function train_flow(
         loss,
         θ_flat,
         re,
-        (rng, args...)...;
+        rng,
+        args...;
         max_iters=max_iters,
         optimiser=optimiser,
         kwargs...,
