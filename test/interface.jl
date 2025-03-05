@@ -5,7 +5,10 @@
         ADTypes.AutoForwardDiff(; chunksize=chunksize),
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
-        ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
+        ADTypes.AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
         ADTypes.AutoMooncake(; config = Mooncake.Config()), 
     ]
         @testset "$T" for T in [Float32, Float64]

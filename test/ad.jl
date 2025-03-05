@@ -12,7 +12,10 @@
             ADTypes.AutoForwardDiff(; chunksize=chunksize),
             ADTypes.AutoForwardDiff(),
             ADTypes.AutoReverseDiff(; compile=false),
-            ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
+            ADTypes.AutoEnzyme(;
+                mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+                function_annotation=Enzyme.Const,
+            ),
             ADTypes.AutoMooncake(; config=Mooncake.Config()),
         ]
             prep = NormalizingFlows._prepare_gradient(f, at, x, y, z)
@@ -27,8 +30,11 @@ end
     @testset "$at" for at in [
         ADTypes.AutoZygote(),
         ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(; compile = false),
-        ADTypes.AutoEnzyme(mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
+        ADTypes.AutoReverseDiff(; compile=false),
+        ADTypes.AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
         ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
@@ -36,24 +42,28 @@ end
             Σ = Diagonal(4 * ones(T, 2))
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
-            
+
             # necessary for Zygote/mooncake to differentiate through the flow
             # prevent updating params of q0
-            @leaf MvNormal 
+            @leaf MvNormal
             q₀ = MvNormal(zeros(T, 2), ones(T, 2))
             flow = Bijectors.transformed(
                 q₀, Bijectors.Shift(zeros(T, 2)) ∘ Bijectors.Scale(ones(T, 2))
             )
-    
+
             θ, re = Optimisers.destructure(flow)
 
             # check grad computation for elbo
-            loss(θ, rng, logp, sample_per_iter) = -NormalizingFlows.elbo(rng, re(θ), logp, sample_per_iter)
+            function loss(θ, rng, logp, sample_per_iter)
+                return -NormalizingFlows.elbo(rng, re(θ), logp, sample_per_iter)
+            end
 
             rng = Random.default_rng()
             sample_per_iter = 10
 
-            prep = NormalizingFlows._prepare_gradient(loss, at, θ, rng, logp, sample_per_iter)
+            prep = NormalizingFlows._prepare_gradient(
+                loss, at, θ, rng, logp, sample_per_iter
+            )
             value, grad = NormalizingFlows._value_and_gradient(
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )

@@ -5,7 +5,7 @@ using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes
-using DifferentiationInterface
+import DifferentiationInterface as DI
 
 using DocStringExtensions
 

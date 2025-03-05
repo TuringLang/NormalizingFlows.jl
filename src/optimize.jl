@@ -5,14 +5,12 @@ function pm_next!(pm, stats::NamedTuple)
     return ProgressMeter.next!(pm; showvalues=map(tuple, keys(stats), values(stats)))
 end
 
-_wrap_in_DI_context(args) = map(DifferentiationInterface.Constant, args)
-
 function _prepare_gradient(loss, adbackend, θ, args...)
-    return DifferentiationInterface.prepare_gradient(loss, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
+    return DI.prepare_gradient(loss, adbackend, θ, map(DI.Constant, args)...)
 end
 
 function _value_and_gradient(loss, prep, adbackend, θ, args...)
-    return DifferentiationInterface.value_and_gradient(loss, prep, adbackend, θ, map(DifferentiationInterface.Constant, args)...)
+    return DI.value_and_gradient(loss, prep, adbackend, θ, map(DI.Constant, args)...)
 end
 
 
@@ -34,7 +32,7 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 - `loss`: a general loss function θ -> loss(θ, args...) returning a scalar loss value that will be minimised
 - `θ₀::AbstractVector{T}`: initial parameters for the loss function (in the context of normalizing flows, it will be the flattened flow parameters)
 - `re`: reconstruction function that maps the flattened parameters to the normalizing flow
-- `args...`: additional arguments for `loss` (will be set as DifferentiationInterface.Constant)
+- `args...`: additional arguments for `loss` (will be set as DI.Constant)
 
 # Keyword Arguments
 - `max_iters::Int=10000`: maximum number of iterations
