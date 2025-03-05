@@ -27,7 +27,7 @@
             sample_per_iter = 10
             cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
             checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
-            flow_trained, stats, _, _ = train_flow(
+            flow_trained, stats, _ = train_flow(
                 elbo,
                 flow,
                 logp,

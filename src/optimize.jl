@@ -13,7 +13,6 @@ function _value_and_gradient(loss, prep, adbackend, θ, args...)
     return DI.value_and_gradient(loss, prep, adbackend, θ, map(DI.Constant, args)...)
 end
 
-
 """
     optimize(
         ad::ADTypes.AbstractADType, 
@@ -58,7 +57,7 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
 function optimize(
     adbackend,
     loss,
-    θ₀::AbstractVector{<:Real}, 
+    θ₀::AbstractVector{<:Real},
     reconstruct,
     args...;
     max_iters::Int=10000,
@@ -70,42 +69,40 @@ function optimize(
         max_iters; desc="Training", barlen=31, showspeed=true, enabled=show_progress
     ),
 )
-    time_elapsed = @elapsed begin 
-        opt_stats = []
+    opt_stats = []
 
-        # prepare loss and autograd
-        θ = deepcopy(θ₀)
-        # grad = similar(θ)
-        prep = _prepare_gradient(loss, adbackend, θ₀, args...)
+    # prepare loss and autograd
+    θ = deepcopy(θ₀)
+    # grad = similar(θ)
+    prep = _prepare_gradient(loss, adbackend, θ₀, args...)
 
-        # initialise optimiser state
-        st = Optimisers.setup(optimiser, θ)
+    # initialise optimiser state
+    st = Optimisers.setup(optimiser, θ)
 
-        # general `hasconverged(...)` approach to allow early termination.
-        converged = false
-        i = 1
-        while (i ≤ max_iters) && !converged
-            ls, g = _value_and_gradient(loss, prep, adbackend, θ, args...)
+    # general `hasconverged(...)` approach to allow early termination.
+    converged = false
+    i = 1
+    while (i ≤ max_iters) && !converged
+        ls, g = _value_and_gradient(loss, prep, adbackend, θ, args...)
 
-            # Save stats
-            stat = (iteration=i, loss=ls, gradient_norm=norm(g))
+        # Save stats
+        stat = (iteration=i, loss=ls, gradient_norm=norm(g))
 
-            # callback
-            if callback !== nothing
-                new_stat = callback(i, opt_stats, reconstruct, θ)
-                stat = new_stat !== nothing ? merge(stat, new_stat) : stat
-            end
-            push!(opt_stats, stat)
-
-            # update optimiser state and parameters
-            st, θ = Optimisers.update!(st, θ, g)
-
-            # check convergence
-            i += 1
-            converged = hasconverged(i, stat, reconstruct, θ, st)
-            pm_next!(prog, stat)
+        # callback
+        if callback !== nothing
+            new_stat = callback(i, opt_stats, reconstruct, θ)
+            stat = new_stat !== nothing ? merge(stat, new_stat) : stat
         end
+        push!(opt_stats, stat)
+
+        # update optimiser state and parameters
+        st, θ = Optimisers.update!(st, θ, g)
+
+        # check convergence
+        i += 1
+        converged = hasconverged(i, stat, reconstruct, θ, st)
+        pm_next!(prog, stat)
     end
     # return status of the optimiser for potential continuation of training
-    return θ, map(identity, opt_stats), st, time_elapsed
+    return θ, map(identity, opt_stats), st
 end

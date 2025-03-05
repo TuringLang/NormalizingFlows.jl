@@ -28,7 +28,13 @@ Train the given normalizing flow `flow` by calling `optimize`.
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: 
     automatic differentiation backend, currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, and `ADTypes.ReverseDiff()`. 
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+    `ADTypes.AutoMooncake()` and
+    `ADTypes.AutoEnzyme(;
+        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        function_annotation=Enzyme.Const,
+    )`.
+    If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
@@ -58,7 +64,7 @@ function train_flow(
     loss(θ, rng, args...) = -vo(rng, re(θ), args...)
 
     # Normalizing flow training loop 
-    θ_flat_trained, opt_stats, st, time_elapsed = optimize(
+    θ_flat_trained, opt_stats, st = optimize(
         ADbackend,
         loss,
         θ_flat,
@@ -71,7 +77,7 @@ function train_flow(
     )
 
     flow_trained = re(θ_flat_trained)
-    return flow_trained, opt_stats, st, time_elapsed
+    return flow_trained, opt_stats, st
 end
 
 include("optimize.jl")
