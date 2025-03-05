@@ -56,7 +56,7 @@ Given the feasibility of i.i.d. sampling and density evaluation, normalizing flo
 \text{Reverse KL:}\quad
 &\arg\min _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
 &= \arg\min _{\theta} \mathbb{E}_{q_0}\left[\log \frac{q_\theta(T_N\circ \cdots \circ T_1(Z_0))}{p(T_N\circ \cdots \circ T_1(Z_0))}\right] \\
-&= \arg\max _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(T_n \circ \cdots \circ T_1(X)\right)\right]
+&= \arg\max _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(Z_0)+\sum_{n=1}^N \log J_n\left(T_n \circ \cdots \circ T_1(Z_0)\right)\right]
 \end{aligned}
 ```
 and 
