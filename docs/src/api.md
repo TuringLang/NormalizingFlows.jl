@@ -24,7 +24,7 @@ To train the Gaussian VI targeting at distirbution $p$ via ELBO maiximization, w
 using NormalizingFlows
 
 sample_per_iter = 10
-flow_trained, stats, _ , _ = train_flow(
+flow_trained, stats, _ = train_flow(
     elbo,
     flow,
     logp,
