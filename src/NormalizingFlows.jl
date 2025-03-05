@@ -4,14 +4,12 @@ using Bijectors
 using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
-using ADTypes, DiffResults
+using ADTypes
+import DifferentiationInterface as DI
 
 using DocStringExtensions
 
-export train_flow, elbo, loglikelihood, value_and_gradient!
-
-using ADTypes
-using DiffResults
+export train_flow, elbo, loglikelihood
 
 """
     train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
@@ -30,7 +28,13 @@ Train the given normalizing flow `flow` by calling `optimize`.
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
 - `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: 
     automatic differentiation backend, currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, and `ADTypes.ReverseDiff()`. 
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+    `ADTypes.AutoMooncake()` and
+    `ADTypes.AutoEnzyme(;
+        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        function_annotation=Enzyme.Const,
+    )`.
+    If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
@@ -57,13 +61,15 @@ function train_flow(
     # otherwise the compilation time for destructure will be too long
     θ_flat, re = Optimisers.destructure(flow)
 
+    loss(θ, rng, args...) = -vo(rng, re(θ), args...)
+
     # Normalizing flow training loop 
     θ_flat_trained, opt_stats, st = optimize(
-        rng,
         ADbackend,
-        vo,
+        loss,
         θ_flat,
         re,
+        rng,
         args...;
         max_iters=max_iters,
         optimiser=optimiser,
@@ -74,29 +80,7 @@ function train_flow(
     return flow_trained, opt_stats, st
 end
 
-include("train.jl")
+include("optimize.jl")
 include("objectives.jl")
 
-# optional dependencies 
-if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
-    using Requires
-end
-
-# Question: should Exts be loaded here or in train.jl? 
-function __init__()
-    @static if !isdefined(Base, :get_extension)
-        @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" include(
-            "../ext/NormalizingFlowsForwardDiffExt.jl"
-        )
-        @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(
-            "../ext/NormalizingFlowsReverseDiffExt.jl"
-        )
-        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
-            "../ext/NormalizingFlowsEnzymeExt.jl"
-        )
-        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
-            "../ext/NormalizingFlowsZygoteExt.jl"
-        )
-    end
-end
 end
