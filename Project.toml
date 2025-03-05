@@ -1,54 +1,26 @@
 name = "NormalizingFlows"
 uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
-DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optimisers = "3bd65402-5787-11e9-1adc-39752487f4e2"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
-[weakdeps]
-CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
-
-
-[extensions]
-NormalizingFlowsEnzymeExt = "Enzyme"
-NormalizingFlowsForwardDiffExt = "ForwardDiff"
-NormalizingFlowsReverseDiffExt = "ReverseDiff"
-NormalizingFlowsZygoteExt = "Zygote"
-NormalizingFlowsCUDAExt = "CUDA"
-
 [compat]
-ADTypes = "0.1, 0.2, 1"
-Bijectors = "0.12.6, 0.13, 0.14"
-DiffResults = "1"
+ADTypes = "1"
+Bijectors = "0.12.6, 0.13, 0.14, 0.15"
+DifferentiationInterface = "0.6.42"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
-Enzyme = "0.11, 0.12, 0.13"
-ForwardDiff = "0.10.25"
-Optimisers = "0.2.16, 0.3"
+Optimisers = "0.2.16, 0.3, 0.4"
 ProgressMeter = "1.0.0"
-Requires = "1"
-ReverseDiff = "1.14"
 StatsBase = "0.33, 0.34"
-Zygote = "0.6"
-julia = "1.6"
-
-[extras]
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
-CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+julia = "1.10"

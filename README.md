@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/TuringLang/NormalizingFlows.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/TuringLang/NormalizingFlows.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
-**Last updated: 2023-Aug-23**
+**Last updated: 2025-Mar-04**
 
 A normalizing flow library for Julia.
 
@@ -21,7 +21,7 @@ See the [documentation](https://turinglang.org/NormalizingFlows.jl/dev/) for mor
 To install the package, run the following command in the Julia REPL:
 ```julia
 ]  # enter Pkg mode
-(@v1.9) pkg> add git@github.com:TuringLang/NormalizingFlows.jl.git
+(@v1.11) pkg> add NormalizingFlows
 ```
 Then simply run the following command to use the package:
 ```julia
@@ -29,8 +29,8 @@ using NormalizingFlows
 ```
 
 ## Quick recap of normalizing flows
-Normalizing flows transform a simple reference distribution $q_0$ (sometimes known as base distribution) to 
-a complex distribution $q$ using invertible functions.
+Normalizing flows transform a simple reference distribution $q_0$ (sometimes referred to as the base distribution) 
+to a complex distribution $q$ using invertible functions.
 
 In more details, given the base distribution, usually a standard Gaussian distribution, i.e., $q_0 = \mathcal{N}(0, I)$,
 we apply a series of parameterized invertible transformations (called flow layers), $T_{1, \theta_1}, \cdots, T_{N, \theta_k}$, yielding that
@@ -56,7 +56,7 @@ Given the feasibility of i.i.d. sampling and density evaluation, normalizing flo
 \text{Reverse KL:}\quad
 &\arg\min _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
 &= \arg\min _{\theta} \mathbb{E}_{q_0}\left[\log \frac{q_\theta(T_N\circ \cdots \circ T_1(Z_0))}{p(T_N\circ \cdots \circ T_1(Z_0))}\right] \\
-&= \arg\max _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(F_n \circ \cdots \circ F_1(X)\right)\right]
+&= \arg\max _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(Z_0)+\sum_{n=1}^N \log J_n\left(T_n \circ \cdots \circ T_1(Z_0)\right)\right]
 \end{aligned}
 ```
 and 
@@ -76,10 +76,12 @@ normalizing constant.
 In contrast, forward KL minimization is typically used for **generative modeling**, 
 where one wants to learn the underlying distribution of some data.
 
-## Current status and TODOs
+## Current status and to-dos
 
 - [x] general interface development
 - [x] documentation
+- [ ] integrating [Lux.jl](https://lux.csail.mit.edu/stable/tutorials/intermediate/7_RealNVP) and [Reactant.jl](https://github.com/EnzymeAD/Reactant.jl). 
+This could potentially solve the GPU compatibility issue as well.
 - [ ] including more NF examples/Tutorials
     - WIP: [PR#11](https://github.com/TuringLang/NormalizingFlows.jl/pull/11) 
 - [ ] GPU compatibility
