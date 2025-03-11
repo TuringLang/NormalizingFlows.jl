@@ -5,7 +5,7 @@
         target = MvNormal(μ, Σ)
         logp(z) = logpdf(target, z)
 
-        q₀ = MvNormal(zeros(T, 2), I)
+        q₀ = MvNormal(zeros(T, 2), ones(T, 2))
         flow = Bijectors.transformed(q₀, Bijectors.Shift(μ) ∘ Bijectors.Scale(sqrt.(Σ)))
 
         x = randn(T, 2)
