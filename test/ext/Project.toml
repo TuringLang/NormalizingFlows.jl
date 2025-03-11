@@ -1,0 +1,4 @@
+[deps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+NormalizingFlows = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
