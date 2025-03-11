@@ -85,4 +85,6 @@ end
 include("optimize.jl")
 include("objectives.jl")
 
+function rand_device end
+
 end
