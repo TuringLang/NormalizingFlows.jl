@@ -87,4 +87,6 @@ include("objectives.jl")
 
 function rand_device end
 
+include("sample.jl")
+
 end
