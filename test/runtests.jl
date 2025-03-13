@@ -11,7 +11,6 @@ import DifferentiationInterface as DI
 
 using Test
 
-include("cuda.jl")
 include("ad.jl")
 include("objectives.jl")
 include("interface.jl")
