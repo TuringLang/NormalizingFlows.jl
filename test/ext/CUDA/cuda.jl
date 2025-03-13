@@ -3,7 +3,7 @@ Pkg.activate(@__DIR__)
 Pkg.develop(; path=joinpath(@__DIR__, "..", "..", ".."))
 
 using NormalizingFlows
-using CUDA, Distributions, Flux, LinearAlgebra, Test
+using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
 
 @testset "rand with CUDA" begin
     dists = [
@@ -12,8 +12,8 @@ using CUDA, Distributions, Flux, LinearAlgebra, Test
     ]
 
     @testset "$dist" for dist in dists
-        x = rand_device(CUDA.default_rng(), dist)
-        xs = rand_device(CUDA.default_rng(), dist, 100)
+        x = NormalizingFlows.rand_device(CUDA.default_rng(), dist)
+        xs = NormalizingFlows.rand_device(CUDA.default_rng(), dist, 100)
         @test x isa CuArray
         @test xs isa CuArray
     end
@@ -24,8 +24,8 @@ using CUDA, Distributions, Flux, LinearAlgebra, Test
         ts_g = gpu(ts)
         flow = Bijectors.transformed(dist, ts_g)
 
-        y = rand_device(CUDA.default_rng(), flow)
-        ys = rand_device(CUDA.default_rng(), flow, 100)
+        y = NormalizingFlows.rand_device(CUDA.default_rng(), flow)
+        ys = NormalizingFlows.rand_device(CUDA.default_rng(), flow, 100)
         @test y isa CuArray
         @test ys isa CuArray
     end
