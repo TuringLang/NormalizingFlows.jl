@@ -6,12 +6,14 @@ using NormalizingFlows
 using CUDA, Distributions, Flux, LinearAlgebra, Test
 
 @testset "rand with CUDA" begin
-    dists = [MvNormal(CUDA.zeros(2), I), MvNormal(CUDA.zeros(2), cu([1.0 0.5; 0.5 1.0]))]
+    dists = [
+        MvNormal(CUDA.zeros(2), cu(Matrix{Float64}(I, 2, 2))),
+        MvNormal(CUDA.zeros(2), cu([1.0 0.5; 0.5 1.0])),
+    ]
 
     @testset "$dist" for dist in dists
         x = rand_device(CUDA.default_rng(), dist)
         xs = rand_device(CUDA.default_rng(), dist, 100)
-        @info logpdf(dist, x)
         @test x isa CuArray
         @test xs isa CuArray
     end
@@ -24,7 +26,6 @@ using CUDA, Distributions, Flux, LinearAlgebra, Test
 
         y = rand_device(CUDA.default_rng(), flow)
         ys = rand_device(CUDA.default_rng(), flow, 100)
-        @info logpdf(flow, y)
         @test y isa CuArray
         @test ys isa CuArray
     end
