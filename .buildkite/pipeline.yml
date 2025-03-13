@@ -10,7 +10,7 @@ steps:
       #     dirs:
       #       - src
       #       - ext
-    command: julia --eval='include("test/ext/cuda.jl")'
+    command: julia --eval='println("Current directory: ", pwd()); println("Files in directory: ", readdir()); include("test/ext/cuda.jl")'
     agents:
       queue: "juliagpu"
       cuda: "*"
