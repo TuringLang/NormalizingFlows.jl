@@ -24,7 +24,6 @@ Train the given normalizing flow `flow` by calling `optimize`.
 - `flow`: normalizing flow to be trained, we recommend to define flow as `<:Bijectors.TransformedDistribution` 
 - `args...`: additional arguments for `vo`
 
-
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps

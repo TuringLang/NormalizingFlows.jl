@@ -13,12 +13,11 @@ $(FIELDS)
 The banana distribution is obtained by applying a transformation ϕ to a 2-dimensional normal 
 distribution ``\\mathcal{N}(0, diag(\\sigma_1, \\sigma_2))``. The transformation ϕ(x) is defined as
 ```math
-ϕ(x_1, x_2) = (r*\cos(\theta + r/2), r*\sin(\theta + r/2)), 
+\\phi(x_1, x_2) = (r*\\cos(\\theta + r/2), r*\\sin(\\theta + r/2)), 
 ```
-where ``r = \\sqrt{x\_1^2 + x_2^2}``, ``\\theta = \\atan(x₂, x₁)``, 
-and "atan(y, x) ∈ [-π, π]" is the angle, in radians, between the positive x axis and the 
+where ``r = \\sqrt{x_1^2 + x_2^2}``, ``\\theta = \\atan(x_2, x_1)``, 
+and ``\\atan(y, x) \\in [-\\pi, \\pi]`` is the angle, in radians, between the positive x axis and the 
 ray to the point "(x, y)". See page 18. of [1] for reference.
-
 
 # Reference
 [1] Zuheng Xu, Naitong Chen, Trevor Campbell

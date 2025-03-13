@@ -11,13 +11,13 @@ The Cross distribution is a 2-dimension 4-component Gaussian distribution with a
 shape that is symmetric about the y- and x-axises. The mixture is defined as
 
 ```math
-\begin{aligned}
+\\begin{aligned}
 p(x) =
-& 0.25 \mathcal{N}(x | (0, \mu), (\sigma, 1)) + \\
-& 0.25 \mathcal{N}(x | (\mu, 0), (1, \sigma)) + \\
-& 0.25 \mathcal{N}(x | (0, -\mu), (\sigma, 1)) + \\
-& 0.25 \mathcal{N}(x | (-\mu, 0), (1, \sigma)))
-\end{aligned}
+& 0.25 \\mathcal{N}(x | (0, \\mu), (\\sigma, 1)) + \\\\
+& 0.25 \\mathcal{N}(x | (\\mu, 0), (1, \\sigma)) + \\\\
+& 0.25 \\mathcal{N}(x | (0, -\\mu), (\\sigma, 1)) + \\\\
+& 0.25 \\mathcal{N}(x | (-\\mu, 0), (1, \\sigma))
+\\end{aligned}
 ```
 
 where ``μ`` and ``σ`` are the mean and standard deviation of the Gaussian components, 
