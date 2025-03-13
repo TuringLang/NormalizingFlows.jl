@@ -3,7 +3,7 @@ Pkg.activate(@__DIR__)
 Pkg.develop(; path=joinpath(@__DIR__, "..", "..", ".."))
 
 using NormalizingFlows
-using CUDA, Test, LinearAlgebra, Distributions, Flux
+using CUDA, Distributions, Flux, LinearAlgebra, Test
 
 @testset "rand with CUDA" begin
     dists = [MvNormal(CUDA.zeros(2), I), MvNormal(CUDA.zeros(2), cu([1.0 0.5; 0.5 1.0]))]
