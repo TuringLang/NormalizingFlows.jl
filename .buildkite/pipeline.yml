@@ -10,7 +10,7 @@ steps:
       #     dirs:
       #       - src
       #       - ext
-    command: julia --project=test/ext --eval='include("cuda.jl")'
+    command: julia --project=test/ext --eval='include("test/ext/cuda.jl")'
     agents:
       queue: "juliagpu"
       cuda: "*"
