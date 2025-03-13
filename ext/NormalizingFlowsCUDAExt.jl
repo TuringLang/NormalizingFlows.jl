@@ -2,14 +2,12 @@ module NormalizingFlowsCUDAExt
 
 using CUDA
 using NormalizingFlows
-using NormalizingFlows: Random, Distributions, Bijectors
+using NormalizingFlows: Bijectors, Distributions, Random
 
-# to enable `rand_device(rng:CUDA.RNG, dist[, num_samples])`
 function NormalizingFlows.rand_device(
     rng::CUDA.RNG,
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
 )
-    println("gpu rand")
     return rand_cuda(rng, s)
 end
 
@@ -18,7 +16,6 @@ function NormalizingFlows.rand_device(
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
     n::Int,
 )
-    println("gpu rand")
     return rand_cuda(rng, s, n)
 end
 
@@ -41,10 +38,9 @@ function rand_cuda(
     )
 end
 
-# Question: is this type piracy okay? 
-# (it's probably not ideal but this is sensible enough for now )
+# ! this is type piracy
+# replace scalar indexing
 function Distributions._rand!(rng::CUDA.RNG, d::Distributions.MvNormal, x::CuVecOrMat)
-    # Replaced usage of scalar indexing.
     Random.randn!(rng, x)
     Distributions.unwhiten!(d.Σ, x)
     x .+= d.μ

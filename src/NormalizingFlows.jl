@@ -1,17 +1,18 @@
 module NormalizingFlows
 
-using Bijectors
-using Optimisers
-using LinearAlgebra, Random, Distributions, StatsBase
-using ProgressMeter
 using ADTypes
+using Bijectors
+using Distributions
+using LinearAlgebra
+using Optimisers
+using ProgressMeter
+using Random
+using StatsBase
 import DifferentiationInterface as DI
 
 using DocStringExtensions
 
 export train_flow, elbo, loglikelihood
-
-export rand_device
 
 """
     train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
@@ -86,6 +87,6 @@ include("objectives.jl")
 
 function rand_device end
 
-include("sample.jl")
+include("rand_device.jl")
 
 end
