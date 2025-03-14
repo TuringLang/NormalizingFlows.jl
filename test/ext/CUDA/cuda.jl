@@ -8,6 +8,7 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
 @testset "rand with CUDA" begin
 
     # Bijectors versions use dot for broadcasting, which causes issues with CUDA.
+    # https://github.com/TuringLang/Bijectors.jl/blob/6f0d383f73afd150a018b65a3ea4ac9306065d38/src/bijectors/planar_layer.jl#L65-L80
     function Bijectors.get_u_hat(u::CuVector{T}, w::CuVector{T}) where {T<:Real}
         wT_u = dot(w, u)
         scale = (Bijectors.LogExpFunctions.log1pexp(-wT_u) - 1) / sum(abs2, w)
