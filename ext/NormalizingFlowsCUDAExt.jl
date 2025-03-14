@@ -4,22 +4,22 @@ using CUDA
 using NormalizingFlows
 using NormalizingFlows: Bijectors, Distributions, Random
 
-function NormalizingFlows.rand_device(
+function NormalizingFlows._device_specific_rand(
     rng::CUDA.RNG,
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
 )
-    return rand_cuda(rng, s)
+    return _cuda_rand(rng, s)
 end
 
-function NormalizingFlows.rand_device(
+function NormalizingFlows._device_specific_rand(
     rng::CUDA.RNG,
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
     n::Int,
 )
-    return rand_cuda(rng, s, n)
+    return _cuda_rand(rng, s, n)
 end
 
-function rand_cuda(
+function _cuda_rand(
     rng::CUDA.RNG,
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
 )
@@ -28,7 +28,7 @@ function rand_cuda(
     )
 end
 
-function rand_cuda(
+function _cuda_rand(
     rng::CUDA.RNG,
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
     n::Int,
@@ -39,7 +39,7 @@ function rand_cuda(
 end
 
 # ! this is type piracy
-# replace scalar indexing
+# replacing original function with scalar indexing
 function Distributions._rand!(rng::CUDA.RNG, d::Distributions.MvNormal, x::CuVecOrMat)
     Random.randn!(rng, x)
     Distributions.unwhiten!(d.Σ, x)
@@ -47,23 +47,23 @@ function Distributions._rand!(rng::CUDA.RNG, d::Distributions.MvNormal, x::CuVec
     return x
 end
 
-# to enable `rand_device(rng:CUDA.RNG, flow[, num_samples])`
-function NormalizingFlows.rand_device(rng::CUDA.RNG, td::Bijectors.TransformedDistribution)
-    return rand_cuda(rng, td)
+# to enable `_device_specific_rand(rng:CUDA.RNG, flow[, num_samples])`
+function NormalizingFlows._device_specific_rand(rng::CUDA.RNG, td::Bijectors.TransformedDistribution)
+    return _cuda_rand(rng, td)
 end
 
-function NormalizingFlows.rand_device(
+function NormalizingFlows._device_specific_rand(
     rng::CUDA.RNG, td::Bijectors.TransformedDistribution, num_samples::Int
 )
-    return rand_cuda(rng, td, num_samples)
+    return _cuda_rand(rng, td, num_samples)
 end
 
-function rand_cuda(rng::CUDA.RNG, td::Bijectors.TransformedDistribution)
-    return td.transform(rand_cuda(rng, td.dist))
+function _cuda_rand(rng::CUDA.RNG, td::Bijectors.TransformedDistribution)
+    return td.transform(_cuda_rand(rng, td.dist))
 end
 
-function rand_cuda(rng::CUDA.RNG, td::Bijectors.TransformedDistribution, num_samples::Int)
-    samples = rand_cuda(rng, td.dist, num_samples)
+function _cuda_rand(rng::CUDA.RNG, td::Bijectors.TransformedDistribution, num_samples::Int)
+    samples = _cuda_rand(rng, td.dist, num_samples)
     res = reduce(
         hcat,
         map(axes(samples, 2)) do i

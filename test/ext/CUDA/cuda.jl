@@ -35,8 +35,8 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
 
     @testset "$dist" for dist in dists
         CUDA.allowscalar(true)
-        x = NormalizingFlows.rand_device(CUDA.default_rng(), dist)
-        xs = NormalizingFlows.rand_device(CUDA.default_rng(), dist, 100)
+        x = NormalizingFlows._device_specific_rand(CUDA.default_rng(), dist)
+        xs = NormalizingFlows._device_specific_rand(CUDA.default_rng(), dist, 100)
         @test_nowarn logpdf(dist, x)
         @test x isa CuArray
         @test xs isa CuArray
@@ -52,8 +52,8 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
         )
         flow = Bijectors.transformed(dist, ComposedFunction(pl1, pl2))
 
-        y = NormalizingFlows.rand_device(CUDA.default_rng(), flow)
-        ys = NormalizingFlows.rand_device(CUDA.default_rng(), flow, 100)
+        y = NormalizingFlows._device_specific_rand(CUDA.default_rng(), flow)
+        ys = NormalizingFlows._device_specific_rand(CUDA.default_rng(), flow, 100)
         @test_nowarn logpdf(flow, y)
         @test y isa CuArray
         @test ys isa CuArray

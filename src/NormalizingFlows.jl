@@ -83,10 +83,44 @@ function train_flow(
 end
 
 include("optimize.jl")
-include("objectives.jl")
 
-function rand_device end
+# objectives
+include("objectives/elbo.jl")
+include("objectives/loglikelihood.jl") # not fully tested
 
-include("rand_device.jl")
+"""
+    _device_specific_rand
+
+By default dispatch to `Random.rand`, but maybe overload when the random number 
+generator is device specific (e.g. `CUDA.RNG`).
+"""
+function _device_specific_rand end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG,
+    s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
+)
+    return Random.rand(rng, s)
+end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG,
+    s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
+    n::Int,
+)
+    return Random.rand(rng, s, n)
+end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG, td::Bijectors.TransformedDistribution
+)
+    return Random.rand(rng, td)
+end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG, td::Bijectors.TransformedDistribution, n::Int
+)
+    return Random.rand(rng, td, n)
+end
 
 end
