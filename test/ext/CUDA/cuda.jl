@@ -34,6 +34,7 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
     ]
 
     @testset "$dist" for dist in dists
+        CUDA.allowscalar(true)
         x = NormalizingFlows.rand_device(CUDA.default_rng(), dist)
         xs = NormalizingFlows.rand_device(CUDA.default_rng(), dist, 100)
         @test_nowarn logpdf(dist, x)
