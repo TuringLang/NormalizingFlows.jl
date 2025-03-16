@@ -43,3 +43,20 @@ end
 function elbo(flow::Bijectors.TransformedDistribution, logp, n_samples)
     return elbo(Random.default_rng(), flow, logp, n_samples)
 end
+
+# ELBO via direct minibatch data (if flow.transform and logp supports batched inputs xs)
+function elbo_batch(flow::Bijectors.MultivariateTransformed, logp, xs::AbstractMatrix)
+    ys, logabsdetjacs = with_logabsdet_jacobian(flow.transform, xs)
+    elbos = logp(ys) .- logpdf(flow.dist, xs) .+ logabsdetjacs
+    return mean(elbos)
+end
+
+function elbo_batch(
+    rng::AbstractRNG, flow::Bijectors.MultivariateTransformed, logp, n_samples
+)
+    return elbo_batch(flow, logp, rand(rng, flow.dist, n_samples))
+end
+
+function elbo_batch(flow::Bijectors.TransformedDistribution, logp, n_samples)
+    return elbo_batch(Random.default_rng(), flow, logp, n_samples)
+end

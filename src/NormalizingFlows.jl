@@ -5,10 +5,11 @@ using Optimisers
 using LinearAlgebra, Random, Distributions, StatsBase
 using ProgressMeter
 using ADTypes, DiffResults
+using MLUtils, IterTools
 
 using DocStringExtensions
 
-export train_flow, elbo, loglikelihood, value_and_gradient!
+export train_flow, elbo, loglikelihood, elbo_batch, llh_batch, value_and_gradient!
 
 using ADTypes
 using DiffResults

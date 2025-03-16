@@ -48,3 +48,7 @@ function loglikelihood(
     xs = fulldata[:, idx]
     return loglikelihood(flow, xs)
 end
+
+function llh_batch(flow::Bijectors.MultivariateTransformed, xs::AbstractMatrix)
+    return mean(logpdf(flow, xs))
+end

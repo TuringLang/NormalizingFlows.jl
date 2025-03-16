@@ -56,6 +56,22 @@ function grad!(
     return out
 end
 
+function grad!(
+    xs::AbstractVecOrMat,
+    ad::ADTypes.AbstractADType,
+    vo,
+    θ_flat::AbstractVector{<:Real},
+    reconstruct,
+    out::DiffResults.MutableDiffResult,
+    args...;
+)
+    # define opt loss function
+    loss(θ_) = -vo(reconstruct(θ_), xs, args...)
+    # compute loss value and gradient
+    out = value_and_gradient!(ad, loss, θ_flat, out)
+    return out
+end
+
 #######################################################
 # training loop for variational objectives 
 #######################################################
@@ -160,4 +176,57 @@ function optimize(
 
     # return status of the optimiser for potential continuation of training
     return θ, map(identity, opt_stats[1:(i - 1)]), st
+end
+
+function optimize(
+    data_loader::MLUtils.DataLoader,
+    ad::ADTypes.AbstractADType,
+    vo,
+    θ₀::AbstractVector{<:Real},
+    re,
+    args...;
+    n_epoch::Int=100,
+    optimiser::Optimisers.AbstractRule=Optimisers.ADAM(),
+    show_progress::Bool=true,
+    callback=nothing,
+    prog=ProgressMeter.Progress(
+        n_epoch * length(data_loader);
+        desc="Training",
+        barlen=31,
+        showspeed=true,
+        enabled=show_progress,
+    ),
+)
+    opt_stats = []
+
+    θ = copy(θ₀)
+    diff_result = DiffResults.GradientResult(θ)
+    # initialise optimiser state
+    st = Optimisers.setup(optimiser, θ)
+
+    time_elapsed = @elapsed for (i, xs) in enumerate(IterTools.ncycle(data_loader, n_epoch))
+        # Compute gradient and objective value; results are stored in `diff_results`
+        grad!(xs, ad, vo, θ, re, diff_result, args...)
+
+        # Save stats
+        ls = DiffResults.value(diff_result)
+        g = DiffResults.gradient(diff_result)
+        stat = (iteration=i, loss=ls, gradient_norm=norm(g))
+        push!(opt_stats, stat)
+
+        # callback
+        if !isnothing(callback)
+            new_stat = callback(i, opt_stats, re, θ)
+            stat = !isnothing(new_stat) ? merge(new_stat, stat) : stat
+        end
+
+        # update optimiser state and parameters
+        st, θ = Optimisers.update!(st, θ, DiffResults.gradient(diff_result))
+
+        # prog
+        pm_next!(prog, stat)
+    end
+
+    # return status of the optimiser for potential continuation of training
+    return θ, map(identity, opt_stats), st
 end
