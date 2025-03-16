@@ -108,7 +108,7 @@ s1_layer_diff = res_fwd["s1_err"]
 s2_layer_diff = res_fwd["s2_err"]
 s3_layer_diff = res_fwd["s3_err"]
 
-plot(
+Plots.plot(
     1:nlayers,
     [s1_layer_diff ./ s1_layer s2_layer_diff ./ s2_layer s3_layer_diff ./ s3_layer];
     lw=3,
@@ -117,7 +117,7 @@ plot(
     ylabel="Rel. err.",
     title="HamFlow sampling error",
 )
-plot!(;
+Plots.plot!(;
     yaxis=:log10,
     size=(800, 500),
     xrotation=0,
@@ -128,9 +128,9 @@ plot!(;
     guidefontsize=30,
     titlefontsize=30,
     legend=:bottomright,
-    # yticks=[1e-15, 1e-10, 1e-5, 1e-1],
+    yticks=[1e-15, 1e-10, 1e-5, 1e-1],
 )
-savefig("figure/stat_err_log.png")
+Plots.savefig("figure/stat_err_log.png")
 
 plot(
     1:nlayers,

@@ -21,7 +21,7 @@ param_trained = res["param"]
 ft = Float64
 flow, ts, its, q0n, r64 = set_precision_flow(ft, param_trained, q0)
 
-setprecision(BigFloat, 2048)
+setprecision(BigFloat, 1024)
 bf = BigFloat
 flow_big, ts_big, its_big, q0_big, re_big = set_precision_flow(bf, param_trained, q0)
 
@@ -40,28 +40,31 @@ pp = check_trained_flow(
 )
 Plots.savefig(pp, "figure/trained_flow.png")
 
-# ########################
-# # lpdf vis
-# ######################
+########################
+# lpdf vis
+######################
 X = [-20.001:0.1:20;]
 Y = [-20.001:0.1:15;]
 Ds = zeros(length(X), length(Y))
+Dss = zeros(length(X), length(Y))
 Dd = zeros(length(X), length(Y))
 
 # lpdf_est, Error
 n1, n2 = size(X, 1), size(Y, 1)
 prog = ProgressMeter.Progress(n1; desc="computing window", barlen=31, showspeed=true)
-@threads for i in 1:n1
+for i in 1:n1
     grid = reduce(hcat, [bf.([X[i], y, 0.0, 0.0]) for y in Y])
-    Ds[i, :] = logpdf(flow, grid)
-    Dd[i, :] = logp(grid[1:2, :])
+    # Ds[i, :] = logpdf(flow, grid)
+    Dss[i, :] = logpdf(flow, ft.(grid))
+    Dd[i, :] = logp(ft.(grid[1:2, :]))
     ProgressMeter.next!(prog)
 end
 
-JLD2.save("result/lpdfs_vis.jld2", "lpdfs", ft.(Ds), "true", Dd)
+JLD2.save("result/lpdfs_vis.jld2", "lpdfs", ft.(Ds), "lpdfs_num", Dss, "true", Dd)
 
 res = JLD2.load("result/lpdfs_vis.jld2")
 Ds = res["lpdfs"]
+Dss = res["lpdfs_num"]
 Dd = res["true"]
 
 layout = pjs.Layout(;
@@ -82,6 +85,14 @@ p_est = pjs.plot(
     layout,
 )
 pjs.savefig(p_est, joinpath("figure/", "lpdf_est.png"))
+
+p_num = pjs.plot(
+    pjs.surface(;
+        z=Dss, x=X, y=Y[end:-1:1], showscale=false, cuto=false, cmax=0, cmin=-10000
+    ),
+    layout,
+)
+pjs.savefig(p_num, joinpath("figure/", "lpdf_est_num.png"))
 
 p_target = pjs.plot(pjs.surface(; z=Dd, x=X, y=Y, showscale=false), layout)
 pjs.savefig(p_target, joinpath("figure/", "lpdf.png"))
