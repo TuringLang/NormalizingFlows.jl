@@ -1,20 +1,22 @@
 using Random, Distributions, LinearAlgebra, Bijectors
 using ADTypes
 using Optimisers
-using FunctionChains
 using NormalizingFlows
-using Zygote
+using Mooncake
+using CUDA
 using Flux: f32
+using Flux
 using Plots
-include("../common.jl")
+include("common.jl")
 
 Random.seed!(123)
 rng = Random.default_rng()
+T = Float32
 
 ######################################
 # 2d Banana as the target distribution
 ######################################
-include("../targets/banana.jl")
+include("targets/banana.jl")
 
 # create target p
 p = Banana(2, 1.0f-1, 100.0f0)
@@ -26,13 +28,15 @@ logp = Base.Fix1(logpdf, p)
 function create_planar_flow(n_layers::Int, q₀)
     d = length(q₀)
     Ls = [f32(PlanarLayer(d)) for _ in 1:n_layers]
-    ts = fchain(Ls)
+    ts = reduce(∘, Ls)
     return transformed(q₀, ts)
 end
 
 # create a 10-layer planar flow
-flow = create_planar_flow(20, MvNormal(zeros(Float32, 2), I))
-flow_untrained = deepcopy(flow)
+q0 = MvNormal(zeros(T, 2), ones(T, 2))
+flow = create_planar_flow(10, q0)
+
+
 
 # train the flow
 sample_per_iter = 10
