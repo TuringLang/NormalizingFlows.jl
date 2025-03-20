@@ -1,10 +1,13 @@
 module NormalizingFlows
 
-using Bijectors
-using Optimisers
-using LinearAlgebra, Random, Distributions, StatsBase
-using ProgressMeter
 using ADTypes
+using Bijectors
+using Distributions
+using LinearAlgebra
+using Optimisers
+using ProgressMeter
+using Random
+using StatsBase
 import DifferentiationInterface as DI
 
 using DocStringExtensions
@@ -21,7 +24,6 @@ Train the given normalizing flow `flow` by calling `optimize`.
 - `vo`: variational objective
 - `flow`: normalizing flow to be trained, we recommend to define flow as `<:Bijectors.TransformedDistribution` 
 - `args...`: additional arguments for `vo`
-
 
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
@@ -81,6 +83,44 @@ function train_flow(
 end
 
 include("optimize.jl")
-include("objectives.jl")
+
+# objectives
+include("objectives/elbo.jl")
+include("objectives/loglikelihood.jl") # not fully tested
+
+"""
+    _device_specific_rand
+
+By default dispatch to `Random.rand`, but maybe overload when the random number 
+generator is device specific (e.g. `CUDA.RNG`).
+"""
+function _device_specific_rand end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG,
+    s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
+)
+    return Random.rand(rng, s)
+end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG,
+    s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
+    n::Int,
+)
+    return Random.rand(rng, s, n)
+end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG, td::Bijectors.TransformedDistribution
+)
+    return Random.rand(rng, td)
+end
+
+function _device_specific_rand(
+    rng::Random.AbstractRNG, td::Bijectors.TransformedDistribution, n::Int
+)
+    return Random.rand(rng, td, n)
+end
 
 end
