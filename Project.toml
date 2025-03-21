@@ -23,6 +23,7 @@ NormalizingFlowsCUDAExt = "CUDA"
 [compat]
 ADTypes = "1"
 Bijectors = "0.12.6, 0.13, 0.14, 0.15"
+CUDA = "5"
 DifferentiationInterface = "0.6.42"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
