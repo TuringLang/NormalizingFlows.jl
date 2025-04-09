@@ -1,7 +1,3 @@
-using Distributions, Random
-using Plots
-using IrrationalConstants
-
 """
     Banana{T<:Real}
 

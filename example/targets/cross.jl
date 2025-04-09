@@ -1,4 +1,3 @@
-using Distributions, Random
 """
     Cross(μ::Real=2.0, σ::Real=0.15)
 
