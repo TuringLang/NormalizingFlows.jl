@@ -16,4 +16,5 @@ makedocs(;
         "Example" => "example.md",
         "Customize your own flow layer" => "customized_layer.md",
     ],
+    checkdocs=:exports,
 )

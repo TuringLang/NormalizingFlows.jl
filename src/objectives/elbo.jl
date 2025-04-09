@@ -33,11 +33,11 @@ function elbo(flow::Bijectors.MultivariateTransformed, logp, xs::AbstractMatrix)
 end
 
 function elbo(rng::AbstractRNG, flow::Bijectors.MultivariateTransformed, logp, n_samples)
-    return elbo(flow, logp, rand(rng, flow.dist, n_samples))
+    return elbo(flow, logp, _device_specific_rand(rng, flow.dist, n_samples))
 end
 
 function elbo(rng::AbstractRNG, flow::Bijectors.UnivariateTransformed, logp, n_samples)
-    return elbo(flow, logp, rand(rng, flow.dist, n_samples))
+    return elbo(flow, logp, _device_specific_rand(rng, flow.dist, n_samples))
 end
 
 function elbo(flow::Bijectors.TransformedDistribution, logp, n_samples)
