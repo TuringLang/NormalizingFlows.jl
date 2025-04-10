@@ -1,5 +1,4 @@
 using Random, Distributions, LinearAlgebra, Bijectors
-include("util.jl")
 
 function compare_trained_and_untrained_flow(
     flow_trained::Bijectors.MultivariateTransformed,
@@ -80,42 +79,16 @@ end
 #     return p
 # end
 
-function create_flow(Ls, q₀)
-    ts = fchain(Ls)
-    return transformed(q₀, ts)
+# function create_flow(Ls, q₀)
+#     ts = fchain(Ls)
+#     return transformed(q₀, ts)
+# end
+
+function visualize(p::Bijectors.MultivariateTransformed, samples=rand(p, 1000))
+    xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)
+    yrange = range(minimum(samples[2, :]) - 1, maximum(samples[2, :]) + 1; length=100)
+    z = [exp(Distributions.logpdf(p, [x, y])) for x in xrange, y in yrange]
+    fig = contour(xrange, yrange, z'; levels=15, color=:viridis, label="PDF", linewidth=2)
+    scatter!(samples[1, :], samples[2, :]; label="Samples", alpha=0.3, legend=:bottomright)
+    return fig
 end
-
-#######################
-# training function for InvertibleNetworks
-########################
-
-# function pm_next!(pm, stats::NamedTuple)
-#     return ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
-# end
-
-# function train_invertible_networks!(G, loss, data_loader, n_epoch, opt)
-#     max_iters = n_epoch * length(data_loader)
-#     prog = ProgressMeter.Progress(
-#         max_iters; desc="Training", barlen=31, showspeed=true, enabled=true
-#     )
-
-#     nnls = []
-
-#     # training loop
-#     time_elapsed = @elapsed for (i, xs) in enumerate(IterTools.ncycle(data_loader, n_epoch))
-#         ls = loss(G, xs) #sets gradients of G
-
-#         push!(nnls, ls)
-
-#         grad_norm = 0
-#         for p in get_params(G)
-#             grad_norm += sum(abs2, p.grad)
-#             Flux.update!(opt, p.data, p.grad)
-#         end
-#         grad_norm = sqrt(grad_norm)
-
-#         stat = (iteration=i, neg_log_llh=ls, gradient_norm=grad_norm)
-#         pm_next!(prog, stat)
-#     end
-#     return nnls
-# end

@@ -1,62 +1,64 @@
 using Random, Distributions, LinearAlgebra, Bijectors
-using ADTypes
-using Optimisers
+using Functors
+using Optimisers, ADTypes, Mooncake
 using NormalizingFlows
-using Mooncake
-using CUDA
-using Flux: f32
-using Flux
-using Plots
 include("common.jl")
+include("SyntheticTargets.jl")
 
 Random.seed!(123)
 rng = Random.default_rng()
-T = Float32
+T = Float64
 
 ######################################
 # 2d Banana as the target distribution
 ######################################
-include("targets/banana.jl")
+target = load_model("Banana")
+logp = Base.Fix1(logpdf, target)
 
-# create target p
-p = Banana(2, 1.0f-1, 100.0f0)
-logp = Base.Fix1(logpdf, p)
 
 ######################################
-# learn the target using planar flow 
+# setup planar flow
 ######################################
 function create_planar_flow(n_layers::Int, q₀)
     d = length(q₀)
-    Ls = [f32(PlanarLayer(d)) for _ in 1:n_layers]
+    Ls = [PlanarLayer(d) for _ in 1:n_layers]
     ts = reduce(∘, Ls)
     return transformed(q₀, ts)
 end
 
-# create a 10-layer planar flow
+@leaf MvNormal
 q0 = MvNormal(zeros(T, 2), ones(T, 2))
 flow = create_planar_flow(10, q0)
+flow_untrained = deepcopy(flow)
 
 
 
-# train the flow
-sample_per_iter = 10
-cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,)
-checkconv(iter, stat, re, θ, st) = stat.gradient_norm < 1e-3
+######################################
+# start training
+######################################
+sample_per_iter = 30
+
+# callback function to log training progress
+cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
+adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
     elbo,
     flow,
     logp,
     sample_per_iter;
-    max_iters=200_00,
-    optimiser=Optimisers.Adam(),
+    max_iters=10_000,
+    optimiser=Optimisers.Adam(one(T)/100),
+    ADbackend=adtype,
+    show_progress=true,
     callback=cb,
-    ADbackend=AutoZygote(),
     hasconverged=checkconv,
 )
+θ, re = Optimisers.destructure(flow_trained)
 losses = map(x -> x.loss, stats)
 
 ######################################
 # evaluate trained flow
 ######################################
 plot(losses; label="Loss", linewidth=2) # plot the loss
-compare_trained_and_untrained_flow(flow_trained, flow_untrained, p, 1000)
+compare_trained_and_untrained_flow(flow_trained, flow_untrained, target, 1000)

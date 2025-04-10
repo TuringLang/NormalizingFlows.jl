@@ -1,12 +1,4 @@
-using LinearAlgebra
-using StatsBase
-using BlockBandedMatrices
 using Flux, Bijectors
-using Base.Threads
-using DiffResults
-using ForwardDiff
-using ProgressMeter
-using TickTock
 
 function MLP_3layer(input_dim::Int, hdims::Int, output_dim::Int; activation=Flux.leakyrelu)
     return Chain(
@@ -55,12 +47,3 @@ end
 #     mlp_layer = MLP_BN(inputdim, hdim, outputdim; activation=activation)
 #     return Flux.SkipConnection(mlp_layer, +)
 # end
-
-function rand_batch(rng::AbstractRNG, td::Bijectors.MvTransformed, num_samples::Int)
-    samples = rand(rng, td.dist, num_samples)
-    res = td.transform(samples)
-    return res
-end
-function rand_batch(td::Bijectors.MvTransformed, num_samples::Int)
-    return rand_batch(Random.default_rng(), td, num_samples)
-end
