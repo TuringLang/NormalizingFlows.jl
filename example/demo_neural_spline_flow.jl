@@ -122,9 +122,9 @@ logp = Base.Fix1(logpdf, target)
 q0 = MvNormal(zeros(T, 2), ones(T, 2))
 
 d = 2
-hdims = 32
-K = 8
-B = 3
+hdims = 16
+K = 10
+B = 30
 Ls = [
     NeuralSplineLayer(d, hdims, K, B, [1]) ∘ NeuralSplineLayer(d, hdims, K, B, [2]) for
     i in 1:3
@@ -149,7 +149,7 @@ flow_trained, stats, _ = train_flow(
     logp,
     sample_per_iter;
     max_iters=50_000,
-    optimiser=Optimisers.Adam(5e-4),
+    optimiser=Optimisers.Adam(2e-4),
     ADbackend=adtype,
     show_progress=true,
     callback=cb,
