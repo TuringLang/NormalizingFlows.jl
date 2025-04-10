@@ -79,10 +79,10 @@ end
 #     return p
 # end
 
-# function create_flow(Ls, q₀)
-#     ts = fchain(Ls)
-#     return transformed(q₀, ts)
-# end
+function create_flow(Ls, q₀)
+    ts =  reduce(∘, Ls)
+    return transformed(q₀, ts)
+end
 
 function visualize(p::Bijectors.MultivariateTransformed, samples=rand(p, 1000))
     xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)

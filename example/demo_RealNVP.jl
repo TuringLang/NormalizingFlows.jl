@@ -3,11 +3,19 @@ using Functors
 using Bijectors
 using Bijectors: partition, combine, PartitionMask
 
-include("../util.jl")
+using Random, Distributions, LinearAlgebra
+using Functors
+using Optimisers, ADTypes
+using Mooncake
+using NormalizingFlows
 
-"""
-Affinecoupling layer 
-"""
+include("common.jl")
+include("SyntheticTargets.jl")
+include("nn.jl")
+
+##################################
+# define affine coupling layer using Bijectors.jl interface
+#################################
 struct AffineCoupling <: Bijectors.Bijector
     dim::Int
     mask::Bijectors.PartitionMask
@@ -96,3 +104,62 @@ end
 #     mask = PartitionMask(dim, mask_idx)
 #     return AffineCoupling(dim, mask, s, t)
 # end
+
+
+
+##################################
+# start demo
+#################################
+Random.seed!(123)
+rng = Random.default_rng()
+T = Float32
+
+######################################
+# a difficult banana target
+######################################
+target = Banana(2, 1.0f0, 100.0f0)
+logp = Base.Fix1(logpdf, target)
+
+######################################
+# learn the target using Affine coupling flow
+######################################
+@leaf MvNormal
+q0 = MvNormal(zeros(T, 2), ones(T, 2))
+
+d = 2
+hdims = 32
+Ls = [AffineCoupling(d, hdims, [1]) ∘ AffineCoupling(d, hdims, [2]) for i in 1:3]
+
+flow = create_flow(Ls, q0)
+flow_untrained = deepcopy(flow)
+
+
+######################################
+# start training
+######################################
+sample_per_iter = 64
+
+# callback function to log training progress
+cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
+adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
+flow_trained, stats, _ = train_flow(
+    elbo,
+    flow,
+    logp,
+    sample_per_iter;
+    max_iters=50_000,
+    optimiser=Optimisers.Adam(5e-4),
+    ADbackend=adtype,
+    show_progress=true,
+    callback=cb,
+    hasconverged=checkconv,
+)
+θ, re = Optimisers.destructure(flow_trained)
+losses = map(x -> x.loss, stats)
+
+######################################
+# evaluate trained flow
+######################################
+plot(losses; label="Loss", linewidth=2) # plot the loss
+compare_trained_and_untrained_flow(flow_trained, flow_untrained, target, 1000)

@@ -1,52 +1,27 @@
 using Flux
 using Functors
 using Bijectors
-using Bijectors: partition, PartitionMask
+using Bijectors: partition, combine, PartitionMask
 
-include("../util.jl")
+using Random, Distributions, LinearAlgebra
+using Functors
+using Optimisers, ADTypes
+using Mooncake
+using NormalizingFlows
+
+include("common.jl")
+include("SyntheticTargets.jl")
+include("nn.jl")
+
+##################################
+# define neural spline layer using Bijectors.jl interface
+#################################
 """
 Neural Rational quadratic Spline layer 
 
 # References
 [1] Durkan, C., Bekasov, A., Murray, I., & Papamakarios, G., Neural Spline Flows, CoRR, arXiv:1906.04032 [stat.ML],  (2019). 
 """
-# struct NeuralSplineLayer{T1,T2,A<:AbstractVecOrMat{T1}} <: Bijectors.Bijector
-#     dim::Int
-#     mask::Bijectors.PartitionMask
-#     w::A # width 
-#     h::A # height 
-#     d::A # derivative of the knots
-#     B::T2 # bound of the knots
-# end
-
-# function NeuralSplineLayer(
-#     dim::Int,  # dimension of input
-#     hdims::Int, # dimension of hidden units for s and t
-#     K::Int, # number of knots
-#     B::T2, # bound of the knots
-#     mask_idx::AbstractVector{<:Int}, # index of dimensione that one wants to apply transformations on
-# ) where {T2<:Real}
-#     num_of_transformed_dims = length(mask_idx)
-#     input_dims = dim - num_of_transformed_dims
-#     w = fill(MLP_3layer(input_dims, hdims, K), num_of_transformed_dims)
-#     h = fill(MLP_3layer(input_dims, hdims, K), num_of_transformed_dims)
-#     d = fill(MLP_3layer(input_dims, hdims, K - 1), num_of_transformed_dims)
-#     mask = Bijectors.PartitionMask(dim, mask_idx)
-#     return NeuralSplineLayer(dim, mask, w, h, d, B)
-# end
-
-# @functor NeuralSplineLayer (w, h, d)
-
-# # define forward and inverse transformation
-# function instantiate_rqs(nsl::NeuralSplineLayer, x::AbstractVector)
-#     # instantiate rqs knots and derivatives
-#     ws = permutedims(reduce(hcat, [w(x) for w in nsl.w]))
-#     hs = permutedims(reduce(hcat, [h(x) for h in nsl.h]))
-#     ds = permutedims(reduce(hcat, [d(x) for d in nsl.d]))
-#     return Bijectors.RationalQuadraticSpline(ws, hs, ds, nsl.B)
-# end
-
-## Question: which one is better, the struct below or the struct above?
 struct NeuralSplineLayer{T,A<:Flux.Chain} <: Bijectors.Bijector
     dim::Int
     K::Int
@@ -64,7 +39,7 @@ function NeuralSplineLayer(
 ) where {T1<:Int,T2<:Real}
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
-    nn = fill(MLP_3layer(input_dims, hdims, 3K - 1), num_of_transformed_dims)
+    nn = [MLP_3layer(input_dims, hdims, 3K - 1) for _ in 1:num_of_transformed_dims]
     mask = Bijectors.PartitionMask(dim, mask_idx)
     return NeuralSplineLayer(dim, K, nn, B, mask)
 end
@@ -124,3 +99,67 @@ function Bijectors.with_logabsdet_jacobian(nsl::NeuralSplineLayer, x::AbstractVe
     y_1, logjac = with_logabsdet_jacobian(rqs, x_1)
     return Bijectors.combine(nsl.mask, y_1, x_2, x_3), logjac
 end
+
+
+
+##################################
+# start demo
+#################################
+Random.seed!(123)
+rng = Random.default_rng()
+T = Float32
+
+######################################
+# a difficult banana target
+######################################
+target = Banana(2, 1.0f0, 100.0f0)
+logp = Base.Fix1(logpdf, target)
+
+######################################
+# learn the target using Affine coupling flow
+######################################
+@leaf MvNormal
+q0 = MvNormal(zeros(T, 2), ones(T, 2))
+
+d = 2
+hdims = 32
+K = 8
+B = 3
+Ls = [
+    NeuralSplineLayer(d, hdims, K, B, [1]) ∘ NeuralSplineLayer(d, hdims, K, B, [2]) for
+    i in 1:3
+]
+
+flow = create_flow(Ls, q0)
+flow_untrained = deepcopy(flow)
+
+
+######################################
+# start training
+######################################
+sample_per_iter = 64
+
+# callback function to log training progress
+cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
+adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
+flow_trained, stats, _ = train_flow(
+    elbo,
+    flow,
+    logp,
+    sample_per_iter;
+    max_iters=50_000,
+    optimiser=Optimisers.Adam(5e-4),
+    ADbackend=adtype,
+    show_progress=true,
+    callback=cb,
+    hasconverged=checkconv,
+)
+θ, re = Optimisers.destructure(flow_trained)
+losses = map(x -> x.loss, stats)
+
+######################################
+# evaluate trained flow
+######################################
+plot(losses; label="Loss", linewidth=2) # plot the loss
+compare_trained_and_untrained_flow(flow_trained, flow_untrained, target, 1000)
