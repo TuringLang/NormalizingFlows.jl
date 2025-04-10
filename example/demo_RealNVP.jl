@@ -32,8 +32,8 @@ function AffineCoupling(
     mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
 )
     cdims = length(mask_idx) # dimension of parts used to construct coupling law
-    s = MLP_3layer(cdims, hdims, cdims)
-    t = MLP_3layer(cdims, hdims, cdims)
+    s = mlp3(cdims, hdims, cdims)
+    t = mlp3(cdims, hdims, cdims)
     mask = PartitionMask(dim, mask_idx)
     return AffineCoupling(dim, mask, s, t)
 end
@@ -99,8 +99,8 @@ end
 #     mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
 # )
 #     cdims = length(mask_idx) # dimension of parts used to construct coupling law
-#     s = MLP_3layer(cdims, hdims, cdims)
-#     t = MLP_3layer(cdims, hdims, cdims)
+#     s = mlp3(cdims, hdims, cdims)
+#     t = mlp3(cdims, hdims, cdims)
 #     mask = PartitionMask(dim, mask_idx)
 #     return AffineCoupling(dim, mask, s, t)
 # end

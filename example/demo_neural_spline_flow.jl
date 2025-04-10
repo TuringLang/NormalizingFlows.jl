@@ -39,7 +39,7 @@ function NeuralSplineLayer(
 ) where {T1<:Int,T2<:Real}
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
-    nn = [MLP_3layer(input_dims, hdims, 3K - 1) for _ in 1:num_of_transformed_dims]
+    nn = [mlp3(input_dims, hdims, 3K - 1) for _ in 1:num_of_transformed_dims]
     mask = Bijectors.PartitionMask(dim, mask_idx)
     return NeuralSplineLayer(dim, K, nn, B, mask)
 end
