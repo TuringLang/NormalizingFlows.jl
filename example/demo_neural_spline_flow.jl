@@ -9,9 +9,8 @@ using Optimisers, ADTypes
 using Mooncake
 using NormalizingFlows
 
-include("common.jl")
 include("SyntheticTargets.jl")
-include("nn.jl")
+include("utils.jl")
 
 ##################################
 # define neural spline layer using Bijectors.jl interface

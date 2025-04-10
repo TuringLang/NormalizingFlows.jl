@@ -2,8 +2,9 @@ using Random, Distributions, LinearAlgebra, Bijectors
 using Functors
 using Optimisers, ADTypes, Mooncake
 using NormalizingFlows
-include("common.jl")
+
 include("SyntheticTargets.jl")
+include("utils.jl")
 
 Random.seed!(123)
 rng = Random.default_rng()
