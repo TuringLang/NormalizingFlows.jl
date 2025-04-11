@@ -118,7 +118,7 @@ rng = Random.default_rng()
 T = Float32
 
 ######################################
-# a difficult banana target
+# neals funnel target
 ######################################
 target = Funnel(2, 0.0f0, 9.0f0)
 logp = Base.Fix1(logpdf, target)
@@ -157,7 +157,7 @@ flow_trained, stats, _ = train_flow(
     logp,
     sample_per_iter;
     max_iters=50_000,
-    optimiser=Optimisers.Adam(2e-4),
+    optimiser=Optimisers.Adam(5e-5),
     ADbackend=adtype,
     show_progress=true,
     callback=cb,
