@@ -145,7 +145,7 @@ flow_untrained = deepcopy(flow)
 ######################################
 # start training
 ######################################
-sample_per_iter = 32
+sample_per_iter = 64
 
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
