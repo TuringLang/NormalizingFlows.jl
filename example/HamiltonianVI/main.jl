@@ -8,7 +8,8 @@ using NormalizingFlows
 using Zygote
 using Zygote: @adjoint, Buffer
 using Bijectors: Shift, Scale
-include("../common.jl")
+
+include("../utils.jl")
 include("hamiltonian_layer.jl")
 
 ##############################33

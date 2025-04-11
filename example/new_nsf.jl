@@ -40,7 +40,7 @@ function NeuralSplineLayer(
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
     
-    # output dim of the NN
+    # output dim for the nn
     output_dims = (3K - 1)*num_of_transformed_dims
     # one big mlp that outputs all the knots and derivatives for all the transformed dimensions
     nn = mlp3(input_dims, hdims, output_dims)
@@ -49,14 +49,12 @@ function NeuralSplineLayer(
     return NeuralSplineLayer(dim, K, num_of_transformed_dims, nn, B, mask)
 end
 
+
 @functor NeuralSplineLayer (nn,)
 
 # define forward and inverse transformation
 """
-Build a rational quadratic spline from the nn output
-Bijectors.jl has implemented the inverse and logabsdetjac for rational quadratic spline
-
-we just need to map the nn output to the knots and derivatives of the RQS
+instantiate rqs knots and derivatives from the nn output
 """
 function instantiate_rqs(nsl::NeuralSplineLayer, x::AbstractVector)
     K, B = nsl.K, nsl.B
@@ -89,7 +87,7 @@ end
 
 # define logabsdetjac
 function Bijectors.logabsdetjac(nsl::NeuralSplineLayer, x::AbstractVector)
-    x_1, x_2, _ = Bijectors.partition(nsl.mask, x)
+    x_1, x_2, x_3 = Bijectors.partition(nsl.mask, x)
     rqs = instantiate_rqs(nsl, x_2)
     logjac = logabsdetjac(rqs, x_1)
     return logjac
@@ -97,7 +95,7 @@ end
 
 function Bijectors.logabsdetjac(insl::Inverse{<:NeuralSplineLayer}, y::AbstractVector)
     nsl = insl.orig
-    y1, y2, _ = partition(nsl.mask, y)
+    y1, y2, y3 = partition(nsl.mask, y)
     rqs = instantiate_rqs(nsl, y2)
     logjac = logabsdetjac(Inverse(rqs), y1)
     return logjac
@@ -120,7 +118,7 @@ T = Float32
 ######################################
 # a difficult banana target
 ######################################
-target = Funnel(2, 0.0f0, 9.0f0)
+target = Banana(2, 1.0f0, 100.0f0)
 logp = Base.Fix1(logpdf, target)
 
 ######################################
@@ -142,10 +140,11 @@ flow = create_flow(Ls, q0)
 flow_untrained = deepcopy(flow)
 
 
+# L = NeuralSplineLayer(d, hdims, K, B, [1])
 ######################################
 # start training
 ######################################
-sample_per_iter = 32
+sample_per_iter = 64
 
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)

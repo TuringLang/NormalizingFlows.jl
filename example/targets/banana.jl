@@ -81,12 +81,3 @@ function Distributions._logpdf(p::Banana, x::AbstractVector)
     logz = (log(s) / d + IrrationalConstants.log2π) * d / 2
     return -logz - sum(ϕ⁻¹_x .^ 2 ./ vcat(s, ones(T, d - 1))) / 2
 end
-
-function visualize(p::Banana, samples=rand(p, 1000))
-    xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)
-    yrange = range(minimum(samples[2, :]) - 1, maximum(samples[2, :]) + 1; length=100)
-    z = [exp(Distributions.logpdf(p, [x, y])) for x in xrange, y in yrange]
-    fig = contour(xrange, yrange, z'; levels=15, color=:viridis, label="PDF", linewidth=2)
-    scatter!(samples[1, :], samples[2, :]; label="Samples", alpha=0.3, legend=:bottomright)
-    return fig
-end

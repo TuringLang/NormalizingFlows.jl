@@ -32,8 +32,6 @@ q0 = MvNormal(zeros(T, 2), ones(T, 2))
 flow = create_planar_flow(10, q0)
 flow_untrained = deepcopy(flow)
 
-
-
 ######################################
 # start training
 ######################################
