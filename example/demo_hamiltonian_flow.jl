@@ -2,7 +2,7 @@ using Random, Distributions, LinearAlgebra
 using Functors
 using Optimisers, ADTypes
 using Mooncake
-using Bijectors
+using Bijectors 
 using Bijectors: partition, combine, PartitionMask
 using SimpleUnPack: @unpack
 
@@ -111,7 +111,9 @@ T = Float64 # for Hamiltonian VI, its recommended to use Float64 as the dynamic 
 # a Funnel target
 ######################################
 dims = 2
-target = Funnel(dims, 0.0, 5.0)
+target = Funnel(dims, -8.0, 5.0)
+# visualize(target)
+
 logp = Base.Fix1(logpdf, target)
 function logp_joint(z::AbstractVector{T}) where {T<:Real}
     dims = div(length(z), 2)
@@ -132,12 +134,12 @@ q0 = transformed(
     MvNormal(zeros(T, 2dims), ones(T, 2dims)), Bijectors.Shift(zeros(T, 2dims)) ∘ Bijectors.Scale(ones(T, 2dims))
 )
 
-nlfg = 5
+nlfg = 3
 logϵ0 = log(0.05) # initial step size
 
 # Hamiltonian flow interleaves betweem Leapfrog layer and an affine transformation to the momentum variable
 Ls = [
-    momentum_normalization_layer(dims, T) ∘ LeapFrog(dims, logϵ0, nlfg, ∇logp) for _ in 1:8
+    momentum_normalization_layer(dims, T) ∘ LeapFrog(dims, logϵ0, nlfg, ∇logp) for _ in 1:15
 ]
 
 flow = create_flow(Ls, q0)
@@ -159,7 +161,7 @@ flow_trained, stats, _ = train_flow(
     logp_joint,
     sample_per_iter;
     max_iters=50_000,
-    optimiser=Optimisers.Adam(1e-3),
+    optimiser=Optimisers.Adam(3e-4),
     ADbackend=adtype,
     show_progress=true,
     callback=cb,

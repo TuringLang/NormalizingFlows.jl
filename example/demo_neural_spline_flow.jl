@@ -1,5 +1,4 @@
 using Flux
-using Functors
 using Bijectors
 using Bijectors: partition, combine, PartitionMask
 

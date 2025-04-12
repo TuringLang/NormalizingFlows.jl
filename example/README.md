@@ -12,7 +12,7 @@ normalizing flow to approximate the target distribution using `NormalizingFlows.
 Currently, all examples share the same [Julia project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project). To run the examples, first activate the project environment:
 
 ```julia
-# pwd() = "NormalizingFlows.jl/"
-using Pkg; Pkg.activate("example"); Pkg.instantiate()
+# pwd() = "NormalizingFlows.jl/example"
+using Pkg; Pkg.activate("."); Pkg.instantiate()
 ```
-This will install all needed packages, at the exact versions when the model was last updated. Then you can run the model code with include("<example-to-run>.jl"), or by running the example script line-by-line.
+This will install all needed packages, at the exact versions when the model was last updated. Then you can run the model code with `include("<example-to-run>.jl")`, or by running the example script line-by-line.
