@@ -59,3 +59,14 @@ function Distributions._logpdf(p::Funnel{T}, x::AbstractVector{T}) where {T<:Rea
     lpdf_x2_given_1 = logpdf(MvNormal(zeros(T, d-1), exp(x1)I), x2)
     return lpdf_x1 + lpdf_x2_given_1
 end
+
+function score(p::Funnel{T}, x::AbstractVector{T}) where {T<:Real}
+    d, μ, σ = p.dim, p.μ, p.σ
+    x1 = x[1]
+    x_2_d = x[2:end]
+    a = expm1(-x1) + 1
+
+    ∇lpdf1 = (μ - x1)/σ^2 - (d-1)/2 + a*sum(abs2, x_2_d)/2
+    ∇lpdfs = -a*x_2_d
+    return vcat(∇lpdf1, ∇lpdfs)
+end

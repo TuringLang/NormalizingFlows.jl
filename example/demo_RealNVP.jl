@@ -68,7 +68,7 @@ function Bijectors.with_logabsdet_jacobian(
 end
 
 function Bijectors.logabsdetjac(af::AffineCoupling, x::AbstractVector)
-    x_1, x_2, x_3 = partition(af.mask, x)
+    _, x_2, _ = partition(af.mask, x)
     logjac = sum(log ∘ abs, af.s(x_2))
     return logjac
 end
