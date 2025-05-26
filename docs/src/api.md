@@ -61,6 +61,11 @@ and hope to generate approximate samples from it.
 ```@docs
 NormalizingFlows.elbo
 ```
+
+```@docs
+NormalizingFlows.elbo_batch
+```
+
 #### Log-likelihood
 
 By maximizing the log-likelihood, it is equivalent to minimizing the forward KL divergence between $q_\theta$ and $p$, i.e., 
