@@ -36,14 +36,14 @@ flow_untrained = deepcopy(flow)
 ######################################
 # start training
 ######################################
-sample_per_iter = 30
+sample_per_iter = 32
 
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
 adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
 checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
-    elbo,
+    elbo_batch,
     flow,
     logp,
     sample_per_iter;

@@ -162,7 +162,7 @@ flow_trained, stats, _ = train_flow(
     flow,
     logp_joint,
     sample_per_iter;
-    max_iters=50_000,
+    max_iters=100,   # change to larger number of iterations (e.g., 50_000) for better results
     optimiser=Optimisers.Adam(3e-4),
     ADbackend=adtype,
     show_progress=true,
