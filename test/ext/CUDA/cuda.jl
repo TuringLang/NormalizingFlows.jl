@@ -29,13 +29,13 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
         return (transformed=transformed, wT_û=wT_û, wT_z=wT_z)
     end
 
+    CUDA.allowscalar(true)
     dists = [
         MvNormal(CUDA.zeros(2), cu(Matrix{Float64}(I, 2, 2))),
         MvNormal(CUDA.zeros(2), cu([1.0 0.5; 0.5 1.0])),
     ]
 
     @testset "$dist" for dist in dists
-        CUDA.allowscalar(true)
         x = NormalizingFlows._device_specific_rand(CUDA.default_rng(), dist)
         xs = NormalizingFlows._device_specific_rand(CUDA.default_rng(), dist, 100)
         @test_nowarn logpdf(dist, x)
@@ -44,7 +44,6 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
     end
 
     @testset "$dist" for dist in dists
-        CUDA.allowscalar(true)
         pl1 = PlanarLayer(
             identity(CUDA.rand(2)), identity(CUDA.rand(2)), identity(CUDA.rand(1))
         )
