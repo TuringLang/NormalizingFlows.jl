@@ -13,7 +13,7 @@ T = Float64
 ######################################
 # get target logp
 ######################################
-target = load_model("WarpedGaussian")
+target = WarpedGauss()
 logp = Base.Fix1(logpdf, target)
 
 ######################################

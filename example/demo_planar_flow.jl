@@ -13,7 +13,7 @@ T = Float64
 ######################################
 # 2d Banana as the target distribution
 ######################################
-target = load_model("Banana")
+target = Banana(2, 1.0, 10.0)
 logp = Base.Fix1(logpdf, target)
 
 
