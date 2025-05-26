@@ -12,7 +12,7 @@ import DifferentiationInterface as DI
 
 using DocStringExtensions
 
-export train_flow, elbo, loglikelihood
+export train_flow, elbo, elbo_batch, loglikelihood
 
 """
     train_flow([rng::AbstractRNG, ]vo, flow, args...; kwargs...)
