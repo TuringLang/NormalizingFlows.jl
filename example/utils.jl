@@ -64,40 +64,6 @@ function compare_trained_and_untrained_flow(
     return p
 end
 
-# function check_trained_flow(
-#     flow_trained::Bijectors.MultivariateTransformed,
-#     true_dist::ContinuousMultivariateDistribution,
-#     n_samples::Int;
-#     kwargs...,
-# )
-#     samples_trained = rand_batch(flow_trained, n_samples)
-#     samples_true = rand(true_dist, n_samples)
-
-#     p = Plots.scatter(
-#         samples_true[1, :],
-#         samples_true[2, :];
-#         label="True Distribution",
-#         color=:green,
-#         markersize=2,
-#         alpha=0.5,
-#     )
-#     Plots.scatter!(
-#         p,
-#         samples_trained[1, :],
-#         samples_trained[2, :];
-#         label="Trained Flow",
-#         color=:red,
-#         markersize=2,
-#         alpha=0.5,
-#     )
-#     Plots.plot!(; kwargs...)
-
-#     Plots.title!(p, "Trained HamFlow")
-
-#     return p
-# end
-
-
 function visualize(p::Bijectors.MultivariateTransformed, samples=rand(p, 1000))
     xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)
     yrange = range(minimum(samples[2, :]) - 1, maximum(samples[2, :]) + 1; length=100)
