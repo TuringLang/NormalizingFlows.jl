@@ -4,7 +4,6 @@ using Optimisers, ADTypes
 using Mooncake
 using Bijectors 
 using Bijectors: partition, combine, PartitionMask
-using SimpleUnPack: @unpack
 
 using NormalizingFlows
 
@@ -62,7 +61,7 @@ function _leapfrog(
 end
 
 function Bijectors.transform(lf::LeapFrog{T}, z::AbstractVector{T}) where {T<:Real}
-    @unpack dim, logϵ, L, ∇logp = lf
+    (; dim, logϵ, L, ∇logp) = lf
     @assert length(z) == 2dim "dimension of input must be even, z = [x, ρ]"
 
     ϵ = _get_stepsize(lf) 
@@ -73,7 +72,7 @@ end
 
 function Bijectors.transform(ilf::Inverse{<:LeapFrog{T}}, z::AbstractVector{T}) where {T<:Real}
     lf = ilf.orig
-    @unpack dim, logϵ, L, ∇logp = lf
+    (; dim, logϵ, L, ∇logp) = lf
     @assert length(z) == 2dim "dimension of input must be even, z = [x, ρ]"
 
     ϵ = _get_stepsize(lf) 
@@ -123,6 +122,9 @@ function logp_joint(z::AbstractVector{T}) where {T<:Real}
     logp_ρ = sum(logpdf(Normal(), ρ))
     return logp_x + logp_ρ
 end
+
+# the score function is the gradient of the logpdf. 
+# In all the synthetic targets, the score function is only implemented for the Banana target
 ∇logp = Base.Fix1(score, target)
 
 ######################################
