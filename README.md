@@ -80,12 +80,9 @@ where one wants to learn the underlying distribution of some data.
 
 - [x] general interface development
 - [x] documentation
-- [ ] integrating [Lux.jl](https://lux.csail.mit.edu/stable/tutorials/intermediate/7_RealNVP) and [Reactant.jl](https://github.com/EnzymeAD/Reactant.jl). 
-This could potentially solve the GPU compatibility issue as well.
-- [ ] including more NF examples/Tutorials
-    - WIP: [PR#11](https://github.com/TuringLang/NormalizingFlows.jl/pull/11) 
-- [ ] GPU compatibility
-    - WIP: [PR#25](https://github.com/TuringLang/NormalizingFlows.jl/pull/25) 
+- [x] including more NF examples/Tutorials [PR#11](https://github.com/TuringLang/NormalizingFlows.jl/pull/11) 
+- [x] GPU compatibility [PR#25](https://github.com/TuringLang/NormalizingFlows.jl/pull/25) 
+- [ ] integrating [Lux.jl](https://lux.csail.mit.edu/stable/tutorials/intermediate/7_RealNVP) and [Reactant.jl](https://github.com/EnzymeAD/Reactant.jl). This could potentially solve the GPU compatibility issue as well.
 - [ ] benchmarking
 
 ## Related packages
