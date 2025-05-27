@@ -1,6 +1,6 @@
 name = "NormalizingFlows"
 uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -24,7 +24,7 @@ NormalizingFlowsCUDAExt = "CUDA"
 ADTypes = "1"
 Bijectors = "0.12.6, 0.13, 0.14, 0.15"
 CUDA = "5"
-DifferentiationInterface = "0.6.42"
+DifferentiationInterface = "0.6, 0.7"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
 Optimisers = "0.2.16, 0.3, 0.4"

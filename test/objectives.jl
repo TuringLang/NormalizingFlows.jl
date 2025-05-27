@@ -18,6 +18,13 @@
             @test logpdf(flow, x) + el ≈ logp(x)
         end
 
+        @testset "elbo_batch" begin
+            el = elbo_batch(rng, flow, logp, 10)
+
+            @test abs(el) ≤ 1e-5
+            @test logpdf(flow, x) + el ≈ logp(x)
+        end
+
         @testset "likelihood" begin
             sample_trained = rand(flow, 1000)
             sample_untrained = rand(q₀, 1000)

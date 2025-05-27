@@ -1,5 +1,3 @@
-using Distributions, Random
-
 """
     Funnel{T<:Real}
 
@@ -45,8 +43,7 @@ Funnel(dim::Int) = Funnel(dim, 0.0, 9.0)
 Base.length(p::Funnel) = p.dim
 Base.eltype(p::Funnel{T}) where {T<:Real} = T
 
-function Distributions._rand!(rng::AbstractRNG, p::Funnel, x::AbstractVecOrMat)
-    T = eltype(x)
+function Distributions._rand!(rng::AbstractRNG, p::Funnel{T}, x::AbstractVecOrMat{T}) where {T<:Real}
     d, μ, σ = p.dim, p.μ, p.σ
     d == size(x, 1) || error("Dimension mismatch")
     x[1, :] .= randn(rng, T, size(x, 2)) .* σ .+ μ
@@ -54,9 +51,22 @@ function Distributions._rand!(rng::AbstractRNG, p::Funnel, x::AbstractVecOrMat)
     return x
 end
 
-function Distributions._logpdf(p::Funnel, x::AbstractVector)
+function Distributions._logpdf(p::Funnel{T}, x::AbstractVector{T}) where {T<:Real}
     d, μ, σ = p.dim, p.μ, p.σ
-    lpdf1 = logpdf(Normal(μ, σ), x[1])
-    lpdfs = logpdf.(Normal.(zeros(T, d - 1), exp(x[1] / 2)), @view(x[2:end]))
-    return lpdf1 + sum(lpdfs)
+    x1 = x[1]
+    x2 = x[2:end]
+    lpdf_x1 = logpdf(Normal(μ, σ), x1)
+    lpdf_x2_given_1 = logpdf(MvNormal(zeros(T, d-1), exp(x1)I), x2)
+    return lpdf_x1 + lpdf_x2_given_1
+end
+
+function score(p::Funnel{T}, x::AbstractVector{T}) where {T<:Real}
+    d, μ, σ = p.dim, p.μ, p.σ
+    x1 = x[1]
+    x_2_d = x[2:end]
+    a = expm1(-x1) + 1
+
+    ∇lpdf1 = (μ - x1)/σ^2 - (d-1)/2 + a*sum(abs2, x_2_d)/2
+    ∇lpdfs = -a*x_2_d
+    return vcat(∇lpdf1, ∇lpdfs)
 end

@@ -1,6 +1,23 @@
-using Random, Distributions, LinearAlgebra, Bijectors
+using Random, Distributions, LinearAlgebra
+using Bijectors: transformed
+using Flux
 
-# accessing the trained flow by looking at the first 2 dimensions
+"""
+A simple wrapper for a 3 layer dense MLP
+"""
+function mlp3(input_dim::Int, hidden_dims::Int, output_dim::Int; activation=Flux.leakyrelu)
+    return Chain(
+        Flux.Dense(input_dim, hidden_dims, activation),
+        Flux.Dense(hidden_dims, hidden_dims, activation),
+        Flux.Dense(hidden_dims, output_dim),
+    )
+end
+
+function create_flow(Ls, q₀)
+    ts =  reduce(∘, Ls)
+    return transformed(q₀, ts)
+end
+
 function compare_trained_and_untrained_flow(
     flow_trained::Bijectors.MultivariateTransformed,
     flow_untrained::Bijectors.MultivariateTransformed,
@@ -47,7 +64,11 @@ function compare_trained_and_untrained_flow(
     return p
 end
 
-function create_flow(Ls, q₀)
-    ts = fchain(Ls)
-    return transformed(q₀, ts)
+function visualize(p::Bijectors.MultivariateTransformed, samples=rand(p, 1000))
+    xrange = range(minimum(samples[1, :]) - 1, maximum(samples[1, :]) + 1; length=100)
+    yrange = range(minimum(samples[2, :]) - 1, maximum(samples[2, :]) + 1; length=100)
+    z = [exp(Distributions.logpdf(p, [x, y])) for x in xrange, y in yrange]
+    fig = contour(xrange, yrange, z'; levels=15, color=:viridis, label="PDF", linewidth=2)
+    scatter!(samples[1, :], samples[2, :]; label="Samples", alpha=0.3, legend=:bottomright)
+    return fig
 end
