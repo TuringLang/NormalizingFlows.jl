@@ -1,0 +1,53 @@
+name: NF Examples
+
+on:
+  push:
+    branches:
+      - main
+    tags: '*'
+  pull_request:
+
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  run-examples:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+          arch: 'x64'
+      - uses: julia-actions/cache@v2
+      - name: Run NF examples
+      - run: |
+          cd example
+          julia --project=. --color=yes -e '
+          using Pkg;
+          Pkg.develop(PackageSpec(path=joinpath(pwd(), "..")));
+          Pkg.instantiate();
+          
+          @info "Running planar flow demo"
+          include("demo_planar_flow.jl");
+
+          @info "Running radial flow demo"
+          include("demo_radial_flow.jl");
+
+          @info "Running Real NVP demo"
+          include("demo_RealNVP.jl");
+
+          @info "Running neural spline flow demo"
+          include("demo_neural_spline_flow.jl");
+
+          @info "Running Hamiltonian flow demo"
+          include("demo_hamiltonian_flow.jl");'
+
