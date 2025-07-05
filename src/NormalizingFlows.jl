@@ -8,6 +8,7 @@ using Optimisers
 using ProgressMeter
 using Random
 using StatsBase
+using Functors
 import DifferentiationInterface as DI
 
 using DocStringExtensions
