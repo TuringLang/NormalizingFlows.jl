@@ -123,4 +123,11 @@ function _device_specific_rand(
     return Random.rand(rng, td, n)
 end
 
+
+# interface of contructing common flow layers
+include("flows/utils.jl")
+include("flows/realnvp.jl")
+include("flows/neuralspline.jl")
+
+
 end
