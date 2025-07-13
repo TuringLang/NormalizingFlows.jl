@@ -152,7 +152,7 @@ function RealNVP(
     create_flow(Ls, q0)         
 end
 
-function RealNVP(dims:Int; paramtype::Type{T} = Float64) where {T<:AbstractFloat}
+function RealNVP(dims::Int; paramtype::Type{T} = Float64) where {T<:AbstractFloat}
     # default RealNVP with 10 layers, each couplling function has 2 hidden layers with 32 units
     return RealNVP(dims, [32, 32], 10; paramtype=paramtype)
 end
