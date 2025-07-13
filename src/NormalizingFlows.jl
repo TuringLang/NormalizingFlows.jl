@@ -1,13 +1,14 @@
 module NormalizingFlows
 
 using ADTypes
-using Bijectors
 using Distributions
 using LinearAlgebra
 using Optimisers
 using ProgressMeter
 using Random
 using StatsBase
+using Bijectors
+using Bijectors: PartitionMask, Inverse, combine, partition
 using Functors
 import DifferentiationInterface as DI
 

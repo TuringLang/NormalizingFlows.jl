@@ -1,6 +1,10 @@
-##################################
-# define affine coupling layer using Bijectors.jl interface
-#################################
+"""
+Default constructor of Affine Coupling flow layer
+
+following the general architecture as Eq(3) in [^AD2025]
+
+[^AD2024]: Agrawal, J., & Domke, J. (2025). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *AISTATS*
+"""
 struct AffineCoupling <: Bijectors.Bijector
     dim::Int
     mask::Bijectors.PartitionMask
@@ -12,13 +16,16 @@ end
 @functor AffineCoupling (s, t)
 
 function AffineCoupling(
-    dim::Int,  # dimension of input
-    hdims::Int, # dimension of hidden units for s and t
-    mask_idx::AbstractVector, # index of dimensione that one wants to apply transformations on
-)
-    cdims = length(mask_idx) # dimension of parts used to construct coupling law
-    s = mlp3(cdims, hdims, cdims)
-    t = mlp3(cdims, hdims, cdims)
+    dim::Int,                       # dimension of the problem
+    hdims::AbstractVector{Int},     # dimension of hidden units for s and t
+    mask_idx::AbstractVector{Int},       # index of dimensione that one wants to apply transformations on
+    paramtype::Type{T}
+) where {T<:AbstractFloat}
+    cdims = length(mask_idx)  # dimension of parts used to construct coupling law
+    # for the scaling network s, add tanh to the output to ensure stability during training
+    s = fnn(dim-cdims, hdims, cdims; output_activation=Flux.tanh, paramtype=paramtype)  
+    # no transfomration for the output of the translation network t
+    t = fnn(dim-cdims, hdims, cdims; output_activation=nothing, paramtype=paramtype)
     mask = PartitionMask(dim, mask_idx)
     return AffineCoupling(dim, mask, s, t)
 end
@@ -26,7 +33,8 @@ end
 function Bijectors.transform(af::AffineCoupling, x::AbstractVecOrMat)
     # partition vector using 'af.mask::PartitionMask`
     x₁, x₂, x₃ = partition(af.mask, x)
-    y₁ = x₁ .* af.s(x₂) .+ af.t(x₂)
+    s_x₂ = af.s(x₂)
+    y₁ = x₁ .* exp.(s_x₂) .+ af.t(x₂)
     return combine(af.mask, y₁, x₂, x₃)
 end
 
@@ -36,15 +44,17 @@ end
 
 function Bijectors.with_logabsdet_jacobian(af::AffineCoupling, x::AbstractVector)
     x_1, x_2, x_3 = Bijectors.partition(af.mask, x)
-    y_1 = af.s(x_2) .* x_1 .+ af.t(x_2)
-    logjac = sum(log ∘ abs, af.s(x_2)) # this is a scalar
+    s_x2 = af.s(x_2)
+    y_1 = exp.(s_x2) .* x_1 .+ af.t(x_2)
+    logjac = sum(s_x2) # this is a scalar
     return combine(af.mask, y_1, x_2, x_3), logjac
 end
 
 function Bijectors.with_logabsdet_jacobian(af::AffineCoupling, x::AbstractMatrix)
     x_1, x_2, x_3 = Bijectors.partition(af.mask, x)
-    y_1 = af.s(x_2) .* x_1 .+ af.t(x_2)
-    logjac = sum(log ∘ abs, af.s(x_2); dims = 1) # 1 × size(x, 2)
+    s_x2 = af.s(x_2)
+    y_1 = exp.(s_x2) .* x_1 .+ af.t(x_2)
+    logjac = sum(s_x2; dims=1) # 1 × size(x, 2)
     return combine(af.mask, y_1, x_2, x_3), vec(logjac)
 end
 
@@ -56,8 +66,9 @@ function Bijectors.with_logabsdet_jacobian(
     # partition vector using `af.mask::PartitionMask`
     y_1, y_2, y_3 = partition(af.mask, y)
     # inverse transformation
-    x_1 = (y_1 .- af.t(y_2)) ./ af.s(y_2)
-    logjac = -sum(log ∘ abs, af.s(y_2))
+    s_y2 = af.s(y_2)
+    x_1 = (y_1 .- af.t(y_2)) .* exp.(-s_y2)
+    logjac = -sum(s_y2)
     return combine(af.mask, x_1, y_2, y_3), logjac
 end
 
@@ -68,8 +79,9 @@ function Bijectors.with_logabsdet_jacobian(
     # partition vector using `af.mask::PartitionMask`
     y_1, y_2, y_3 = partition(af.mask, y)
     # inverse transformation
-    x_1 = (y_1 .- af.t(y_2)) ./ af.s(y_2)
-    logjac = -sum(log ∘ abs, af.s(y_2); dims = 1)
+    s_y2 = af.s(y_2)
+    x_1 = (y_1 .- af.t(y_2)) .* exp.(-s_y2)
+    logjac = -sum(s_y2; dims=1)
     return combine(af.mask, x_1, y_2, y_3), vec(logjac)
 end
 
@@ -104,3 +116,43 @@ end
 #     return AffineCoupling(dim, mask, s, t)
 # end
 
+"""
+Default constructor of RealNVP flow layer
+
+single layer of realnvp flow, which is a composition of 2 affine coupling transformations
+with complementary masks
+"""
+function RealNVP_layer(
+    dims::Int,                      # dimension of problem
+    hdims::AbstractVector{Int};     # dimension of hidden units for s and t
+    paramtype::Type{T} = Float64,   # type of the parameters
+) where {T<:AbstractFloat}
+
+    mask_idx1 = 1:2:dims
+    mask_idx2 = 2:2:dims
+
+    # by default use the odd-even masking strategy
+    af1 = AffineCoupling(dims, hdims, mask_idx1, paramtype)
+    af2 = AffineCoupling(dims, hdims, mask_idx2, paramtype)
+
+    return reduce(∘, (af1, af2))
+end
+
+
+function RealNVP(
+    dims::Int,                      # dimension of problem
+    hdims::AbstractVector{Int},     # dimension of hidden units for s and t
+    nlayers::Int;                   # number of RealNVP_layer 
+    paramtype::Type{T} = Float64,   # type of the parameters
+) where {T<:AbstractFloat}
+
+    q0 = MvNormal(zeros(dims), I) # std Gaussian as the reference distribution
+    Ls = [RealNVP_layer(dims, hdims; paramtype=paramtype) for _ in 1:nlayers]
+    
+    create_flow(Ls, q0)         
+end
+
+function RealNVP(dims:Int; paramtype::Type{T} = Float64) where {T<:AbstractFloat}
+    # default RealNVP with 10 layers, each couplling function has 2 hidden layers with 32 units
+    return RealNVP(dims, [32, 32], 10; paramtype=paramtype)
+end

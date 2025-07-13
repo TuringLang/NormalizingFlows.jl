@@ -39,7 +39,7 @@ end
 
 # define forward and inverse transformation
 """
-Build a rational quadratic spline from the nn output
+Build a rational quadratic spline (RQS) from the nn output
 Bijectors.jl has implemented the inverse and logabsdetjac for rational quadratic spline
 
 we just need to map the nn output to the knots and derivatives of the RQS
