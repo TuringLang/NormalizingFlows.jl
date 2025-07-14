@@ -11,7 +11,7 @@ import DifferentiationInterface as DI
 
 using Test
 
-include("ad.jl")
 include("objectives.jl")
 include("interface.jl")
 include("flow.jl")
+include("ad.jl")
