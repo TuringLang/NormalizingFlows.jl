@@ -8,19 +8,19 @@ Neural Rational quadratic Spline layer
 [1] Durkan, C., Bekasov, A., Murray, I., & Papamakarios, G., Neural Spline Flows, CoRR, arXiv:1906.04032 [stat.ML],  (2019). 
 """
 struct NeuralSplineLayer{T,A<:Flux.Chain} <: Bijectors.Bijector
-    dim::Int                # dimension of input
-    K::Int                  # number of knots
-    n_dims_transferred::Int  # number of dimensions that are transformed
-    nn::A   # networks that parmaterize the knots and derivatives
-    B::T                    # bound of the knots
+    dim::Int                        # dimension of input
+    K::Int                          # number of knots
+    n_dims_transferred::Int         # number of dimensions that are transformed
+    nn::A                           # networks that parmaterize the knots and derivatives
+    B::T                            # bound of the knots
     mask::Bijectors.PartitionMask
 end
 
 function NeuralSplineLayer(
-    dim::T1,                # dimension of input
-    hdims::T1,              # dimension of hidden units for s and t
-    K::T1,                  # number of knots
-    B::T2,                  # bound of the knots
+    dim::T1,                         # dimension of input
+    hdims::T1,                       # dimension of hidden units for s and t
+    K::T1,                           # number of knots
+    B::T2,                           # bound of the knots
     mask_idx::AbstractVector{<:Int}, # index of dimensione that one wants to apply transformations on
 ) where {T1<:Int,T2<:Real}
     num_of_transformed_dims = length(mask_idx)
