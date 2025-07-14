@@ -189,6 +189,6 @@ Following the general architecture as in [^ASD2020] (see Apdx. E).
 Advances in Black-Box VI: Normalizing Flows, Importance Weighting, and Optimization. 
 In *NeurIPS*.
 """
-realnvp(q0; paramtype::Type{T} = Float64) where {T<:AbstractFloat} = RealNVP(
+realnvp(q0; paramtype::Type{T} = Float64) where {T<:AbstractFloat} = realnvp(
     q0, [32, 32], 10; paramtype=paramtype
 )
