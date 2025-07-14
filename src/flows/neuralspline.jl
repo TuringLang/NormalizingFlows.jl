@@ -37,7 +37,6 @@ end
 
 @functor NeuralSplineLayer (nn,)
 
-# define forward and inverse transformation
 """
 Build a rational quadratic spline (RQS) from the nn output
 Bijectors.jl has implemented the inverse and logabsdetjac for rational quadratic spline

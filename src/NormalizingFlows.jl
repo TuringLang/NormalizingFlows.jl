@@ -131,5 +131,7 @@ include("flows/utils.jl")
 include("flows/realnvp.jl")
 include("flows/neuralspline.jl")
 
+export RealNVP_layer, realnvp
+
 
 end

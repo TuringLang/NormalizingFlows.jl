@@ -3,7 +3,7 @@ Default constructor of Affine Coupling flow layer
 
 following the general architecture as Eq(3) in [^AD2025]
 
-[^AD2024]: Agrawal, J., & Domke, J. (2025). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *AISTATS*
+[^AD2025]: Agrawal, J., & Domke, J. (2025). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *AISTATS*
 """
 struct AffineCoupling <: Bijectors.Bijector
     dim::Int
@@ -117,10 +117,21 @@ end
 # end
 
 """
-Default constructor of RealNVP flow layer
+    RealNVP_layer(dims, hdims; paramtype = Float64)
 
-single layer of realnvp flow, which is a composition of 2 affine coupling transformations
-with complementary masks
+Default constructor of single layer of realnvp flow, 
+which is a composition of 2 affine coupling transformations with complementary masks.
+The masking strategy is odd-even masking.
+
+# Arguments
+- `dims::Int`: dimension of the problem
+- `hdims::AbstractVector{Int}`: dimension of hidden units for s and t
+
+# Keyword Arguments
+- `paramtype::Type{T} = Float64`: type of the parameters, defaults to `Float64`
+
+# Returns
+- A `Bijectors.Bijector` representing the RealNVP layer.
 """
 function RealNVP_layer(
     dims::Int,                      # dimension of problem
@@ -134,25 +145,50 @@ function RealNVP_layer(
     # by default use the odd-even masking strategy
     af1 = AffineCoupling(dims, hdims, mask_idx1, paramtype)
     af2 = AffineCoupling(dims, hdims, mask_idx2, paramtype)
-
     return reduce(∘, (af1, af2))
 end
 
+"""
+    realnvp(q0, dims, hdims, nlayers; paramtype = Float64)
 
-function RealNVP(
-    dims::Int,                      # dimension of problem
+Default constructor of RealNVP flow, which is a composition of `nlayers` RealNVP_layer.
+# Arguments
+- `q0::Distribution{Continuous, Multivariate}`: reference distribution, e.g. `MvNormal(zeros(dims), I)`
+- `dims::Int`: dimension of problem
+- `hdims::AbstractVector{Int}`: dimension of hidden units for s and t
+- `nlayers::Int`: number of RealNVP_layer  
+# Keyword Arguments
+- `paramtype::Type{T} = Float64`: type of the parameters, defaults to `Float64`
+
+# Returns
+- A `Bijectors.MultivariateTransformed` representing the RealNVP flow.
+
+"""
+
+function realnvp(
+    q0::Distribution{Continuous, Multivariate},  
     hdims::AbstractVector{Int},     # dimension of hidden units for s and t
     nlayers::Int;                   # number of RealNVP_layer 
     paramtype::Type{T} = Float64,   # type of the parameters
 ) where {T<:AbstractFloat}
 
-    q0 = MvNormal(zeros(dims), I) # std Gaussian as the reference distribution
-    Ls = [RealNVP_layer(dims, hdims; paramtype=paramtype) for _ in 1:nlayers]
-    
+    dims = length(q0)  # dimension of the reference distribution == dim of the problem
+    Ls = [RealNVP_layer(dims, hdims; paramtype=paramtype) for _ in 1:nlayers] 
     create_flow(Ls, q0)         
 end
 
-function RealNVP(dims::Int; paramtype::Type{T} = Float64) where {T<:AbstractFloat}
-    # default RealNVP with 10 layers, each couplling function has 2 hidden layers with 32 units
-    return RealNVP(dims, [32, 32], 10; paramtype=paramtype)
-end
+"""
+    realnvp(q0; paramtype = Float64)
+
+Default constructor of RealNVP with 10 layers, 
+each coupling function has 2 hidden layers with 32 units. 
+Following the general architecture as in [^ASD2020] (see Apdx. E).
+
+
+[^ASD2020]: Agrawal, A., & Sheldon, D., & Domke, J. (2020). 
+Advances in Black-Box VI: Normalizing Flows, Importance Weighting, and Optimization. 
+In *NeurIPS*.
+"""
+realnvp(q0; paramtype::Type{T} = Float64) where {T<:AbstractFloat} = RealNVP(
+    q0, [32, 32], 10; paramtype=paramtype
+)
