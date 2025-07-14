@@ -129,9 +129,11 @@ end
 # interface of contructing common flow layers
 include("flows/utils.jl")
 include("flows/realnvp.jl")
-# include("flows/neuralspline.jl")
+include("flows/neuralspline.jl")
 
-export RealNVP_layer, realnvp
+export create_flow
+export RealNVP_layer, realnvp, AffineCoupling
+export NeuralSplineLayer
 
 
 end
