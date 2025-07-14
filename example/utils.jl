@@ -13,11 +13,6 @@ function mlp3(input_dim::Int, hidden_dims::Int, output_dim::Int; activation=Flux
     )
 end
 
-function create_flow(Ls, q₀)
-    ts =  reduce(∘, Ls)
-    return transformed(q₀, ts)
-end
-
 function compare_trained_and_untrained_flow(
     flow_trained::Bijectors.MultivariateTransformed,
     flow_untrained::Bijectors.MultivariateTransformed,
