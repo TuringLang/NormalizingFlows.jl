@@ -153,7 +153,7 @@ end
 
 Default constructor of RealNVP flow, which is a composition of `nlayers` RealNVP_layer.
 # Arguments
-- `q0::Distribution{Continuous, Multivariate}`: reference distribution, e.g. `MvNormal(zeros(dims), I)`
+- `q0::Distribution{Multivariate,Continuous}`: reference distribution, e.g. `MvNormal(zeros(dims), I)`
 - `dims::Int`: dimension of problem
 - `hdims::AbstractVector{Int}`: dimension of hidden units for s and t
 - `nlayers::Int`: number of RealNVP_layer  
@@ -166,7 +166,7 @@ Default constructor of RealNVP flow, which is a composition of `nlayers` RealNVP
 """
 
 function realnvp(
-    q0::Distribution{Continuous, Multivariate},  
+    q0::Distribution{Multivariate,Continuous},  
     hdims::AbstractVector{Int},     # dimension of hidden units for s and t
     nlayers::Int;                   # number of RealNVP_layer 
     paramtype::Type{T} = Float64,   # type of the parameters
