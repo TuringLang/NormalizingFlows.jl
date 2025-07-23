@@ -38,7 +38,7 @@ function Bijectors.transform(af::AffineCoupling, x::AbstractVecOrMat)
     return combine(af.mask, y₁, x₂, x₃)
 end
 
-function (af::AffineCoupling)(x::AbstractArray)
+function (af::AffineCoupling)(x::AbstractVecOrMat)
     return transform(af, x)
 end
 

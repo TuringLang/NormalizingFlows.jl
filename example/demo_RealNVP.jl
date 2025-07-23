@@ -48,7 +48,9 @@ sample_per_iter = 16
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
 # TODO: now using AutoMooncake the example broke, but AutoZygote works, need to debug
-adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+adtype = ADTypes.AutoMooncake(; config = nothing)
+# adtype = ADTypes.AutoZygote()
+
 checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
     rng, 
