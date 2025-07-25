@@ -84,7 +84,7 @@ end
             mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
             function_annotation=Enzyme.Const,
         ),
-        # ADTypes.AutoMooncake(; config=nothing),
+        ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
