@@ -23,3 +23,6 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [extras]
 CUDA_Runtime_jll = "76a88914-d11a-5bdc-97e0-2f5a05c973a2"
+
+[compat]
+Mooncake = "0.4.142"
