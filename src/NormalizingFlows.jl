@@ -132,8 +132,8 @@ include("flows/realnvp.jl")
 include("flows/neuralspline.jl")
 
 export create_flow
-export RealNVP_layer, realnvp, AffineCoupling
-export NeuralSplineLayer
+export AffineCoupling, RealNVP_layer, realnvp
+export NeuralSplineCoupling, NSF_layer, nsf
 
 
 end

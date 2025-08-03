@@ -28,18 +28,9 @@ logp = Base.Fix1(logpdf, target)
 # learn the target using Affine coupling flow
 ######################################
 @leaf MvNormal
-q0 = MvNormal(zeros(T, 2), ones(T, 2))
+q0 = MvNormal(zeros(T, 2), I)
 
-d = 2
-hdims = 64
-K = 10
-B = 30
-Ls = [
-    NeuralSplineLayer(d, hdims, K, B, [1]) ∘ NeuralSplineLayer(d, hdims, K, B, [2]) for
-    i in 1:3
-]
-
-flow = create_flow(Ls, q0)
+flow = nsf(q0; paramtype=Float32)
 flow_untrained = deepcopy(flow)
 
 
@@ -50,7 +41,6 @@ sample_per_iter = 64
 
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
-# TODO: now using AutoMooncake the example broke, but AutoZygote works, need to debug
 adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
 checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
@@ -73,3 +63,35 @@ losses = map(x -> x.loss, stats)
 ######################################
 plot(losses; label="Loss", linewidth=2) # plot the loss
 compare_trained_and_untrained_flow(flow_trained, flow_untrained, target, 1000)
+
+
+
+
+
+
+
+
+
+# using MonotonicSplines, Plots, InverseFunctions, ChangesOfVariables
+
+# f = rand(RQSpline)
+# f.pX, f.pY, f.dYdX
+
+# plot(f, xlims = (-6, 6)); plot!(inverse(f), xlims = (-6, 6))
+
+# x = 1.2
+# y = f(x)
+# with_logabsdet_jacobian(f, x)
+# inverse(f)(y)
+# with_logabsdet_jacobian(inverse(f), y)
+
+
+
+# # test auto grad
+# function loss(x)
+#     y, laj = MonotonicSplines.rqs_forward(x, f.pX, f.pY, f.dYdX)
+#     return laj + 0.5 * sum((y .- 1).^2)
+# end
+
+# xx = rand()
+# val, g = DifferentiationInterface.value_and_gradient(loss, adtype, xx)
