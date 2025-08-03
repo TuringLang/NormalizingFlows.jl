@@ -21,7 +21,7 @@ T = Float32
 ######################################
 # a difficult banana target
 ######################################
-target = Banana(2, 1.0f0, 100.0f0)
+target = Banana(2, one(T), 100one(T))
 logp = Base.Fix1(logpdf, target)
 
 
