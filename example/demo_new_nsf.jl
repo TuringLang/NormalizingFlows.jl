@@ -20,9 +20,9 @@ T = Float32
 ######################################
 # a difficult banana target
 ######################################
-
 target = Banana(2, one(T), 100one(T))
 logp = Base.Fix1(logpdf, target)
+
 ######################################
 # learn the target using Neural Spline Flow
 ######################################
@@ -30,7 +30,7 @@ logp = Base.Fix1(logpdf, target)
 q0 = MvNormal(zeros(T, 2), I)
 
 
-flow = nsf(q0; paramtype=T)
+flow = new_nsf(q0; paramtype=T)
 flow_untrained = deepcopy(flow)
 ######################################
 # start training
@@ -39,10 +39,12 @@ sample_per_iter = 64
 
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
-adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+# TODO: mooncake has some issues with kernelabstractions?
+# adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
+adtype = ADTypes.AutoZygote()
 checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
-    elbo,
+    elbo_batch,
     flow,
     logp,
     sample_per_iter;

@@ -130,10 +130,15 @@ end
 include("flows/utils.jl")
 include("flows/realnvp.jl")
 include("flows/neuralspline.jl")
+# a new implementation of Neural Spline Flow based on MonotonicSplines.jl
+# the construction of the RQS seems to be more efficient than the one in Bijectors.jl
+# and supports batched operations.
+include("flows/new_nsf.jl")
 
 export create_flow
 export AffineCoupling, RealNVP_layer, realnvp
 export NeuralSplineCoupling, NSF_layer, nsf
+export NSC, new_NSF_layer, new_nsf
 
 
 end
