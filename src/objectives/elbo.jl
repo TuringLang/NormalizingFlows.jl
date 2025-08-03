@@ -77,5 +77,5 @@ function elbo_batch(rng::AbstractRNG, flow::Bijectors.MultivariateTransformed, l
     elbos = elbo_batch(flow, logp, xs)
     return mean(elbos)
 end
-elbo_batch(flow::Bijectors.UnivariateTransformed, logp, n_samples) = 
+elbo_batch(flow::Bijectors.TransformedDistribution, logp, n_samples) = 
     elbo_batch(Random.default_rng(), flow, logp, n_samples)
