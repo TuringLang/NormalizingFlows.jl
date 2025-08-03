@@ -27,7 +27,6 @@ function NeuralSplineCoupling(
     # output dim of the NN
     output_dims = (3K - 1)*num_of_transformed_dims
     # one big mlp that outputs all the knots and derivatives for all the transformed dimensions
-    # todo: ensure type stability
     nn = fnn(input_dims, hdims, output_dims; output_activation=nothing, paramtype=paramtype)
 
     mask = Bijectors.PartitionMask(dim, mask_idx)
