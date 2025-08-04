@@ -143,7 +143,7 @@ end
             # prevent updating params of q0
             @leaf MvNormal
             q₀ = MvNormal(zeros(T, 2), ones(T, 2))
-            flow = realnvp(q₀, [8, 8], 3; paramtype=T)
+            flow = nsf(q₀, [8, 8], 10, 5one(T), 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
 
