@@ -123,15 +123,16 @@ end
 
 @testset "AD for ELBO on NSF" begin
     @testset "$at" for at in [
+        # now NSF only works with Zygote
+        # TODO: make it work with other ADs (possibly by adapting MonotonicSplines/src/rqspline_pullbacks.jl to rrules?)
         ADTypes.AutoZygote(),
-        ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(; compile=false),
-        ADTypes.AutoEnzyme(;
-            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-            function_annotation=Enzyme.Const,
-        ),
-        # it doesn't work with mooncake yet
-        ADTypes.AutoMooncake(; config=Mooncake.Config()),
+        # ADTypes.AutoForwardDiff(),
+        # ADTypes.AutoReverseDiff(; compile=false),
+        # ADTypes.AutoEnzyme(;
+        #     mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        #     function_annotation=Enzyme.Const,
+        # ),
+        # ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)

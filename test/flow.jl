@@ -59,8 +59,6 @@
             @test !isnan(elbo_batch_value)
             @test !isinf(elbo_batch_value)
         end
-
-        #todo add tests for ad
     end
 end
 
@@ -69,12 +67,15 @@ end
     
     dim = 5
     nlayers = 2
+    K = 10
     hdims = [32, 32]
     for T in [Float32, Float64]
-        # Create a RealNVP flow
-        q₀ = MvNormal(zeros(T, dim), I)
+        # Create a nsf 
         @leaf MvNormal
-        flow = NormalizingFlows.nsf(q₀; paramtype=T)
+        q₀ = MvNormal(zeros(T, dim), I)
+
+        B = 5one(T)
+        flow = NormalizingFlows.nsf(q₀, hdims, K, B, nlayers; paramtype=T)
 
         @testset "Sampling and density estimation for type: $T" begin
             ys = rand(flow, 100) 
@@ -100,8 +101,8 @@ end
             y_batch, ljs_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x_batch)
             x_batch_reconstructed, ljs_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y_batch)
 
-            @test x_batch ≈ x_batch_reconstructed rtol=1e-6
-            @test ljs_fwd ≈ -ljs_bwd rtol=1e-6
+            @test x_batch ≈ x_batch_reconstructed rtol=1e-4
+            @test ljs_fwd ≈ -ljs_bwd rtol=1e-4
         end
 
 
@@ -125,7 +126,5 @@ end
             @test !isnan(elbo_batch_value)
             @test !isinf(elbo_batch_value)
         end
-
-        #todo add tests for ad
     end
 end

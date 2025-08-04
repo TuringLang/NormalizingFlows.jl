@@ -1,10 +1,9 @@
-using MonotonicSplines
 # a new implementation of Neural Spline Flow based on MonotonicSplines.jl
 # the construction of the RQS seems to be more efficient than the one in Bijectors.jl
 # and supports batched operations.
 
 """
-Neural Rational quadratic Spline layer 
+Neural Rational Quadratic Spline Coupling layer 
 # References
 [1] Durkan, C., Bekasov, A., Murray, I., & Papamakarios, G., Neural Spline Flows, CoRR, arXiv:1906.04032 [stat.ML],  (2019). 
 """
@@ -41,49 +40,79 @@ end
 
 function get_nsc_params(nsc::NeuralSplineCoupling, x::AbstractVecOrMat)
     nnoutput = nsc.nn(x)
-    px, py, dydx = MonotonicSplines.rqs_params_from_nn(nnoutput, nsc.n_dims_transferred, nsc.B)
+    px, py, dydx = MonotonicSplines.rqs_params_from_nn(
+        nnoutput, nsc.n_dims_transferred, nsc.B
+    )
     return px, py, dydx
 end
 
 # when input x is a vector instead of a matrix
 # need this to transform it to a matrix with one row
 # otherwise, rqs_forward and rqs_inverse will throw an error
-_ensure_matrix(x) = x isa AbstractVector ? reshape(x, 1, length(x)) : x
+_ensure_matrix(x) = x isa AbstractVector ? reshape(x, length(x), 1) : x
 
-function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractVecOrMat)
+function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractVector)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
     y1, _ = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    return Bijectors.combine(nsc.mask, vec(y1), x2, x3)
+end
+function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractMatrix)
+    x1, x2, x3 = Bijectors.partition(nsc.mask, x)
+    # instantiate rqs knots and derivatives
+    px, py, dydx = get_nsc_params(nsc, x2)
+    y1, _ = MonotonicSplines.rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, y1, x2, x3)
 end
 
-function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::AbstractVecOrMat)
+function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::AbstractVector)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
     y1, logjac = MonotonicSplines.rqs_forward(x1, px, py, dydx)
-    return Bijectors.combine(nsc.mask, y1, x2, x3), logjac isa Real ? logjac : vec(logjac)
+    return Bijectors.combine(nsc.mask, vec(y1), x2, x3), logjac[1]
+end
+function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::AbstractMatrix)
+    x1, x2, x3 = Bijectors.partition(nsc.mask, x)
+    # instantiate rqs knots and derivatives
+    px, py, dydx = get_nsc_params(nsc, x2)
+    y1, logjac = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    return Bijectors.combine(nsc.mask, y1, x2, x3), vec(logjac)
 end
 
-function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractVecOrMat)
+function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractVector)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
     x1, _ = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    return Bijectors.combine(nsc.mask, vec(x1), y2, y3)
+end
+function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
+    nsc = insl.orig
+    y1, y2, y3 = partition(nsc.mask, y)
+    px, py, dydx = get_nsc_params(nsc, y2)
+    x1, _ = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, x1, y2, y3)
 end
 
-function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractVecOrMat)
+function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractVector)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
     x1, logjac = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
-    return Bijectors.combine(nsc.mask, x1, y2, y3), logjac isa Real ? logjac : vec(logjac)
+    return Bijectors.combine(nsc.mask, vec(x1), y2, y3), logjac[1]
+end
+function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
+    nsc = insl.orig
+    y1, y2, y3 = partition(nsc.mask, y)
+    px, py, dydx = get_nsc_params(nsc, y2)
+    x1, logjac = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    return Bijectors.combine(nsc.mask, x1, y2, y3), vec(logjac)
 end
 
 function (nsc::NeuralSplineCoupling)(x::AbstractVecOrMat)

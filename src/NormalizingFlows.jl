@@ -129,6 +129,8 @@ end
 # interface of contructing common flow layers
 include("flows/utils.jl")
 include("flows/realnvp.jl")
+
+using MonotonicSplines
 include("flows/neuralspline.jl")
 
 export create_flow
