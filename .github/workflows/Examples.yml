@@ -38,7 +38,5 @@ jobs:
           include("demo_RealNVP.jl");
           @info "Running neural spline flow demo";
           include("demo_neural_spline_flow.jl");
-          @info "Running new neural spline flow demo";
-          include("demo_new_nsf.jl");
           @info "Running Hamiltonian flow demo";
           include("demo_hamiltonian_flow.jl");'
