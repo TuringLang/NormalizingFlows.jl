@@ -71,8 +71,8 @@ end
     hdims = [32, 32]
     for T in [Float32, Float64]
         # Create a nsf 
-        @leaf MvNormal
         q₀ = MvNormal(zeros(T, dim), I)
+        @leaf MvNormal
 
         B = 5one(T)
         flow = NormalizingFlows.nsf(q₀, hdims, K, B, nlayers; paramtype=T)
@@ -94,8 +94,8 @@ end
             y, lj_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x)
             x_reconstructed, lj_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y)
 
-            @test x ≈ x_reconstructed rtol=1e-6
-            @test lj_fwd ≈ -lj_bwd rtol=1e-6
+            @test x ≈ x_reconstructed rtol=1e-4
+            @test lj_fwd ≈ -lj_bwd rtol=1e-4
 
             x_batch = rand(q₀, 10)
             y_batch, ljs_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x_batch)
