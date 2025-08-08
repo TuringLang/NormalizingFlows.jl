@@ -1,15 +1,18 @@
 using NormalizingFlows
 using Documenter
 
+using Random
+using Distributions
+
 DocMeta.setdocmeta!(
     NormalizingFlows, :DocTestSetup, :(using NormalizingFlows); recursive=true
 )
 
 makedocs(;
     modules=[NormalizingFlows],
-    repo="https://github.com/TuringLang/NormalizingFlows.jl/blob/{commit}{path}#{line}",
     sitename="NormalizingFlows.jl",
-    format=Documenter.HTML(),
+    repo="https://github.com/TuringLang/NormalizingFlows.jl/blob/{commit}{path}#{line}",
+    format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     pages=[
         "Home" => "index.md",
         "API" => "api.md",

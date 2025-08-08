@@ -186,12 +186,9 @@ end
 
 Default constructor of RealNVP with 10 layers, 
 each coupling function has 2 hidden layers with 32 units. 
-Following the general architecture as in [^ASD2020] (see Apdx. E).
+Following the general architecture as in the Apdx. E of [^ASD2020].
 
-
-[^ASD2020]: Agrawal, A., & Sheldon, D., & Domke, J. (2020). 
-Advances in Black-Box VI: Normalizing Flows, Importance Weighting, and Optimization. 
-In *NeurIPS*.
+[^ASD2020]: Agrawal, A., & Sheldon, D., & Domke, J. (2020). Advances in Black-Box VI: Normalizing Flows, Importance Weighting, and Optimization. In *NeurIPS*.
 """
 realnvp(q0; paramtype::Type{T} = Float64) where {T<:AbstractFloat} = realnvp(
     q0, [32, 32], 10; paramtype=paramtype
