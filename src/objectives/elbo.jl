@@ -50,8 +50,9 @@ end
     elbo_batch(flow, logp, xs)
     elbo_batch([rng, ] flow, logp, n_samples)
 
-Batched ELBO evaluation that transforms a matrix of samples in one call. This
-is more efficient for invertible neural-network flows (RealNVP/NSF) as it leverages
+Batched ELBO estimates that transforms a matrix of samples (each column represents a single
+sample) in one call. 
+This is more efficient for invertible neural-network flows (RealNVP/NSF) as it leverages
 the batched operation of the neural networks.
 
 Inputs

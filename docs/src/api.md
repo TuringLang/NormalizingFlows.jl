@@ -63,8 +63,8 @@ By maximizing the ELBO, it is equivalent to minimizing the reverse KL divergence
 \begin{aligned}
 &\min _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right]  \quad \text{(Reverse KL)}\\
 & = \max _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ
-T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(F_n \circ \cdots \circ
-F_1(X)\right)\right] \quad \text{(ELBO)}
+T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(T_n \circ \cdots \circ
+T_1(X)\right)\right] \quad \text{(ELBO)}
 \end{aligned}
 ```
 
