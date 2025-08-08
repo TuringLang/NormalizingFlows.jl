@@ -7,10 +7,11 @@ function elbo_single_sample(flow::Bijectors.TransformedDistribution, logp, x)
 end
 
 """
-    elbo(flow, logp, xs) 
-    elbo([rng, ]flow, logp, n_samples)
+    elbo(flow, logp, xs)
+    elbo([rng, ] flow, logp, n_samples)
 
-Compute the ELBO for a batch of samples `xs` from the reference distribution `flow.dist`.
+Monte Carlo estimates of the ELBO from a batch of samples `xs` from the 
+reference distribution `flow.dist`.
 
 # Arguments
 - `rng`: random number generator
@@ -46,25 +47,20 @@ end
 
 
 """
-    elbo_batch(flow, logp, xs) 
-    elbo_batch([rng, ]flow, logp, n_samples)
+    elbo_batch(flow, logp, xs)
+    elbo_batch([rng, ] flow, logp, n_samples)
 
-Instead of broadcasting over elbo_single_sample, this function directly
-computes the ELBO in a batched manner, which requires the flow.transform to be able to 
-handle batched transformation directly.
+Batched ELBO evaluation that transforms a matrix of samples in one call. This
+is more efficient for invertible neural-network flows (RealNVP/NSF) as it leverages
+the batched operation of the neural networks.
 
-This will be more efficient than `elbo` for invertible neural networks such as RealNVP, 
-Neural Spline Flow, etc.
+Inputs
+- `flow::Bijectors.MultivariateTransformed`
+- `logp`: function returning log-density of target
+- `xs` or `n_samples`: column-wise sample batch or number of samples
 
-# Arguments
-- `rng`: random number generator
-- `flow`: variational distribution to be trained. In particular 
-  `flow = transformed(q₀, T::Bijectors.Bijector)`, 
-  q₀ is a reference distribution that one can easily sample and compute logpdf
-- `logp`: log-pdf of the target distribution (not necessarily normalized)
-- `xs`: samples from reference dist q₀
-- `n_samples`: number of samples from reference dist q₀
-
+Returns
+- Scalar estimate of the ELBO
 """
 function elbo_batch(flow::Bijectors.MultivariateTransformed, logp, xs::AbstractMatrix)
     # requires the flow transformation to be able to handle batched inputs

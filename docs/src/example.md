@@ -1,38 +1,40 @@
 ## Example: Using Planar Flow
 
-Here we provide a minimal demonstration of learning a synthetic 2d banana distribution
-using *planar flows* (Renzende *et al.* 2015) by maximizing the [Evidence Lower Bound (ELBO)](@ref).
+Here we provide a minimal demonstration of learning a synthetic 2D banana distribution
+using planar flows (Rezende and Mohamed, 2015) by maximizing the ELBO.
 To complete this task, the two key inputs are:
 - the log-density function of the target distribution, 
 - the planar flow. 
 
-#### The Target Distribution
+- the log-density function of the target distribution
+- the planar flow
 
-The `Banana` object is defined in `example/targets/banana.jl`, see the [source code](https://github.com/zuhengxu/NormalizingFlows.jl/blob/main/example/targets/banana.jl) for details.
+### The Target Distribution
+
+The `Banana` object is defined in `example/targets/banana.jl` (see the source for details).
+
 ```julia
 p = Banana(2, 1.0f-1, 100.0f0)
 logp = Base.Fix1(logpdf, p)
 ```
-Visualize the contour of the log-density and the sample scatters of the target distribution: 
+
+Visualize the contour of the log-density and the sample scatters of the target distribution:
+
 ![Banana](banana.png)
 
+### The Planar Flow
 
+The planar flow is defined by repeatedly applying a sequence of invertible
+transformations to a base distribution $q_0$. The building blocks for a planar flow
+of length $N$ are the following invertible transformations, called planar layers:
 
-
-#### The Planar Flow 
-
-The planar flow is defined by repeated applying a sequence of invertible
-transformations to a base distribution $q_0$.  The building blocks for a planar flow
-of length $N$ are the following invertible transformations, called *planar layers*:
 ```math
-\text{planar layers}: 
-T_{n, \theta_n}(x)=x+u_n \cdot \tanh \left(w_n^T x+b_n\right), \quad n=1, \ldots, N, 
+T_{n, \theta_n}(x)=x+u_n \cdot \tanh \left(w_n^T x+b_n\right), \quad n=1, \ldots, N.
 ```
-where $\theta_n = (u_n, w_n, b_n), n=1, \dots, N$ are the parameters to be learned. 
-Thankfully, [`Bijectors.jl`](https://github.com/TuringLang/Bijectors.jl)
-provides a nice framework to define a normalizing flow.
-Here we used the `PlanarLayer()` from `Bijectors.jl` to construct a 
-20-layer planar flow, of which the base distribution is a 2d standard Gaussian distribution.
+
+Here $\theta_n = (u_n, w_n, b_n), n=1, \dots, N$ are the parameters to be learned.
+[`Bijectors.jl`](https://github.com/TuringLang/Bijectors.jl) provides `PlanarLayer()`.
+Below is a 20-layer planar flow on a 2D standard Gaussian base distribution.
 
 ```julia
 using Bijectors, FunctionChains
@@ -51,8 +53,9 @@ q₀ = MvNormal(zeros(Float32, 2), I)
 flow = create_planar_flow(20, q₀)
 flow_untrained = deepcopy(flow) # keep a copy of the untrained flow for comparison
 ```
-*Notice that here the flow layers are chained together using `fchain` function from [`FunctionChains.jl`](https://github.com/oschulz/FunctionChains.jl). 
-Alternatively, one can do*
+
+Notice: Using `fchain` (FunctionChains.jl) reduces compilation time versus chaining with `∘` for many layers.
+
 ```julia
 ts = reduce(∘, [f32(PlanarLayer(d)) for i in 1:20]) 
 ```

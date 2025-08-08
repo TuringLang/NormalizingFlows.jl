@@ -121,19 +121,23 @@ end
 
 
 """
-    NSF_layer(dims, hdims; paramtype = Float64)
-Default constructor of single layer of Neural Spline Flow (NSF) 
-which is a composition of 2 neural spline coupling transformations with complementary masks.
-The masking strategy is odd-even masking.
-# Arguments
+    NSF_layer(dims, hdims, K, B; paramtype = Float64)
+
+Default constructor of a single layer of Neural Spline Flow (NSF), which is a
+composition of two neural spline coupling transformations with complementary
+odd–even masks.
+
+Arguments
 - `dims::Int`: dimension of the problem
-- `hdims::AbstractVector{Int}`: dimension of hidden units for s and t
-- `K::Int`: number of knots
-- `B::AbstractFloat`: bound of the knots
-# Keyword Arguments
-- `paramtype::Type{T} = Float64`: type of the parameters, defaults to `Float64`
-# Returns
-- A `Bijectors.Bijector` representing the NSF layer.
+- `hdims::AbstractVector{Int}`: hidden sizes of the MLP used to parameterize the spline
+- `K::Int`: number of knots for the rational quadratic spline
+- `B::AbstractFloat`: boundary for the spline domain
+
+Keyword Arguments
+- `paramtype::Type{T} = Float64`: parameter element type
+
+Returns
+- A `Bijectors.Bijector` representing the NSF layer
 """
 function NSF_layer(
     dims::T1,                      # dimension of problem
@@ -152,6 +156,27 @@ function NSF_layer(
     return reduce(∘, (nsf1, nsf2))
 end
 
+"""
+    nsf(q0, hdims, K, B, nlayers; paramtype = Float64)
+
+Default constructor of Neural Spline Flow (NSF), which composes `nlayers` NSF_layer
+blocks with odd-even masking.
+
+Arguments
+- `q0::Distribution{Multivariate,Continuous}`: base distribution (e.g., `MvNormal(zeros(d), I)`).
+- `hdims::AbstractVector{Int}`: hidden layer sizes of the coupling networks.
+- `K::Int`: number of spline knots.
+- `B::AbstractFloat`: boundary range for spline knots.
+- `nlayers::Int`: number of NSF_layer blocks.
+
+Keyword Arguments
+- `paramtype::Type{T} = Float64`: parameter element type (e.g., `Float32` for GPU-friendly).
+
+Returns
+- `Bijectors.MultivariateTransformed` representing the NSF flow.
+
+Use the shorthand `nsf(q0)` to construct a default configuration.
+"""
 function nsf(
     q0::Distribution{Multivariate,Continuous},  
     hdims::AbstractVector{Int},     # dimension of hidden units for s and t

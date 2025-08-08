@@ -2,6 +2,29 @@ using Bijectors: transformed
 using Flux
 
 """
+    create_flow(layers, q0)
+
+Construct a normalizing flow by composing the provided bijector layers and
+attaching them to the base distribution `q0`.
+
+- `layers`: an iterable of `Bijectors.Bijector` objects that are composed in order
+  (left-to-right) via function composition.
+- `q0`: the base distribution (e.g., `MvNormal(zeros(d), I)`).
+
+Returns a `Bijectors.TransformedDistribution` representing the resulting flow.
+
+Example
+
+    using Distributions
+    q0 = MvNormal(zeros(2), I)
+    flow = create_flow((Bijectors.Scale([1.0, 2.0]), Bijectors.Shift([0.0, 1.0])), q0)
+"""
+function create_flow(Ls, q₀)
+    ts =  reduce(∘, Ls)
+    return transformed(q₀, ts)
+end
+
+"""
     mlp3(input_dim::Int, hidden_dims::Int, output_dim::Int; activation=Flux.leakyrelu)
 
 A simple wrapper for a 3 layer dense MLP
@@ -73,9 +96,4 @@ function fnn(
 
     m = Chain(layers...)
     return Flux._paramtype(paramtype, m)
-end
-
-function create_flow(Ls, q₀)
-    ts =  reduce(∘, Ls)
-    return transformed(q₀, ts)
 end

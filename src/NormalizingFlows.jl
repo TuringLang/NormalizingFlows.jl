@@ -21,11 +21,11 @@ export train_flow, elbo, elbo_batch, loglikelihood
 
 Train the given normalizing flow `flow` by calling `optimize`.
 
-# Arguments
-- `rng::AbstractRNG`: random number generator
-- `vo`: variational objective
-- `flow`: normalizing flow to be trained, we recommend to define flow as `<:Bijectors.TransformedDistribution` 
-- `args...`: additional arguments for `vo`
+Arguments
+- `rng::AbstractRNG`: random number generator (default: `Random.default_rng()`)
+- `vo`: objective with signature `vo(rng, flow, args...)`
+- `flow`: a `Bijectors.TransformedDistribution` (recommended)
+- `args...`: additional arguments passed to `vo`
 
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
