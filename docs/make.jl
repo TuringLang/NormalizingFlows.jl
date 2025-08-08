@@ -7,10 +7,9 @@ DocMeta.setdocmeta!(
 
 makedocs(;
     modules=[NormalizingFlows],
+    repo="https://github.com/TuringLang/NormalizingFlows.jl/blob/{commit}{path}#{line}",
     sitename="NormalizingFlows.jl",
-    format=Documenter.HTML(;
-        repolink="https://github.com/TuringLang/NormalizingFlows.jl/blob/{commit}{path}#{line}",
-    ),
+    format=Documenter.HTML(),
     pages=[
         "Home" => "index.md",
         "API" => "api.md",
