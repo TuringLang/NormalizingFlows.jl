@@ -15,7 +15,7 @@ concurrency:
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   docs:
@@ -25,9 +25,10 @@ jobs:
       - name: Build and deploy Documenter.jl docs
         uses: TuringLang/actions/DocsDocumenter@main
         
-      - run: |
-          julia --project=docs -e '
-            using Documenter: DocMeta, doctest
-            using NormalizingFlows
-            DocMeta.setdocmeta!(NormalizingFlows, :DocTestSetup, :(using NormalizingFlows); recursive=true)
-            doctest(NormalizingFlows)'
+      - name: Run doctests
+        shell: julia --project=docs --color=yes {0}
+        run: |
+          using Documenter: DocMeta, doctest
+          using NormalizingFlows
+          DocMeta.setdocmeta!(NormalizingFlows, :DocTestSetup, :(using NormalizingFlows); recursive=true)
+          doctest(NormalizingFlows)
