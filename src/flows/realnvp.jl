@@ -1,12 +1,34 @@
 """
-Affine coupling layer used in RealNVP.
+    AffineCoupling(dim, hdims, mask_idx, paramtype)
+    AffineCoupling(dim, mask, s, t)
 
-Implements two subnetworks `s` (scale, exponentiated) and `t` (shift) applied to
-one partition of the input, conditioned on the complementary partition. The
-scale network uses `tanh` on its output before exponentiation to improve
-stability during training.
+Affine coupling bijector used in RealNVP [^LJS2017].
 
-See also: Dinh et al., 2016 (RealNVP).
+Two subnetworks `s` (log-scale, exponentiated in the forward pass) and `t` (shift)
+act on one partition of the input, conditioned on the complementary partition
+(as defined by `mask`). For numerical stability, the output of `s` passes
+through `tanh` before exponentiation.
+
+Arguments
+- `dim::Int`: total dimensionality of the input.
+- `hdims::AbstractVector{Int}`: hidden sizes for the conditioner MLPs `s` and `t`.
+- `mask_idx::AbstractVector{Int}`: indices of the dimensions to transform.
+  The complement is used as the conditioner input.
+
+Keyword Arguments
+- `paramtype::Type{<:AbstractFloat}`: parameter element type (e.g. `Float32`).
+
+Fields
+- `mask::Bijectors.PartitionMask`: partition specification.
+- `s::Flux.Chain`: conditioner producing log-scales for the transformed block.
+- `t::Flux.Chain`: conditioner producing shifts for the transformed block.
+
+Notes
+- Forward: with `(x₁,x₂,x₃) = partition(mask, x)`, compute `y₁ = x₁ .* exp.(s(x₂)) .+ t(x₂)`.
+- Log-determinant: `sum(s(x₂))` (or columnwise for batched matrices).
+- All methods support both vectors and column-major batches (matrices).
+
+[^LJS2017]: Dinh, L., Sohl-Dickstein, J. and Bengio, S. (2017).  Density estimation using Real NVP. ICLR.
 """
 struct AffineCoupling <: Bijectors.Bijector
     dim::Int
@@ -122,18 +144,22 @@ end
 """
     RealNVP_layer(dims, hdims; paramtype = Float64)
 
-Construct a single RealNVP layer using two affine coupling bijections with
-odd–even masks.
+Construct a single RealNVP layer by composing two `AffineCoupling` bijectors
+with complementary odd–even masks.
 
 Arguments
-- `dims::Int`: dimensionality of the target distribution
-- `hdims::AbstractVector{Int}`: hidden sizes for the `s` and `t` MLPs
+- `dims::Int`: dimensionality of the problem.
+- `hdims::AbstractVector{Int}`: hidden sizes of the conditioner networks.
 
 Keyword Arguments
-- `paramtype::Type{T} = Float64`: parameter element type
+- `paramtype::Type{T} = Float64`: parameter element type.
 
 Returns
-- A `Bijectors.Bijector` representing the RealNVP layer
+- A `Bijectors.Bijector` representing the RealNVP layer.
+
+Example
+- `layer = RealNVP_layer(4, [64, 64])`
+- `y = layer(randn(4, 16))`  # batched forward
 """
 function RealNVP_layer(
     dims::Int,                      # dimension of problem
@@ -154,20 +180,24 @@ end
     realnvp(q0, hdims, nlayers; paramtype = Float64)
     realnvp(q0; paramtype = Float64)
 
-Construct a RealNVP flow by stacking `nlayers` RealNVP_layer blocks with
-odd–even masking. The no-argument variant uses 10 layers with `[32, 32]`
-hidden sizes per coupling network.
+Construct a RealNVP flow by stacking `nlayers` `RealNVP_layer` blocks with
+odd–even masking. The 1-argument variant defaults to 10 layers with
+hidden sizes `[32, 32]` per conditioner.
 
 Arguments
-- `q0::Distribution{Multivariate,Continuous}`: base distribution (e.g. `MvNormal(zeros(d), I)`)
-- `hdims::AbstractVector{Int}`: hidden sizes for the `s` and `t` MLPs
-- `nlayers::Int`: number of RealNVP layers
+- `q0::Distribution{Multivariate,Continuous}`: base distribution (e.g. `MvNormal(zeros(d), I)`).
+- `hdims::AbstractVector{Int}`: hidden sizes for the conditioner networks.
+- `nlayers::Int`: number of stacked RealNVP layers.
 
 Keyword Arguments
-- `paramtype::Type{T} = Float64`: parameter element type
+- `paramtype::Type{T} = Float64`: parameter element type (use `Float32` for GPU friendliness).
 
 Returns
-- `Bijectors.MultivariateTransformed` representing the RealNVP flow
+- `Bijectors.TransformedDistribution` representing the RealNVP flow.
+
+Example
+- `q0 = MvNormal(zeros(2), I); flow = realnvp(q0, [64,64], 8)`
+- `x = rand(flow, 128); lp = logpdf(flow, x)`
 """
 function realnvp(
     q0::Distribution{Multivariate,Continuous},  
@@ -184,11 +214,10 @@ end
 """
     realnvp(q0; paramtype = Float64)
 
-Default constructor of RealNVP with 10 layers, 
-each coupling function has 2 hidden layers with 32 units. 
-Following the general architecture as in the Apdx. E of [^ASD2020].
+Default constructor: 10 layers, each conditioner uses hidden sizes `[32, 32]`.
+Follows a common RealNVP architecture similar to Appendix E of [^ASD2020].
 
-[^ASD2020]: Agrawal, A., & Sheldon, D., & Domke, J. (2020). Advances in Black-Box VI: Normalizing Flows, Importance Weighting, and Optimization. In *NeurIPS*.
+[^ASD2020]: Agrawal, A., Sheldon, D., Domke, J. (2020). Advances in Black-Box VI: Normalizing Flows, Importance Weighting, and Optimization. NeurIPS.
 """
 realnvp(q0; paramtype::Type{T} = Float64) where {T<:AbstractFloat} = realnvp(
     q0, [32, 32], 10; paramtype=paramtype

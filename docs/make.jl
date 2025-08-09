@@ -15,8 +15,13 @@ makedocs(;
     format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     pages=[
         "Home" => "index.md",
+        "General usage" => "usage.md",
         "API" => "api.md",
-        "Example" => "example.md",
+        "Example" => [
+            "Planar Flow" => "PlanarFlow.md",
+            "RealNVP" => "RealNVP.md",
+            "Neural Spline Flow" => "NSF.md",
+        ],
         "Customize your own flow layer" => "customized_layer.md",
     ],
     checkdocs=:exports,

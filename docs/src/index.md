@@ -19,7 +19,7 @@ for variational approximation of general target distributions,
 To install the package, run the following command in the Julia REPL:
 ```
 ]  # enter Pkg mode
-(@v1.11) pkg> add git@github.com:TuringLang/NormalizingFlows.jl.git
+(@v1.11) pkg> add NormalizingFlows
 ```
 Then simply run the following command to use the package:
 ```julia

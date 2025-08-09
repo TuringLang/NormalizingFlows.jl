@@ -12,7 +12,11 @@ for more details.
 
 
 In this tutorial, we demonstrate how to define a customized normalizing flow
-layer -- an `Affine Coupling Layer` (Dinh *et al.*, 2016) -- using `Bijectors.jl` and `Flux.jl`.
+layer -- an `Affine Coupling Layer` -- using `Bijectors.jl` and `Flux.jl`,
+which is the building block of the RealNVP flow [^LJS2017].
+It's worth mentioning that the [`realnvp`](@ref) implemented in `NormalizingFlows.jl`
+is slightly different from this tutorial with some optimization for the training stability
+and performance.
 
 ## Affine Coupling Flow
 
@@ -176,5 +180,4 @@ logpdf(flow, x[:,1])
 
 
 ## Reference
-Dinh, L., Sohl-Dickstein, J. and Bengio, S., 2016. *Density estimation using real nvp.* 
-arXiv:1605.08803.
+[^LJS2017]: Dinh, L., Sohl-Dickstein, J. and Bengio, S., 2017. Density estimation using real nvp. in *ICLR*

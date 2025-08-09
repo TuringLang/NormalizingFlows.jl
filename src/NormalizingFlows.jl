@@ -23,8 +23,9 @@ Train the given normalizing flow `flow` by calling `optimize`.
 
 Arguments
 - `rng::AbstractRNG`: random number generator (default: `Random.default_rng()`)
-- `vo`: objective with signature `vo(rng, flow, args...)`
-- `flow`: a `Bijectors.TransformedDistribution` (recommended)
+- `vo`: variational objective with signature `vo(rng, flow, args...)`. 
+    We implement [`elbo`](@ref), [`elbo_batch`](@ref), and [`loglikelihood`](@ref).
+- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended)
 - `args...`: additional arguments passed to `vo`
 
 # Keyword Arguments

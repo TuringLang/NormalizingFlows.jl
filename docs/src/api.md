@@ -3,53 +3,6 @@
 ```@index
 ```
 
-## Main Function
-
-```@docs
-NormalizingFlows.train_flow
-```
-
-The flow object can be constructed by `transformed` function in `Bijectors.jl`.
-For example, for Gaussian VI, we can construct the flow as follows:
-
-```julia
-using Distributions, Bijectors
-T = Float32
-@leaf MvNormal # to prevent params in q₀ from being optimized
-q₀ = MvNormal(zeros(T, 2), ones(T, 2))
-flow = Bijectors.transformed(q₀, Bijectors.Shift(zeros(T,2)) ∘ Bijectors.Scale(ones(T, 2)))
-```
-
-To train the Gaussian VI targeting distribution `p` via ELBO maximization, run:
-
-```julia
-using NormalizingFlows, Optimisers
-
-sample_per_iter = 10
-flow_trained, stats, _ = train_flow(
-    elbo,
-    flow,
-    logp,
-    sample_per_iter;
-    max_iters = 2_000,
-    optimiser = Optimisers.ADAM(0.01 * one(T)),
-)
-```
-
-## Coupling-based flows (default constructors)
-
-These helpers construct commonly used coupling-based flows with sensible defaults.
-
-```@docs
-NormalizingFlows.realnvp
-NormalizingFlows.nsf
-NormalizingFlows.RealNVP_layer
-NormalizingFlows.NSF_layer
-NormalizingFlows.AffineCoupling
-NormalizingFlows.NeuralSplineCoupling
-NormalizingFlows.create_flow
-```
-
 ## Variational Objectives
 
 We provide ELBO (reverse KL) and expected log-likelihood (forward KL). You can also
@@ -100,3 +53,38 @@ NormalizingFlows.loglikelihood
 ```@docs
 NormalizingFlows.optimize
 ```
+
+
+## Available Flows
+
+`NormalizingFlows.jl` provides two commonly used normalizing flows: `RealNVP` and 
+`Neural Spline Flow (NSF)`.
+
+### RealNVP (Affine Coupling Flow)
+
+These helpers construct commonly used coupling-based flows with sensible defaults.
+
+```@docs
+NormalizingFlows.realnvp
+NormalizingFlows.RealNVP_layer
+NormalizingFlows.AffineCoupling
+```
+
+### Neural Spline Flow (NSF)
+
+```@docs
+NormalizingFlows.nsf
+NormalizingFlows.NSF_layer
+NormalizingFlows.NeuralSplineCoupling
+```
+
+##  Utility Functions
+
+```@docs
+NormalizingFlows.create_flow
+```
+
+```@docs
+NormalizingFlows.fnn
+```
+

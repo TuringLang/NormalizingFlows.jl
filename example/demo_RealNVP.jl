@@ -1,10 +1,7 @@
-using Bijectors
-using Bijectors: partition, combine, PartitionMask
-
 using Random, Distributions, LinearAlgebra
 using Functors
 using Optimisers, ADTypes
-using Mooncake, Zygote
+using Mooncake
 using NormalizingFlows
 
 include("SyntheticTargets.jl")

@@ -1,11 +1,36 @@
-# a new implementation of Neural Spline Flow based on MonotonicSplines.jl
-# the construction of the RQS seems to be more efficient than the one in Bijectors.jl
-# and supports batched operations.
-
 """
-Neural Rational Quadratic Spline Coupling layer 
-# References
-[1] Durkan, C., Bekasov, A., Murray, I., & Papamakarios, G., Neural Spline Flows, CoRR, arXiv:1906.04032 [stat.ML],  (2019). 
+    NeuralSplineCoupling(dim, hdims, K, B, mask_idx, paramtype)
+    NeuralSplineCoupling(dim, K, n_dims_transferred, B, nn, mask)
+
+Neural Rational Quadratic Spline (RQS) coupling bijector [^DBMP2019].
+
+A conditioner network takes the unchanged partition as input and outputs the
+parameters of monotonic rational quadratic splines for the transformed
+coordinates. Batched inputs (matrices with column vectors) are supported.
+
+Arguments
+- `dim::Int`: total input dimension.
+- `hdims::AbstractVector{Int}`: hidden sizes for the conditioner MLP.
+- `K::Int`: number of spline knots per transformed coordinate.
+- `B::AbstractFloat`: boundary/box constraint for spline domain.
+- `mask_idx::AbstractVector{Int}`: indices of the transformed coordinates.
+
+Keyword Arguments
+- `paramtype::Type{<:AbstractFloat}`: parameter element type.
+
+Fields
+- `nn::Flux.Chain`: conditioner that outputs all spline params for all transformed dims.
+- `mask::Bijectors.PartitionMask`: partition specification.
+
+Notes
+- Output dimensionality of the conditioner is `(3K - 1) * n_transformed`.
+- For computation performance, we rely on 
+[`MonotonicSplines.jl`](https://github.com/bat/MonotonicSplines.jl) for the
+building the rational quadratic spline functions.
+- See `MonotonicSplines.rqs_forward` and `MonotonicSplines.rqs_inverse` for forward/inverse 
+and log-determinant computations.
+
+[^DBMP2019]: Durkan, C., Bekasov, A., Murray, I. and Papamarkou, T. (2019). Neural Spline Flows. *NeurIPS.*
 """
 struct NeuralSplineCoupling{T,A<:Flux.Chain} <: Bijectors.Bijector
     dim::Int                        # dimension of input
@@ -123,21 +148,24 @@ end
 """
     NSF_layer(dims, hdims, K, B; paramtype = Float64)
 
-Default constructor of a single layer of Neural Spline Flow (NSF), which is a
-composition of two neural spline coupling transformations with complementary
-odd–even masks.
+Build a single Neural Spline Flow (NSF) layer by composing two
+`NeuralSplineCoupling` bijectors with complementary odd–even masks.
 
 Arguments
-- `dims::Int`: dimension of the problem
-- `hdims::AbstractVector{Int}`: hidden sizes of the MLP used to parameterize the spline
-- `K::Int`: number of knots for the rational quadratic spline
-- `B::AbstractFloat`: boundary for the spline domain
+- `dims::Int`: dimensionality of the problem.
+- `hdims::AbstractVector{Int}`: hidden sizes of the conditioner network.
+- `K::Int`: number of spline knots.
+- `B::AbstractFloat`: spline boundary.
 
 Keyword Arguments
-- `paramtype::Type{T} = Float64`: parameter element type
+- `paramtype::Type{T} = Float64`: parameter element type.
 
 Returns
-- A `Bijectors.Bijector` representing the NSF layer
+- A `Bijectors.Bijector` representing the NSF layer.
+
+Example
+- `layer = NSF_layer(4, [64,64], 10, 3.0)`
+- `y = layer(randn(4, 32))`
 """
 function NSF_layer(
     dims::T1,                      # dimension of problem
@@ -158,24 +186,35 @@ end
 
 """
     nsf(q0, hdims, K, B, nlayers; paramtype = Float64)
+    nsf(q0; paramtype = Float64)
 
-Default constructor of Neural Spline Flow (NSF), which composes `nlayers` NSF_layer
-blocks with odd-even masking.
+Construct an NSF by stacking `nlayers` `NSF_layer` blocks. The one-argument
+variant defaults to 10 layers with `[32, 32]` hidden sizes, 10 knots, and
+boundary `30` (scaled by `one(T)`).
 
 Arguments
-- `q0::Distribution{Multivariate,Continuous}`: base distribution (e.g., `MvNormal(zeros(d), I)`).
-- `hdims::AbstractVector{Int}`: hidden layer sizes of the coupling networks.
-- `K::Int`: number of spline knots.
-- `B::AbstractFloat`: boundary range for spline knots.
-- `nlayers::Int`: number of NSF_layer blocks.
+- `q0::Distribution{Multivariate,Continuous}`: base distribution.
+- `hdims::AbstractVector{Int}`: hidden sizes of the conditioner network.
+- `K::Int`: spline knots per coordinate.
+- `B::AbstractFloat`: spline boundary.
+- `nlayers::Int`: number of NSF layers.
 
 Keyword Arguments
-- `paramtype::Type{T} = Float64`: parameter element type (e.g., `Float32` for GPU-friendly).
+- `paramtype::Type{T} = Float64`: parameter element type.
 
 Returns
-- `Bijectors.MultivariateTransformed` representing the NSF flow.
+- `Bijectors.TransformedDistribution` representing the NSF flow.
 
-Use the shorthand `nsf(q0)` to construct a default configuration.
+Notes:
+- Under the hood, `nsf` relies on the rational quadratic spline function implememented in 
+`MonotonicSplines.jl` for performance reasons.  `MonotonicSplines.jl` uses 
+`KernelAbstractions.jl` to support batched operations. 
+Because of this, so far `nsf` only supports `Zygote` as the AD type.
+  
+
+Example
+- `q0 = MvNormal(zeros(3), I); flow = nsf(q0, [64,64], 8, 3.0, 6)`
+- `x = rand(flow, 128); lp = logpdf(flow, x)`
 """
 function nsf(
     q0::Distribution{Multivariate,Continuous},  
