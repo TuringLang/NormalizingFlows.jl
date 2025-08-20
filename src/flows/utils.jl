@@ -77,7 +77,7 @@ function fnn(
     paramtype::Type{T} = Float64,
 ) where {T<:AbstractFloat}
     # Create a chain of dense layers
-    # First layer (need to use Any[] otherwise it complains about type instability when pushing layers)
+    # First layer
     layers = Flux.Dense[Flux.Dense(input_dim, hidden_dims[1], inlayer_activation)]
 
     # Hidden layers
