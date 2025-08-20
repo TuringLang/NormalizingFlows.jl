@@ -48,7 +48,7 @@ adtype = ADTypes.AutoMooncake(; config = Mooncake.Config())
 checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
     rng, 
-    elbo,        # using elbo_batch instead of elbo achieves 4-5 times speedup 
+    elbo_batch,        # using elbo_batch instead of elbo achieves 4-5 times speedup 
     flow,
     logp,
     sample_per_iter;

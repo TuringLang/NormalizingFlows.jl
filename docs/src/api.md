@@ -57,8 +57,8 @@ NormalizingFlows.optimize
 
 ## Available Flows
 
-`NormalizingFlows.jl` provides two commonly used normalizing flows: `RealNVP` and 
-`Neural Spline Flow (NSF)`.
+`NormalizingFlows.jl` provides two commonly used normalizing flows---`RealNVP` and
+`Neural Spline Flow (NSF)`---and two simple flows---`Planar Flow` and `Radial Flow`.
 
 ### RealNVP (Affine Coupling Flow)
 
@@ -78,7 +78,14 @@ NormalizingFlows.NSF_layer
 NormalizingFlows.NeuralSplineCoupling
 ```
 
-##  Utility Functions
+#### Planar and Radial Flows
+
+```@docs
+NormalizingFlows.planarflow
+NormalizingFlows.radialflow
+```
+
+## Utility Functions
 
 ```@docs
 NormalizingFlows.create_flow
