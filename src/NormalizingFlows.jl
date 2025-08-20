@@ -1,13 +1,15 @@
 module NormalizingFlows
 
 using ADTypes
-using Bijectors
 using Distributions
 using LinearAlgebra
 using Optimisers
 using ProgressMeter
 using Random
 using StatsBase
+using Bijectors
+using Bijectors: PartitionMask, Inverse, combine, partition
+using Functors
 import DifferentiationInterface as DI
 
 using DocStringExtensions
@@ -19,11 +21,12 @@ export train_flow, elbo, elbo_batch, loglikelihood
 
 Train the given normalizing flow `flow` by calling `optimize`.
 
-# Arguments
-- `rng::AbstractRNG`: random number generator
-- `vo`: variational objective
-- `flow`: normalizing flow to be trained, we recommend to define flow as `<:Bijectors.TransformedDistribution` 
-- `args...`: additional arguments for `vo`
+Arguments
+- `rng::AbstractRNG`: random number generator (default: `Random.default_rng()`)
+- `vo`: variational objective with signature `vo(rng, flow, args...)`. 
+    We implement [`elbo`](@ref), [`elbo_batch`](@ref), and [`loglikelihood`](@ref).
+- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended)
+- `args...`: additional arguments passed to `vo`
 
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
@@ -122,5 +125,20 @@ function _device_specific_rand(
 )
     return Random.rand(rng, td, n)
 end
+
+
+# interface of contructing common flow layers
+include("flows/utils.jl")
+include("flows/planar_radial.jl")
+include("flows/realnvp.jl")
+
+using MonotonicSplines
+include("flows/neuralspline.jl")
+
+export create_flow
+export planarflow, radialflow
+export AffineCoupling, RealNVP_layer, realnvp
+export NeuralSplineCoupling, NSF_layer, nsf
+
 
 end

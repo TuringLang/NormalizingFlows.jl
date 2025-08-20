@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/TuringLang/NormalizingFlows.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/TuringLang/NormalizingFlows.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
-**Last updated: 2025-Mar-04**
+**Last updated: 2025-Aug-08**
 
 A normalizing flow library for Julia.
 
@@ -16,6 +16,8 @@ for variational approximation of general target distributions,
 without being tied to specific probabilistic programming frameworks or applications. 
 
 See the [documentation](https://turinglang.org/NormalizingFlows.jl/dev/) for more.  
+
+We also provide several demos and examples in [example](https://github.com/TuringLang/NormalizingFlows.jl/tree/main/example).
 
 ## Installation
 To install the package, run the following command in the Julia REPL:
@@ -90,3 +92,4 @@ where one wants to learn the underlying distribution of some data.
 - [Flux.jl](https://fluxml.ai/Flux.jl/stable/)
 - [Optimisers.jl](https://github.com/FluxML/Optimisers.jl)
 - [AdvancedVI.jl](https://github.com/TuringLang/AdvancedVI.jl)
+- [MonotonicSplines.jl](https://github.com/bat/MonotonicSplines.jl)
