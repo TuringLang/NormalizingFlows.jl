@@ -9,7 +9,7 @@ attaching them to the base distribution `q0`.
 
 - `layers`: an iterable of `Bijectors.Bijector` objects that are composed in order
   (left-to-right) via function composition 
-(for instance, if `layers = [l1, l2, l3]`, the flow will be `l3∘l2∘l1(q0)`).
+(for instance, if `layers = [l1, l2, l3]`, the flow will be `l1∘l2∘l3(q0)`).
 - `q0`: the base distribution (e.g., `MvNormal(zeros(d), I)`).
 
 Returns a `Bijectors.TransformedDistribution` representing the resulting flow.
@@ -18,7 +18,7 @@ Example
 
     using Distributions, Bijectors, LinearAlgebra
     q0 = MvNormal(zeros(2), I)
-    flow = create_flow((Bijectors.Scale([1.0, 2.0]), Bijectors.Shift([0.0, 1.0])), q0)
+    flow = create_flow((Bijectors.Shift([0.0, 1.0]), Bijectors.Scale([1.0, 2.0])), q0)
 """
 function create_flow(Ls, q₀)
     ts =  reduce(∘, Ls)
@@ -62,7 +62,7 @@ Create a fully connected neural network (FNN).
 - `hidden_dims::AbstractVector{<:Int}`: A vector of integers specifying the dimensions of the hidden layers.
 - `output_dim::Int`: The dimension of the output layer.
 - `inlayer_activation`: The activation function for the hidden layers. Defaults to `Flux.leakyrelu`.
-- `output_activation`: The activation function for the output layer. Defaults to `Flux.tanh`.
+- `output_activation`: The activation function for the output layer. Defaults to `nothing`.
 - `paramtype::Type{T} = Float64`: The type of the parameters in the network, defaults to `Float64`.
 
 # Returns
