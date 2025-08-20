@@ -2,6 +2,7 @@
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
