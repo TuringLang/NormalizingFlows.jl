@@ -1,4 +1,5 @@
 using Random, Distributions, LinearAlgebra
+using Bijectors
 using Bijectors: transformed
 
 function compare_trained_and_untrained_flow(
