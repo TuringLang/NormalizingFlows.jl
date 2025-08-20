@@ -1,6 +1,6 @@
 """
     NeuralSplineCoupling(dim, hdims, K, B, mask_idx, paramtype)
-    NeuralSplineCoupling(dim, K, n_dims_transferred, B, nn, mask)
+    NeuralSplineCoupling(dim, K, n_dims_transformed, B, nn, mask)
 
 Neural Rational Quadratic Spline (RQS) coupling bijector [^DBMP2019].
 
@@ -19,7 +19,7 @@ Keyword Arguments
 - `paramtype::Type{<:AbstractFloat}`: parameter element type.
 
 Fields
-- `nn::Flux.Chain`: conditioner that outputs all spline params for all transformed dims.
+- `nn::Flux.Chain`: conditioner that outputs all spline params for all transformed dim.
 - `mask::Bijectors.PartitionMask`: partition specification.
 
 Notes
@@ -35,9 +35,9 @@ and log-determinant computations.
 struct NeuralSplineCoupling{T,A<:Flux.Chain} <: Bijectors.Bijector
     dim::Int                        # dimension of input
     K::Int                          # number of knots
-    n_dims_transferred::Int         # number of dimensions that are transformed
+    n_dims_transformed::Int         # number of dimensions that are transformed
     B::T                            # bound of the knots
-    nn::A                           # networks that parmaterize the knots and derivatives
+    nn::A                           # networks that parameterize the knots and derivatives
     mask::Bijectors.PartitionMask
 end
 
@@ -46,13 +46,12 @@ function NeuralSplineCoupling(
     hdims::AbstractVector{T1},       # dimension of hidden units for s and t
     K::T1,                           # number of knots
     B::T2,                           # bound of the knots
-    mask_idx::AbstractVector{T1}, # index of dimensione that one wants to apply transformations on
+    mask_idx::AbstractVector{T1},    # indices of the transformed dimensions
     paramtype::Type{T2},             # type of the parameters, e.g., Float64 or Float32
 ) where {T1<:Int,T2<:AbstractFloat}
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
     
-    # output dim of the NN
     output_dims = (3K - 1)*num_of_transformed_dims
     # one big mlp that outputs all the knots and derivatives for all the transformed dimensions
     nn = fnn(input_dims, hdims, output_dims; output_activation=nothing, paramtype=paramtype)
@@ -66,7 +65,7 @@ end
 function get_nsc_params(nsc::NeuralSplineCoupling, x::AbstractVecOrMat)
     nnoutput = nsc.nn(x)
     px, py, dydx = MonotonicSplines.rqs_params_from_nn(
-        nnoutput, nsc.n_dims_transferred, nsc.B
+        nnoutput, nsc.n_dims_transformed, nsc.B
     )
     return px, py, dydx
 end
@@ -146,13 +145,13 @@ end
 
 
 """
-    NSF_layer(dims, hdims, K, B; paramtype = Float64)
+    NSF_layer(dim, hdims, K, B; paramtype = Float64)
 
 Build a single Neural Spline Flow (NSF) layer by composing two
 `NeuralSplineCoupling` bijectors with complementary odd–even masks.
 
 Arguments
-- `dims::Int`: dimensionality of the problem.
+- `dim::Int`: dimensionality of the problem.
 - `hdims::AbstractVector{Int}`: hidden sizes of the conditioner network.
 - `K::Int`: number of spline knots.
 - `B::AbstractFloat`: spline boundary.
@@ -168,19 +167,19 @@ Example
 - `y = layer(randn(4, 32))`
 """
 function NSF_layer(
-    dims::T1,                      # dimension of problem
+    dim::T1,                      # dimension of problem
     hdims::AbstractVector{T1},     # dimension of hidden units for nn 
     K::T1,                           # number of knots
     B::T2;                           # bound of the knots
     paramtype::Type{T2} = Float64,   # type of the parameters
 ) where {T1<:Int,T2<:AbstractFloat}
 
-    mask_idx1 = 1:2:dims
-    mask_idx2 = 2:2:dims
+    mask_idx1 = 1:2:dim
+    mask_idx2 = 2:2:dim
 
     # by default use the odd-even masking strategy
-    nsf1 = NeuralSplineCoupling(dims, hdims, K, B, mask_idx1, paramtype)
-    nsf2 = NeuralSplineCoupling(dims, hdims, K, B, mask_idx2, paramtype)
+    nsf1 = NeuralSplineCoupling(dim, hdims, K, B, mask_idx1, paramtype)
+    nsf2 = NeuralSplineCoupling(dim, hdims, K, B, mask_idx2, paramtype)
     return reduce(∘, (nsf1, nsf2))
 end
 
@@ -205,11 +204,11 @@ Keyword Arguments
 Returns
 - `Bijectors.TransformedDistribution` representing the NSF flow.
 
-Notes:
-- Under the hood, `nsf` relies on the rational quadratic spline function implememented in 
-`MonotonicSplines.jl` for performance reasons.  `MonotonicSplines.jl` uses 
-`KernelAbstractions.jl` to support batched operations. 
-Because of this, so far `nsf` only supports `Zygote` as the AD type.
+!!! note 
+    Under the hood, `nsf` relies on the rational quadratic spline function implememented in 
+    `MonotonicSplines.jl` for performance reasons.  `MonotonicSplines.jl` uses 
+    `KernelAbstractions.jl` to support batched operations. 
+    Because of this, so far `nsf` only supports `Zygote` as the AD type.
   
 
 Example
@@ -225,8 +224,8 @@ function nsf(
     paramtype::Type{T} = Float64,   # type of the parameters
 ) where {T<:AbstractFloat}
 
-    dims = length(q0)  # dimension of the reference distribution == dim of the problem
-    Ls = [NSF_layer(dims, hdims, K, B; paramtype=paramtype) for _ in 1:nlayers] 
+    dim = length(q0)  # dimension of the reference distribution == dim of the problem
+    Ls = [NSF_layer(dim, hdims, K, B; paramtype=paramtype) for _ in 1:nlayers] 
     create_flow(Ls, q0)         
 end
 

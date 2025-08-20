@@ -45,19 +45,19 @@
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # Define a simple log-likelihood function
-            logp(z) = logpdf(q₀, z)
-
             # Compute ELBO
             batchsize = 64
             elbo_value = elbo(Random.default_rng(), flow, logp, batchsize)
             elbo_batch_value = elbo_batch(Random.default_rng(), flow, logp, batchsize)
 
+            # test when batchsize == 1
+            batchsize_single = 1
+            elbo_value_single = elbo(Random.default_rng(), flow, logp, batchsize_single)
+
             # test elbo_value is not NaN and not Inf
-            @test !isnan(elbo_value)
-            @test !isinf(elbo_value)
-            @test !isnan(elbo_batch_value)
-            @test !isinf(elbo_batch_value)
+            @test isfinite(elbo_value)
+            @test isfinite(elbo_batch_value)
+            @test isfinite(elbo_value_single)
         end
     end
 end
@@ -112,19 +112,19 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # Define a simple log-likelihood function
-            logp(z) = logpdf(q₀, z)
-
             # Compute ELBO
             batchsize = 64
             elbo_value = elbo(Random.default_rng(), flow, logp, batchsize)
             elbo_batch_value = elbo_batch(Random.default_rng(), flow, logp, batchsize)
 
+            # test when batchsize == 1
+            batchsize_single = 1
+            elbo_value_single = elbo(Random.default_rng(), flow, logp, batchsize_single)
+
             # test elbo_value is not NaN and not Inf
-            @test !isnan(elbo_value)
-            @test !isinf(elbo_value)
-            @test !isnan(elbo_batch_value)
-            @test !isinf(elbo_batch_value)
+            @test isfinite(elbo_value)
+            @test isfinite(elbo_batch_value)
+            @test isfinite(elbo_value_single)
         end
     end
 end
