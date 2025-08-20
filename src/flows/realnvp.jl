@@ -39,10 +39,10 @@ end
 
 @functor AffineCoupling (s, t)
 
-function AffineCoupling(
-    dim::Int,                       # dimension of the problem
-    hdims::AbstractVector{Int},     # dimension of hidden units for s and t
-    mask_idx::AbstractVector{Int},       # indices of the transformed dimensions
+function AffineCoupling( 
+    dim::Int,                       
+    hdims::AbstractVector{Int},
+    mask_idx::AbstractVector{Int},
     paramtype::Type{T}
 ) where {T<:AbstractFloat}
     cdims = length(mask_idx)  # dimension of parts used to construct coupling law
@@ -130,9 +130,9 @@ Example
 - `y = layer(randn(4, 16))`  # batched forward
 """
 function RealNVP_layer(
-    dims::Int,                      # dimension of problem
-    hdims::AbstractVector{Int};     # dimension of hidden units for s and t
-    paramtype::Type{T} = Float64,   # type of the parameters
+    dims::Int,
+    hdims::AbstractVector{Int};
+    paramtype::Type{T} = Float64,   
 ) where {T<:AbstractFloat}
 
     mask_idx1 = 1:2:dims
@@ -169,12 +169,12 @@ Example
 """
 function realnvp(
     q0::Distribution{Multivariate,Continuous},  
-    hdims::AbstractVector{Int},     # dimension of hidden units for s and t
-    nlayers::Int;                   # number of RealNVP_layer 
-    paramtype::Type{T} = Float64,   # type of the parameters
+    hdims::AbstractVector{Int},     
+    nlayers::Int;
+    paramtype::Type{T} = Float64,
 ) where {T<:AbstractFloat}
 
-    dims = length(q0)  # dimension of the reference distribution == dim of the problem
+    dims = length(q0)
     Ls = [RealNVP_layer(dims, hdims; paramtype=paramtype) for _ in 1:nlayers] 
     create_flow(Ls, q0)         
 end
