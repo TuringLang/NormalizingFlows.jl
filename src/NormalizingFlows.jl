@@ -40,11 +40,9 @@ Arguments
         function_annotation=Enzyme.Const,
     )`.
     If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
-    Gradients are computed through AbstractPPL's evaluator interface, so the
-    chosen backend package must be loaded first: `using ForwardDiff` for
-    `AutoForwardDiff`, `using Mooncake` for `AutoMooncake`, and for the other
-    backends (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally
-    `using DifferentiationInterface` alongside the backend package.
+    Gradients are computed through AbstractPPL's evaluator interface, so the chosen backend package must be loaded first.
+    `AutoForwardDiff` needs `using ForwardDiff`, and `AutoMooncake` needs `using Mooncake`.
+    The other backends (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally need `using DifferentiationInterface` alongside the backend package.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
