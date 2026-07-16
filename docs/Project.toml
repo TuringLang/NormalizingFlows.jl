@@ -10,8 +10,8 @@ NormalizingFlows = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
-Bijectors = "0.16.1"
-Distributions = "0.25.128"
+Bijectors = "0.16.2"
+Distributions = "0.25.129"
 Documenter = "1.17.0"
 Flux = "0.16.10"
 Functors = "0.5.2"
