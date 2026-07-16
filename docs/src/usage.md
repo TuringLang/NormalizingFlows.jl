@@ -38,3 +38,9 @@ flow_trained, stats, _ = train_flow(
     show_progress=true,
 )
 ```
+
+Gradients are computed through AbstractPPL's evaluator interface, so the chosen
+AD backend package must be loaded first: `using ForwardDiff` for
+`AutoForwardDiff`, `using Mooncake` for `AutoMooncake` (as above), and for the
+other backends (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally
+`using DifferentiationInterface` alongside the backend package.
