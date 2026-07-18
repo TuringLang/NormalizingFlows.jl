@@ -24,11 +24,9 @@ Fields
 
 Notes
 - Output dimensionality of the conditioner is `(3K - 1) * n_transformed`.
-- For computation performance, we rely on 
-[`MonotonicSplines.jl`](https://github.com/bat/MonotonicSplines.jl) for the
-building the rational quadratic spline functions.
-- See `MonotonicSplines.rqs_forward` and `MonotonicSplines.rqs_inverse` for forward/inverse 
-and log-determinant computations.
+- The rational quadratic spline is evaluated with the batched implementation in
+`Bijectors.jl`. See `Bijectors.rqs_forward` and `Bijectors.rqs_inverse` for the
+forward/inverse maps and log-determinant computations.
 
 [^DBMP2019]: Durkan, C., Bekasov, A., Murray, I. and Papamarkou, T. (2019). Neural Spline Flows. *NeurIPS.*
 """
@@ -64,10 +62,9 @@ end
 
 function get_nsc_params(nsc::NeuralSplineCoupling, x::AbstractVecOrMat)
     nnoutput = nsc.nn(x)
-    px, py, dydx = MonotonicSplines.rqs_params_from_nn(
-        nnoutput, nsc.n_dims_transformed, nsc.B
+    return Bijectors.rqs_params_from_raw(
+        _ensure_matrix(nnoutput), nsc.n_dims_transformed, nsc.B
     )
-    return px, py, dydx
 end
 
 # when input x is a vector instead of a matrix
@@ -80,14 +77,14 @@ function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractVector)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
-    y1, _ = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, _ = Bijectors.rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, vec(y1), x2, x3)
 end
 function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractMatrix)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
-    y1, _ = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, _ = Bijectors.rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, y1, x2, x3)
 end
 
@@ -96,14 +93,14 @@ function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::Abstrac
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
-    y1, logjac = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, logjac = Bijectors.rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, vec(y1), x2, x3), logjac[1]
 end
 function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::AbstractMatrix)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
-    y1, logjac = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, logjac = Bijectors.rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, y1, x2, x3), vec(logjac)
 end
 
@@ -112,14 +109,14 @@ function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractV
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
-    x1, _ = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, _ = Bijectors.rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, vec(x1), y2, y3)
 end
 function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
-    x1, _ = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, _ = Bijectors.rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, x1, y2, y3)
 end
 
@@ -128,14 +125,14 @@ function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
-    x1, logjac = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, logjac = Bijectors.rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, vec(x1), y2, y3), logjac[1]
 end
 function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
-    x1, logjac = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, logjac = Bijectors.rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, x1, y2, y3), vec(logjac)
 end
 
@@ -204,12 +201,10 @@ Keyword Arguments
 Returns
 - `Bijectors.TransformedDistribution` representing the NSF flow.
 
-!!! note 
-    Under the hood, `nsf` relies on the rational quadratic spline function implememented in 
-    `MonotonicSplines.jl` for performance reasons.  `MonotonicSplines.jl` uses 
-    `KernelAbstractions.jl` to support batched operations. 
-    Because of this, so far `nsf` only supports `Zygote` as the AD type.
-  
+!!! note
+    Under the hood, `nsf` uses the batched rational quadratic spline in `Bijectors.jl`. It is
+    written with whole-array operations, so the flow runs on the CPU and the GPU and is
+    differentiable by every supported AD backend.
 
 Example
 - `q0 = MvNormal(zeros(3), I); flow = nsf(q0, [64,64], 8, 3.0, 6)`
