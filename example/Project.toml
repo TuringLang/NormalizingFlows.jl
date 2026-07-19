@@ -21,6 +21,10 @@ ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
+# Temporary: batched RQS is on an unreleased Bijectors branch. Remove once it is tagged.
+[sources]
+Bijectors = {url = "https://github.com/TuringLang/Bijectors.jl", rev = "sg/batched-gpu-rqs"}
+
 [compat]
 ADTypes = "1.22.2"
 BenchmarkTools = "1.8.0"
