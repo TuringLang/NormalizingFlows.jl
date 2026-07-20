@@ -43,7 +43,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            q₀ = MvNormal(zeros(T, 2), I)
+            q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
             flow = Bijectors.transformed(
                 q₀, Bijectors.Shift(zeros(T, 2)) ∘ Bijectors.Scale(ones(T, 2))
             )
@@ -89,7 +89,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            q₀ = MvNormal(zeros(T, 2), I)
+            q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
             flow = realnvp(q₀, [8, 8], 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
@@ -138,7 +138,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            q₀ = MvNormal(zeros(T, 2), I)
+            q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
             flow = nsf(q₀, [8, 8], 10, 5one(T), 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
