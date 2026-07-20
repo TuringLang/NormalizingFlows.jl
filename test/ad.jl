@@ -43,10 +43,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent updating params of q0
-            @leaf MvNormal
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), I)
             flow = Bijectors.transformed(
                 q₀, Bijectors.Shift(zeros(T, 2)) ∘ Bijectors.Scale(ones(T, 2))
             )
@@ -92,10 +89,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent updating params of q0
-            @leaf MvNormal
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), I)
             flow = realnvp(q₀, [8, 8], 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
@@ -137,10 +131,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent updating params of q0
-            @leaf MvNormal
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), I)
             flow = nsf(q₀, [8, 8], 10, 5one(T), 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
