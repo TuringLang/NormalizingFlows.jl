@@ -116,15 +116,22 @@ end
 end
 
 @testset "AD for ELBO on NSF" begin
-    @testset "$at" for at in [
+    nsf_adtypes = ADTypes.AbstractADType[
         ADTypes.AutoZygote(),
         ADTypes.AutoReverseDiff(; compile=false),
-        ADTypes.AutoEnzyme(;
-            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-            function_annotation=Enzyme.Const,
-        ),
         ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
+    # Enzyme fails LLVM verification differentiating the batched RQS on Julia 1.10
+    if VERSION >= v"1.11"
+        push!(
+            nsf_adtypes,
+            ADTypes.AutoEnzyme(;
+                mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+                function_annotation=Enzyme.Const,
+            ),
+        )
+    end
+    @testset "$at" for at in nsf_adtypes
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
             Σ = Diagonal(4 * ones(T, 2))
