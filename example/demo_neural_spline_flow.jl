@@ -1,7 +1,7 @@
 using Random, Distributions, LinearAlgebra
 using Functors
 using Optimisers, ADTypes
-using Zygote
+using Zygote, DifferentiationInterface
 using NormalizingFlows
 
 include("SyntheticTargets.jl")

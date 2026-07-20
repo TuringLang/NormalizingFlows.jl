@@ -1,4 +1,4 @@
-@testset "DI.AD with context wrapper" begin
+@testset "AD with context wrapper" begin
     f(x, y, z) = sum(abs2, x .+ y .+ z)
 
     @testset "$T" for T in [Float32, Float64]

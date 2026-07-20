@@ -1,11 +1,11 @@
 name = "NormalizingFlows"
 uuid = "50e4474d-9f12-44b7-af7a-91ab30ff6256"
-version = "0.2.2"
+version = "0.3.0"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
+AbstractPPL = "7a57a42e-76ec-4ea3-a279-07e840d6d9cf"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
-DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
@@ -25,9 +25,9 @@ NormalizingFlowsCUDAExt = "CUDA"
 
 [compat]
 ADTypes = "1"
+AbstractPPL = "0.15.4"
 Bijectors = "0.12.6, 0.13, 0.14, 0.15, 0.16"
 CUDA = "5, 6.2"
-DifferentiationInterface = "0.6, 0.7"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
 Flux = "0.16"
