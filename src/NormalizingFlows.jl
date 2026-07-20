@@ -132,7 +132,6 @@ include("flows/utils.jl")
 include("flows/planar_radial.jl")
 include("flows/realnvp.jl")
 
-using MonotonicSplines
 include("flows/neuralspline.jl")
 
 export create_flow

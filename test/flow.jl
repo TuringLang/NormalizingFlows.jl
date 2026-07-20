@@ -7,7 +7,6 @@
     for T in [Float32, Float64]
         # Create a RealNVP flow
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
         flow = NormalizingFlows.realnvp(q₀, hdims, nlayers; paramtype=T)
 
         @testset "Sampling and density estimation for type: $T" begin
@@ -72,7 +71,6 @@ end
     for T in [Float32, Float64]
         # Create a nsf 
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
 
         B = 5one(T)
         flow = NormalizingFlows.nsf(q₀, hdims, K, B, nlayers; paramtype=T)
@@ -139,7 +137,6 @@ end
     for T in [Float32, Float64]
         # Create a nsf 
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
 
         flow = NormalizingFlows.planarflow(q₀, nlayers; paramtype=T)
 
@@ -205,7 +202,6 @@ end
     for T in [Float32, Float64]
         # Create a nsf 
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
 
         flow = NormalizingFlows.radialflow(q₀, nlayers; paramtype=T)
 
