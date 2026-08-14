@@ -118,6 +118,7 @@ end
 @testset "AD for ELBO on NSF" begin
     nsf_adtypes = ADTypes.AbstractADType[
         ADTypes.AutoZygote(),
+        ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(; compile=false),
         ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
