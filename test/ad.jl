@@ -65,8 +65,8 @@ end
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test value !== nothing
-            @test all(grad .!= nothing)
+            @test isfinite(value)
+            @test all(isfinite, grad)
         end
     end
 end
@@ -109,8 +109,8 @@ end
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test value !== nothing
-            @test all(grad .!= nothing)
+            @test isfinite(value)
+            @test all(isfinite, grad)
         end
     end
 end
@@ -158,8 +158,8 @@ end
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test value !== nothing
-            @test all(grad .!= nothing)
+            @test isfinite(value)
+            @test all(isfinite, grad)
         end
     end
 end
