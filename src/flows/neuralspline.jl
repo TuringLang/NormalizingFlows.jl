@@ -170,6 +170,7 @@ function NSF_layer(
     B::T2;                           # bound of the knots
     paramtype::Type{T2} = Float64,   # type of the parameters
 ) where {T1<:Int,T2<:AbstractFloat}
+    dim >= 2 || throw(ArgumentError("NSF_layer needs dim >= 2 for the odd-even masking"))
 
     mask_idx1 = 1:2:dim
     mask_idx2 = 2:2:dim
