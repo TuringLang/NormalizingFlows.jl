@@ -164,3 +164,21 @@ end
         end
     end
 end
+
+
+# Deterministic gradient correctness for the NSF glue (partition, combine, Flux chain,
+# destructure): a fixed batch through the flow transform, no sampling inside the loss.
+@testset "NSF gradient matches ForwardDiff" begin
+    T = Float64
+    q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
+    flow = nsf(q₀, [8, 8], 10, 5one(T), 3; paramtype=T)
+    θ, re = Optimisers.destructure(flow)
+    x = 3 .* randn(T, 2, 32)
+    function loss(θ)
+        y, lj = with_logabsdet_jacobian(re(θ).transform, x)
+        return sum(y) + sum(lj)
+    end
+    gz = only(Zygote.gradient(loss, θ))
+    gf = ForwardDiff.gradient(loss, θ)
+    @test gz ≈ gf rtol = 1e-8
+end
