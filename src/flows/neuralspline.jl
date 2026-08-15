@@ -49,6 +49,10 @@ function NeuralSplineCoupling(
 ) where {T1<:Int,T2<:AbstractFloat}
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
+    num_of_transformed_dims >= 1 ||
+        throw(ArgumentError("mask_idx must select at least one dimension"))
+    input_dims >= 1 ||
+        throw(ArgumentError("the conditioner needs at least one untransformed dimension"))
     
     output_dims = (3K - 1)*num_of_transformed_dims
     # one big mlp that outputs all the knots and derivatives for all the transformed dimensions
