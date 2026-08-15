@@ -166,8 +166,8 @@ end
 end
 
 
-# Deterministic gradient correctness for the NSF glue (partition, combine, Flux chain,
-# destructure): a fixed batch through the flow transform, no sampling inside the loss.
+# Fixed batch, no sampling in the loss: pins the NSF glue (partition, combine, destructure)
+# to a reference backend.
 @testset "NSF gradient matches ForwardDiff" begin
     T = Float64
     q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
