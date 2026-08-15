@@ -211,6 +211,11 @@ Returns
     written with whole-array operations, so the flow runs on the CPU and the GPU and is
     differentiable by every supported AD backend.
 
+!!! note
+    When training the flow, mark the base distribution as a leaf first (`Functors.@leaf
+    MvNormal`). Otherwise `Optimisers.destructure` tries to flatten the covariance
+    factorisation and fails inside `train_flow`.
+
 Example
 - `q0 = MvNormal(zeros(3), I); flow = nsf(q0, [64,64], 8, 3.0, 6)`
 - `x = rand(flow, 128); lp = logpdf(flow, x)`

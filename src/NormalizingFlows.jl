@@ -25,7 +25,9 @@ Arguments
 - `rng::AbstractRNG`: random number generator (default: `Random.default_rng()`)
 - `vo`: variational objective with signature `vo(rng, flow, args...)`. 
     We implement [`elbo`](@ref), [`elbo_batch`](@ref), and [`loglikelihood`](@ref).
-- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended)
+- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended).
+    Mark the base distribution as a leaf first (`Functors.@leaf MvNormal`), otherwise
+    `Optimisers.destructure` tries to flatten its covariance factorisation and fails.
 - `args...`: additional arguments passed to `vo`
 
 # Keyword Arguments
