@@ -3,7 +3,8 @@ Pkg.activate(@__DIR__)
 Pkg.develop(; path=joinpath(@__DIR__, "..", "..", ".."))
 
 using NormalizingFlows
-using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
+using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Random, Test
+using Zygote
 
 @testset "rand with CUDA" begin
 
@@ -58,4 +59,42 @@ using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Test
         @test y isa CuArray
         @test ys isa CuArray
     end
+end
+
+@testset "RQS on CUDA" begin
+    CUDA.allowscalar(false)
+
+    rng = MersenneTwister(1)
+    K, D, N = 4, 3, 8
+    B = 5.0f0
+    θ_cpu = randn(rng, Float32, (3K - 1) * D, N)
+    x_cpu = 3.0f0 .* randn(rng, Float32, D, N)
+    θ_gpu = cu(θ_cpu)
+    x_gpu = cu(x_cpu)
+
+    params_cpu = NormalizingFlows.rqs_params_from_raw(θ_cpu, D, B)
+    params_gpu = NormalizingFlows.rqs_params_from_raw(θ_gpu, D, B)
+    @test all(p -> p isa CuArray{Float32}, params_gpu)
+    for (p_cpu, p_gpu) in zip(params_cpu, params_gpu)
+        @test Array(p_gpu) ≈ p_cpu rtol = 1.0f-4
+    end
+
+    @testset "$f" for f in (NormalizingFlows.rqs_forward, NormalizingFlows.rqs_inverse)
+        out_cpu, logjac_cpu = f(x_cpu, params_cpu...)
+        out_gpu, logjac_gpu = f(x_gpu, params_gpu...)
+        @test out_gpu isa CuArray{Float32}
+        @test logjac_gpu isa CuArray{Float32}
+        @test Array(out_gpu) ≈ out_cpu rtol = 1.0f-4
+        @test Array(logjac_gpu) ≈ logjac_cpu rtol = 1.0f-4
+
+        loss(θ, x) = sum(last(f(x, NormalizingFlows.rqs_params_from_raw(θ, D, B)...)))
+        g_cpu = only(Zygote.gradient(θ -> loss(θ, x_cpu), θ_cpu))
+        g_gpu = only(Zygote.gradient(θ -> loss(θ, x_gpu), θ_gpu))
+        @test g_gpu isa CuArray{Float32}
+        @test Array(g_gpu) ≈ g_cpu rtol = 1.0f-3
+    end
+
+    y_gpu, _ = NormalizingFlows.rqs_forward(x_gpu, params_gpu...)
+    x_back, _ = NormalizingFlows.rqs_inverse(y_gpu, params_gpu...)
+    @test Array(x_back) ≈ x_cpu rtol = 1.0f-4
 end
