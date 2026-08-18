@@ -10,6 +10,7 @@ using StatsBase
 using Bijectors
 using Bijectors: PartitionMask, Inverse, combine, partition
 using Functors
+using LogExpFunctions: LogExpFunctions
 import DifferentiationInterface as DI
 
 using DocStringExtensions
@@ -133,7 +134,7 @@ end
 include("flows/utils.jl")
 include("flows/planar_radial.jl")
 include("flows/realnvp.jl")
-
+include("flows/rqs.jl")
 include("flows/neuralspline.jl")
 
 export create_flow
