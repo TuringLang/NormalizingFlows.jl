@@ -2,7 +2,7 @@
 
 ## Breaking changes
 
-`nsf` now builds its rational quadratic splines with the batched spline in Bijectors, and MonotonicSplines is no longer a dependency. The flow trains under every supported AD backend and runs on the GPU.
+`nsf` now builds its rational quadratic splines with a batched implementation in this package, and MonotonicSplines is no longer a dependency. The spline is written with whole-array operations, so the flow runs on the GPU and trains under Zygote, ForwardDiff, ReverseDiff, Mooncake, and, on Julia 1.11 and newer, Enzyme.
 
 The spline boundary `B` is now honoured when scaling the knots. The previous implementation always scaled the knots into (-5, 5] regardless of `B`, so flows built with any other `B` define a different transform than before.
 
