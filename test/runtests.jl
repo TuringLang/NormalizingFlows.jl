@@ -16,5 +16,6 @@ using Test
 
 include("objectives.jl")
 include("interface.jl")
+include("rqs.jl")
 include("flow.jl")
 include("ad.jl")
