@@ -19,9 +19,11 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 
 [extensions]
 NormalizingFlowsCUDAExt = "CUDA"
+NormalizingFlowsReverseDiffExt = "ReverseDiff"
 
 # Temporary: batched RQS is on an unreleased Bijectors branch. Remove once it is tagged.
 [sources]
@@ -39,5 +41,6 @@ Functors = "0.5.2"
 LogExpFunctions = "0.3"
 Optimisers = "0.2.16, 0.3, 0.4"
 ProgressMeter = "1.0.0"
+ReverseDiff = "1"
 StatsBase = "0.33, 0.34"
 julia = "1.10.8"
