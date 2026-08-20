@@ -9,6 +9,18 @@ function _prepare_gradient(loss, adbackend, θ, args...)
     return DI.prepare_gradient(loss, adbackend, θ, map(DI.Constant, args)...)
 end
 
+# A compiled tape freezes the constants, the rng among them, so every iteration would
+# differentiate against the same draws.
+function _prepare_gradient(loss, ::ADTypes.AutoReverseDiff{true}, θ, args...)
+    throw(
+        ArgumentError(
+            "`AutoReverseDiff(; compile=true)` is not supported: a compiled tape reuses the " *
+            "random draws of the first iteration, so the gradient is silently wrong. Use " *
+            "`AutoReverseDiff(; compile=false)`.",
+        ),
+    )
+end
+
 function _value_and_gradient(loss, prep, adbackend, θ, args...)
     return DI.value_and_gradient(loss, prep, adbackend, θ, map(DI.Constant, args)...)
 end
@@ -27,7 +39,8 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
  and using the given `optimiser` to compute the steps.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: automatic differentiation backend
+- `ad::ADTypes.AbstractADType`: automatic differentiation backend.
+    `AutoReverseDiff(; compile=true)` is rejected, see [`train_flow`](@ref).
 - `loss`: a general loss function θ -> loss(θ, args...) returning a scalar loss value that will be minimised
 - `θ₀::AbstractVector{T}`: initial parameters for the loss function (in the context of normalizing flows, it will be the flattened flow parameters)
 - `re`: reconstruction function that maps the flattened parameters to the normalizing flow

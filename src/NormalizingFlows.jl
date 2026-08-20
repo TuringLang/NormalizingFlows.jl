@@ -43,6 +43,8 @@ Arguments
         function_annotation=Enzyme.Const,
     )`.
     If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
+    `AutoReverseDiff(; compile=true)` is rejected: a compiled tape reuses the random draws
+    of the first iteration, so the gradient would be silently wrong.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
@@ -129,7 +131,6 @@ function _device_specific_rand(
     return Random.rand(rng, td, n)
 end
 
-
 # interface of contructing common flow layers
 include("flows/utils.jl")
 include("flows/planar_radial.jl")
@@ -141,6 +142,5 @@ export create_flow
 export planarflow, radialflow
 export AffineCoupling, RealNVP_layer, realnvp
 export NeuralSplineCoupling, NSF_layer, nsf
-
 
 end

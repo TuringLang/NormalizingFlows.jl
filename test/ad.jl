@@ -71,7 +71,6 @@ end
     end
 end
 
-
 @testset "AD for ELBO on realnvp" begin
     @testset "$at" for at in [
         ADTypes.AutoZygote(),
@@ -165,7 +164,6 @@ end
     end
 end
 
-
 # Fixed batch, no sampling in the loss: pins the NSF glue (partition, combine, destructure)
 # to a reference backend.
 @testset "NSF gradient matches ForwardDiff" begin
@@ -181,4 +179,10 @@ end
     gz = only(Zygote.gradient(loss, θ))
     gf = ForwardDiff.gradient(loss, θ)
     @test gz ≈ gf rtol = 1e-8
+end
+
+@testset "compiled ReverseDiff tapes are rejected" begin
+    @test_throws ArgumentError NormalizingFlows._prepare_gradient(
+        (θ, c) -> sum(abs2, θ) * c, ADTypes.AutoReverseDiff(; compile=true), [1.0, 2.0], 3.0
+    )
 end
