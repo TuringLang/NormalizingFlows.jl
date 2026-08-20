@@ -268,4 +268,13 @@ end
     @test_throws ArgumentError NSF_layer(1, [8], 4, 5.0)
     @test_throws ArgumentError NeuralSplineCoupling(3, [8], 4, 5.0, Int[], Float64)
     @test_throws ArgumentError NeuralSplineCoupling(1, [8], 4, 5.0, [1], Float64)
+
+    # the field-form constructor must validate too, or it reopens the same hole
+    nn = NormalizingFlows.fnn(1, [8], 11; output_activation=nothing, paramtype=Float64)
+    mask = Bijectors.PartitionMask(2, [1])
+    @test NeuralSplineCoupling(2, 4, 1, 5.0, nn, mask) isa NeuralSplineCoupling
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 1, 0.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 1, -3.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 0, 5.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(1, 4, 1, 5.0, nn, mask)
 end
