@@ -1,6 +1,6 @@
 # Demo of NSF on 2D Banana Distribution
 
-`Banana` and the plotting helpers come from the [`example`](https://github.com/TuringLang/NormalizingFlows.jl/tree/main/example) directory; run this from there so the two `include` calls resolve.
+`Banana` is defined in the [`example`](https://github.com/TuringLang/NormalizingFlows.jl/tree/main/example) directory; run this from there so the `include` resolves.
 
 ```julia
 using Random, Distributions, LinearAlgebra
@@ -10,7 +10,6 @@ using Mooncake
 using NormalizingFlows
 
 include("SyntheticTargets.jl")
-include("utils.jl")
 
 Random.seed!(123)
 T = Float32
