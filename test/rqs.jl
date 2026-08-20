@@ -176,6 +176,38 @@ end
     end
 end
 
+@testset "RQS is scale invariant, T=$T" for T in (Float32, Float64)
+    # Scaling the knot grid leaves the round trip, its derivative, and the log-det unchanged.
+    # The inverse loses that unless the common Δy factor is divided out of the quadratic,
+    # since the discriminant otherwise overflows past sqrt(floatmax(T)) and underflows below
+    # sqrt(floatmin(T)). The thresholds are per eltype, hence the different boundaries.
+    derivatives = reshape(T[1, 2, 1], 3, 1, 1)
+
+    function roundtrip(B)
+        knots = reshape(T[-B, 0, B], 3, 1, 1)
+        x = reshape(T[0.2B], 1, 1)
+        y, logjac = rqs_forward(x, knots, knots, derivatives)
+        xback, logjac_inv = rqs_inverse(y, knots, knots, derivatives)
+        dxdy = ForwardDiff.derivative(y[1]) do yi
+            rqs_inverse(reshape([yi], 1, 1), knots, knots, derivatives)[1][1]
+        end
+        return (x=x[1], xback=xback[1], lj=logjac[1], lj_inv=logjac_inv[1], dxdy=dxdy)
+    end
+
+    unscaled = roundtrip(one(T))
+    extremes = T == Float32 ? (T(1e-20), T(1e20)) : (T(1e-200), T(1e200))
+    @testset "B=$B" for B in extremes
+        r = roundtrip(B)
+        @test isfinite(r.xback)
+        @test isfinite(r.lj_inv)
+        @test isfinite(r.dxdy)
+        @test r.xback ≈ r.x rtol = sqrt(eps(T))
+        @test r.lj_inv ≈ -r.lj rtol = sqrt(eps(T))
+        @test r.dxdy ≈ unscaled.dxdy rtol = sqrt(eps(T))
+        @test r.lj_inv ≈ unscaled.lj_inv rtol = sqrt(eps(T))
+    end
+end
+
 @testset "RQS gradients match ForwardDiff" begin
     K, D, N, B = 4, 2, 3, 5
     n_raw = (3K - 1) * D

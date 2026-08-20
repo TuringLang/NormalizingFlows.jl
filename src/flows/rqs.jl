@@ -6,7 +6,8 @@
 # backend differentiates it directly.
 #
 # Knot parameters carry the knot axis first: `(K + 1, D, N)` for `K` bins, `D` transformed
-# dimensions, and `N` samples. Inputs are `(D, N)`, one sample per column.
+# dimensions, and `N` samples. Inputs are `(D, N)`, one sample per column. Widths and heights
+# must be strictly increasing along the knot axis, which `rqs_params_from_raw` guarantees.
 
 # Floors keep every bin and slope strictly positive; an extreme logit would otherwise
 # underflow one to exactly zero and turn in-range evaluations into NaN.
@@ -150,19 +151,21 @@ function rqs_inverse(
     Δx = xₖ₊₁ .- xₖ
     Δy = yₖ₊₁ .- yₖ
     s = Δy ./ Δx
+    # Position within the bin. The quadratic coefficients below share a Δy factor that
+    # cancels in the root but squares in the discriminant, so divide it out here.
     # Clamp keeps the discarded out-of-range branch finite; in range it is a no-op.
-    Δy2 = clamp.(y .- yₖ, zero(T), Δy)
+    t = clamp.((y .- yₖ) ./ Δy, zero(T), one(T))
 
     c1 = dₖ₊₁ .+ dₖ .- 2 .* s
-    a = @. Δy * (s - dₖ) + Δy2 * c1
-    b = @. Δy * dₖ - Δy2 * c1
-    c = @. -s * Δy2
+    a = @. (s - dₖ) + t * c1
+    b = @. dₖ - t * c1
+    c = @. -s * t
     # A strictly positive sqrt argument keeps its gradient finite when the discriminant
     # vanishes.
     tiny = floatmin(T)
     sqrtdisc = @. sqrt(max(b^2 - 4 * a * c, tiny))
     # Cancellation-free root: c/q for b >= 0 and q/a for b < 0, with q the half-sum matching
-    # the sign of b. The selected denominator is never zero: a = 0 forces b = Δy * s > 0.
+    # the sign of b. The selected denominator is never zero: a = 0 forces b = s > 0.
     pos = _rqs_nonneg(b)
     neg = .!pos
     q = @. -(b + (2 * pos - 1) * sqrtdisc) / 2
