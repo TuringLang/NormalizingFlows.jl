@@ -253,5 +253,5 @@ function nsf(
 end
 
 function nsf(q0; paramtype::Type{T}=Float64) where {T<:AbstractFloat}
-    return nsf(q0, [32, 32], 10, 30 * one(T), 10; paramtype=paramtype)
+    return nsf(q0, [32, 32], 10, 5 * one(T), 10; paramtype=paramtype)
 end
