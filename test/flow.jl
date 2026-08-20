@@ -101,6 +101,11 @@ end
 
             @test x_batch ≈ x_batch_reconstructed rtol=1e-4
             @test ljs_fwd ≈ -ljs_bwd rtol=1e-4
+
+            _, lj_one_column = Bijectors.with_logabsdet_jacobian(
+                flow.transform, reshape(x, :, 1)
+            )
+            @test lj_fwd ≈ only(lj_one_column) rtol=1e-4
         end
 
 
@@ -257,4 +262,10 @@ end
     end
 end
 
-
+@testset "NSF argument validation" begin
+    @test_throws ArgumentError NSF_layer(2, [8], 4, 0.0)
+    @test_throws ArgumentError NSF_layer(2, [8], 4, -3.0)
+    @test_throws ArgumentError NSF_layer(1, [8], 4, 5.0)
+    @test_throws ArgumentError NeuralSplineCoupling(3, [8], 4, 5.0, Int[], Float64)
+    @test_throws ArgumentError NeuralSplineCoupling(1, [8], 4, 5.0, [1], Float64)
+end

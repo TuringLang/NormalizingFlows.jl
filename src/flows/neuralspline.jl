@@ -48,6 +48,7 @@ function NeuralSplineCoupling(
 ) where {T1<:Int,T2<:AbstractFloat}
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
+    B > 0 || throw(ArgumentError("the spline boundary B must be positive"))
     num_of_transformed_dims >= 1 ||
         throw(ArgumentError("mask_idx must select at least one dimension"))
     input_dims >= 1 ||
@@ -97,7 +98,7 @@ function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::Abstrac
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
     y1, logjac = rqs_forward(x1, px, py, dydx)
-    return Bijectors.combine(nsc.mask, vec(y1), x2, x3), logjac[1]
+    return Bijectors.combine(nsc.mask, vec(y1), x2, x3), sum(logjac)
 end
 function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::AbstractMatrix)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
@@ -129,7 +130,7 @@ function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
     x1, logjac = rqs_inverse(y1, px, py, dydx)
-    return Bijectors.combine(nsc.mask, vec(x1), y2, y3), logjac[1]
+    return Bijectors.combine(nsc.mask, vec(x1), y2, y3), sum(logjac)
 end
 function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
     nsc = insl.orig
