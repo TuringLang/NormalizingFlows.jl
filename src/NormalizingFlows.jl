@@ -34,9 +34,9 @@ Arguments
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
-- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: 
-    automatic differentiation backend, currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+- `ADbackend::ADTypes.AbstractADType`: automatic differentiation backend. Required, it has
+    no default. Currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.AutoForwardDiff()`, `ADTypes.AutoReverseDiff()`,
     `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
