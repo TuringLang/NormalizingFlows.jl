@@ -9,13 +9,14 @@ function _prepare_gradient(loss, adbackend, θ, args...)
     return DI.prepare_gradient(loss, adbackend, θ, map(DI.Constant, args)...)
 end
 
-# A compiled tape freezes the constants, the rng among them, so every iteration would
-# differentiate against the same draws.
+# Rejected rather than silently ignored: a tape that did take effect would freeze the rng and
+# the spline's bin selection.
 function _prepare_gradient(loss, ::ADTypes.AutoReverseDiff{true}, θ, args...)
     throw(
         ArgumentError(
-            "`AutoReverseDiff(; compile=true)` is not supported: a compiled tape reuses the " *
-            "random draws of the first iteration, so the gradient is silently wrong. Use " *
+            "`AutoReverseDiff(; compile=true)` is not supported: DifferentiationInterface " *
+            "drops the compile flag when context arguments are present, which is how the " *
+            "objective's arguments are passed here, so the flag never takes effect. Use " *
             "`AutoReverseDiff(; compile=false)`.",
         ),
     )

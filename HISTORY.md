@@ -8,7 +8,7 @@ The spline boundary `B` is now honoured when scaling the knots. The previous imp
 
 Bin widths, heights, and derivatives now have a floor of 1e-3, so no bin or slope can underflow to zero and produce NaN. This shifts the constrained knots slightly, so the transform differs from previous releases at every `B`, `B = 5` included, and weights trained with an older version define a different flow.
 
-`AutoReverseDiff(; compile=true)` is now rejected. A compiled tape freezes the objective's constants, the random number generator among them, so every iteration differentiated against the draws of the first one.
+`AutoReverseDiff(; compile=true)` is now rejected rather than silently ignored. DifferentiationInterface drops the compile flag when context arguments are present, which is how the objective's arguments are passed here, and a tape that did take effect would freeze the random number generator.
 
 `NeuralSplineCoupling` requires `B > 0`. A negative boundary silently broke invertibility and zero silently made the layer the identity.
 

@@ -43,8 +43,9 @@ Arguments
         function_annotation=Enzyme.Const,
     )`.
     If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
-    `AutoReverseDiff(; compile=true)` is rejected: a compiled tape reuses the random draws
-    of the first iteration, so the gradient would be silently wrong.
+    `AutoReverseDiff(; compile=true)` is rejected. The compile flag is dropped when context
+    arguments are present, as they always are here, so it never takes effect; rejecting it
+    keeps a tape that did take effect from freezing the random number generator.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
