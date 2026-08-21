@@ -1,0 +1,280 @@
+@testset "RealNVP flow" begin
+    Random.seed!(123)
+    
+    dim = 5
+    nlayers = 2
+    hdims = [32, 32]
+    for T in [Float32, Float64]
+        # Create a RealNVP flow
+        q₀ = MvNormal(zeros(T, dim), I)
+        flow = NormalizingFlows.realnvp(q₀, hdims, nlayers; paramtype=T)
+
+        @testset "Sampling and density estimation for type: $T" begin
+            ys = rand(flow, 100) 
+            ℓs = logpdf(flow, ys)
+
+            @test size(ys) == (dim, 100)
+            @test length(ℓs) == 100            
+
+            @test eltype(ys) == T
+            @test eltype(ℓs) == T
+        end
+            
+
+        @testset "Inverse compatibility for type: $T" begin
+            x = rand(q₀)
+            y, lj_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x)
+            x_reconstructed, lj_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y)
+
+            @test x ≈ x_reconstructed rtol=1e-6
+            @test lj_fwd ≈ -lj_bwd rtol=1e-6
+
+            x_batch = rand(q₀, 10)
+            y_batch, ljs_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x_batch)
+            x_batch_reconstructed, ljs_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y_batch)
+
+            @test x_batch ≈ x_batch_reconstructed rtol=1e-6
+            @test ljs_fwd ≈ -ljs_bwd rtol=1e-6
+        end
+
+
+        @testset "ELBO test for type: $T" begin
+            μ = randn(T, dim)
+            Σ = Diagonal(rand(T, dim) .+ T(1e-3))
+            target = MvNormal(μ, Σ)
+            logp(z) = logpdf(target, z)
+
+            # Compute ELBO
+            batchsize = 64
+            elbo_value = elbo(Random.default_rng(), flow, logp, batchsize)
+            elbo_batch_value = elbo_batch(Random.default_rng(), flow, logp, batchsize)
+
+            # test when batchsize == 1
+            batchsize_single = 1
+            elbo_value_single = elbo(Random.default_rng(), flow, logp, batchsize_single)
+
+            # test elbo_value is not NaN and not Inf
+            @test isfinite(elbo_value)
+            @test isfinite(elbo_batch_value)
+            @test isfinite(elbo_value_single)
+        end
+    end
+end
+
+@testset "Neural Spline flow" begin
+    Random.seed!(123)
+    
+    dim = 5
+    nlayers = 2
+    K = 10
+    hdims = [32, 32]
+    for T in [Float32, Float64]
+        # Create a nsf 
+        q₀ = MvNormal(zeros(T, dim), I)
+
+        B = 5one(T)
+        flow = NormalizingFlows.nsf(q₀, hdims, K, B, nlayers; paramtype=T)
+
+        @testset "Sampling and density estimation for type: $T" begin
+            ys = rand(flow, 100) 
+            ℓs = logpdf(flow, ys)
+
+            @test size(ys) == (dim, 100)
+            @test length(ℓs) == 100            
+
+            @test eltype(ys) == T
+            @test eltype(ℓs) == T
+        end
+            
+
+        @testset "Inverse compatibility for type: $T" begin
+            x = rand(q₀)
+            y, lj_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x)
+            x_reconstructed, lj_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y)
+
+            @test x ≈ x_reconstructed rtol=1e-4
+            @test lj_fwd ≈ -lj_bwd rtol=1e-4
+
+            x_batch = rand(q₀, 10)
+            y_batch, ljs_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x_batch)
+            x_batch_reconstructed, ljs_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y_batch)
+
+            @test x_batch ≈ x_batch_reconstructed rtol=1e-4
+            @test ljs_fwd ≈ -ljs_bwd rtol=1e-4
+
+            _, lj_one_column = Bijectors.with_logabsdet_jacobian(
+                flow.transform, reshape(x, :, 1)
+            )
+            @test lj_fwd ≈ only(lj_one_column) rtol=1e-4
+        end
+
+
+        @testset "ELBO test for type: $T" begin
+            μ = randn(T, dim)
+            Σ = Diagonal(rand(T, dim) .+ T(1e-3))
+            target = MvNormal(μ, Σ)
+            logp(z) = logpdf(target, z)
+
+            # Compute ELBO
+            batchsize = 64
+            elbo_value = elbo(Random.default_rng(), flow, logp, batchsize)
+            elbo_batch_value = elbo_batch(Random.default_rng(), flow, logp, batchsize)
+
+            # test when batchsize == 1
+            batchsize_single = 1
+            elbo_value_single = elbo(Random.default_rng(), flow, logp, batchsize_single)
+
+            # test elbo_value is not NaN and not Inf
+            @test isfinite(elbo_value)
+            @test isfinite(elbo_batch_value)
+            @test isfinite(elbo_value_single)
+        end
+    end
+end
+
+
+
+@testset "Planar flow" begin
+    Random.seed!(123)
+    
+    dim = 5
+    nlayers = 10
+    for T in [Float32, Float64]
+        # Create a nsf 
+        q₀ = MvNormal(zeros(T, dim), I)
+
+        flow = NormalizingFlows.planarflow(q₀, nlayers; paramtype=T)
+
+        @testset "Sampling and density estimation for type: $T" begin
+            ys = rand(flow, 100) 
+            ℓs = logpdf(flow, ys)
+
+            @test size(ys) == (dim, 100)
+            @test length(ℓs) == 100            
+
+            @test eltype(ys) == T
+            @test eltype(ℓs) == T
+        end
+            
+
+        @testset "Inverse compatibility for type: $T" begin
+            x = rand(q₀)
+            y, lj_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x)
+            x_reconstructed, lj_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y)
+
+            @test x ≈ x_reconstructed rtol=1e-4
+            @test lj_fwd ≈ -lj_bwd rtol=1e-4
+
+            x_batch = rand(q₀, 10)
+            y_batch, ljs_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x_batch)
+            x_batch_reconstructed, ljs_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y_batch)
+
+            @test x_batch ≈ x_batch_reconstructed rtol=1e-4
+            @test ljs_fwd ≈ -ljs_bwd rtol=1e-4
+        end
+
+
+        @testset "ELBO test for type: $T" begin
+            μ = randn(T, dim)
+            Σ = Diagonal(rand(T, dim) .+ T(1e-3))
+            target = MvNormal(μ, Σ)
+            logp(z) = logpdf(target, z)
+
+            # Compute ELBO
+            batchsize = 64
+            elbo_value = elbo(Random.default_rng(), flow, logp, batchsize)
+            elbo_batch_value = elbo_batch(Random.default_rng(), flow, logp, batchsize)
+
+            # test when batchsize == 1
+            batchsize_single = 1
+            elbo_value_single = elbo(Random.default_rng(), flow, logp, batchsize_single)
+
+            # test elbo_value is not NaN and not Inf
+            @test isfinite(elbo_value)
+            @test isfinite(elbo_batch_value)
+            @test isfinite(elbo_value_single)
+        end
+    end
+end
+
+
+
+@testset "Radial flow" begin
+    Random.seed!(123)
+    
+    dim = 5
+    nlayers = 10
+    for T in [Float32, Float64]
+        # Create a nsf 
+        q₀ = MvNormal(zeros(T, dim), I)
+
+        flow = NormalizingFlows.radialflow(q₀, nlayers; paramtype=T)
+
+        @testset "Sampling and density estimation for type: $T" begin
+            ys = rand(flow, 100) 
+            ℓs = logpdf(flow, ys)
+
+            @test size(ys) == (dim, 100)
+            @test length(ℓs) == 100            
+
+            @test eltype(ys) == T
+            @test eltype(ℓs) == T
+        end
+            
+
+        @testset "Inverse compatibility for type: $T" begin
+            x = rand(q₀)
+            y, lj_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x)
+            x_reconstructed, lj_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y)
+
+            @test x ≈ x_reconstructed rtol=1e-4
+            @test lj_fwd ≈ -lj_bwd rtol=1e-4
+
+            x_batch = rand(q₀, 10)
+            y_batch, ljs_fwd = Bijectors.with_logabsdet_jacobian(flow.transform, x_batch)
+            x_batch_reconstructed, ljs_bwd = Bijectors.with_logabsdet_jacobian(inverse(flow.transform), y_batch)
+
+            @test x_batch ≈ x_batch_reconstructed rtol=1e-4
+            @test ljs_fwd ≈ -ljs_bwd rtol=1e-4
+        end
+
+
+        @testset "ELBO test for type: $T" begin
+            μ = randn(T, dim)
+            Σ = Diagonal(rand(T, dim) .+ T(1e-3))
+            target = MvNormal(μ, Σ)
+            logp(z) = logpdf(target, z)
+
+            # Compute ELBO
+            batchsize = 64
+            elbo_value = elbo(Random.default_rng(), flow, logp, batchsize)
+            elbo_batch_value = elbo_batch(Random.default_rng(), flow, logp, batchsize)
+
+            # test when batchsize == 1
+            batchsize_single = 1
+            elbo_value_single = elbo(Random.default_rng(), flow, logp, batchsize_single)
+
+            # test elbo_value is not NaN and not Inf
+            @test isfinite(elbo_value)
+            @test isfinite(elbo_batch_value)
+            @test isfinite(elbo_value_single)
+        end
+    end
+end
+
+@testset "NSF argument validation" begin
+    @test_throws ArgumentError NSF_layer(2, [8], 4, 0.0)
+    @test_throws ArgumentError NSF_layer(2, [8], 4, -3.0)
+    @test_throws ArgumentError NSF_layer(1, [8], 4, 5.0)
+    @test_throws ArgumentError NeuralSplineCoupling(3, [8], 4, 5.0, Int[], Float64)
+    @test_throws ArgumentError NeuralSplineCoupling(1, [8], 4, 5.0, [1], Float64)
+
+    # the field-form constructor must validate too, or it reopens the same hole
+    nn = NormalizingFlows.fnn(1, [8], 11; output_activation=nothing, paramtype=Float64)
+    mask = Bijectors.PartitionMask(2, [1])
+    @test NeuralSplineCoupling(2, 4, 1, 5.0, nn, mask) isa NeuralSplineCoupling
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 1, 0.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 1, -3.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 0, 5.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(1, 4, 1, 5.0, nn, mask)
+end

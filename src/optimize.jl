@@ -6,11 +6,25 @@ function pm_next!(pm, stats::NamedTuple)
 end
 
 function _prepare_gradient(loss, adbackend, θ, args...)
-    return DI.prepare_gradient(loss, adbackend, θ, map(DI.Constant, args)...)
+    return AbstractPPL.prepare(adbackend, loss, θ; context=args)
+end
+
+function _prepare_gradient(loss, ::ADTypes.AutoReverseDiff{true}, θ, args...)
+    throw(
+        ArgumentError(
+            "`AutoReverseDiff(; compile=true)` is not supported: a compiled tape bakes the " *
+            "objective's context into itself, so every iteration would differentiate " *
+            "against the first iteration's random draws. Use " *
+            "`AutoReverseDiff(; compile=false)`.",
+        ),
+    )
 end
 
 function _value_and_gradient(loss, prep, adbackend, θ, args...)
-    return DI.value_and_gradient(loss, prep, adbackend, θ, map(DI.Constant, args)...)
+    val, grad = AbstractPPL.value_and_gradient!!(prep, θ)
+    # value_and_gradient!! may return a gradient aliasing the prep's internal
+    # buffer, which the next call overwrites
+    return val, copy(grad)
 end
 
 """
@@ -27,11 +41,12 @@ Iteratively updating the parameters `θ` of the normalizing flow `re(θ)` by cal
  and using the given `optimiser` to compute the steps.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: automatic differentiation backend
+- `ad::ADTypes.AbstractADType`: automatic differentiation backend.
+    `AutoReverseDiff(; compile=true)` is rejected, see [`train_flow`](@ref).
 - `loss`: a general loss function θ -> loss(θ, args...) returning a scalar loss value that will be minimised
 - `θ₀::AbstractVector{T}`: initial parameters for the loss function (in the context of normalizing flows, it will be the flattened flow parameters)
 - `re`: reconstruction function that maps the flattened parameters to the normalizing flow
-- `args...`: additional arguments for `loss` (will be set as DI.Constant)
+- `args...`: additional arguments for `loss` (treated as constants during differentiation)
 
 # Keyword Arguments
 - `max_iters::Int=10000`: maximum number of iterations

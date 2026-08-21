@@ -1,3 +1,8 @@
+# Demo of NSF on 2D Banana Distribution
+
+`Banana` is defined in the [`example`](https://github.com/TuringLang/NormalizingFlows.jl/tree/main/example) directory; run this from there so the `include` resolves.
+
+```julia
 using Random, Distributions, LinearAlgebra
 using Functors
 using Optimisers, ADTypes
@@ -5,18 +10,10 @@ using Mooncake
 using NormalizingFlows
 
 include("SyntheticTargets.jl")
-include("utils.jl")
 
-##################################
-# start demo
-#################################
 Random.seed!(123)
-rng = Random.default_rng()
 T = Float32
 
-######################################
-# a difficult banana target
-######################################
 target = Banana(2, one(T), 100one(T))
 logp = Base.Fix1(logpdf, target)
 
@@ -52,9 +49,4 @@ flow_trained, stats, _ = train_flow(
 )
 θ, re = Optimisers.destructure(flow_trained)
 losses = map(x -> x.loss, stats)
-
-######################################
-# evaluate trained flow
-######################################
-plot(losses; label="Loss", linewidth=2) # plot the loss
-compare_trained_and_untrained_flow(flow_trained, flow_untrained, target, 1000)
+```

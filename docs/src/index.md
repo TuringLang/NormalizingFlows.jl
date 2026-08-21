@@ -4,7 +4,7 @@ CurrentModule = NormalizingFlows
 
 # NormalizingFlows.jl
 
-Documentation for [NormalizingFlows](https://github.com/TuringLang/NormalizingFlows.jl).
+Documentation for [NormalizingFlows.jl](https://github.com/TuringLang/NormalizingFlows.jl).
 
 
 The purpose of this package is to provide a simple and flexible interface for 
@@ -15,13 +15,11 @@ construct (e.g., define customized flow layers) and combine various components
 for variational approximation of general target distributions, 
 *without being tied to specific probabilistic programming frameworks or applications*. 
 
-See the [documentation](https://turinglang.org/NormalizingFlows.jl/dev/) for more.  
-
 ## Installation
 To install the package, run the following command in the Julia REPL:
 ```
 ]  # enter Pkg mode
-(@v1.11) pkg> add git@github.com:TuringLang/NormalizingFlows.jl.git
+(@v1.11) pkg> add NormalizingFlows
 ```
 Then simply run the following command to use the package:
 ```julia
@@ -67,7 +65,7 @@ optimization problems:
 \text{Reverse KL:}\quad
 &\argmin _{\theta} \mathbb{E}_{q_{\theta}}\left[\log q_{\theta}(Z)-\log p(Z)\right] \\
 &= \argmin _{\theta} \mathbb{E}_{q_0}\left[\log \frac{q_\theta(T_N\circ \cdots \circ T_1(Z_0))}{p(T_N\circ \cdots \circ T_1(Z_0))}\right] \\
-&= \argmax _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(F_n \circ \cdots \circ F_1(X)\right)\right]
+&= \argmax _{\theta} \mathbb{E}_{q_0}\left[ \log p\left(T_N \circ \cdots \circ T_1(Z_0)\right)-\log q_0(X)+\sum_{n=1}^N \log J_n\left(T_n \circ \cdots \circ T_1(X)\right)\right]
 \end{aligned}
 ```
 and 
@@ -82,4 +80,4 @@ Both problems can be solved via standard stochastic optimization algorithms,
 such as stochastic gradient descent (SGD) and its variants. 
 
 
-
+For a detailed introduction of normalizing flows, please refer to

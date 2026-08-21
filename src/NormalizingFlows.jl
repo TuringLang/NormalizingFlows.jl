@@ -1,14 +1,17 @@
 module NormalizingFlows
 
 using ADTypes
-using Bijectors
 using Distributions
 using LinearAlgebra
 using Optimisers
 using ProgressMeter
 using Random
 using StatsBase
-import DifferentiationInterface as DI
+using Bijectors
+using Bijectors: PartitionMask, Inverse, combine, partition
+using Functors
+using AbstractPPL: AbstractPPL
+using LogExpFunctions: LogExpFunctions
 
 using DocStringExtensions
 
@@ -19,24 +22,33 @@ export train_flow, elbo, elbo_batch, loglikelihood
 
 Train the given normalizing flow `flow` by calling `optimize`.
 
-# Arguments
-- `rng::AbstractRNG`: random number generator
-- `vo`: variational objective
-- `flow`: normalizing flow to be trained, we recommend to define flow as `<:Bijectors.TransformedDistribution` 
-- `args...`: additional arguments for `vo`
+Arguments
+- `rng::AbstractRNG`: random number generator (default: `Random.default_rng()`)
+- `vo`: variational objective with signature `vo(rng, flow, args...)`. 
+    We implement [`elbo`](@ref), [`elbo_batch`](@ref), and [`loglikelihood`](@ref).
+- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended).
+    Mark the base distribution as a leaf first (`Functors.@leaf MvNormal`), otherwise
+    `Optimisers.destructure` tries to flatten its covariance factorisation and fails.
+- `args...`: additional arguments passed to `vo`
 
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
-- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: 
-    automatic differentiation backend, currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+- `ADbackend::ADTypes.AbstractADType`: automatic differentiation backend. Required, it has
+    no default. Currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.AutoForwardDiff()`, `ADTypes.AutoReverseDiff()`,
     `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
         function_annotation=Enzyme.Const,
     )`.
     If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
+    Gradients are computed through AbstractPPL's evaluator interface, so the chosen backend package must be loaded first.
+    `AutoForwardDiff` needs `using ForwardDiff`, and `AutoMooncake` needs `using Mooncake`.
+    The other backends (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally need `using DifferentiationInterface` alongside the backend package.
+    `AutoReverseDiff(; compile=true)` is rejected: a compiled tape bakes the objective's
+    context into itself, so every iteration would differentiate against the first
+    iteration's random draws.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
@@ -122,5 +134,17 @@ function _device_specific_rand(
 )
     return Random.rand(rng, td, n)
 end
+
+# interface of contructing common flow layers
+include("flows/utils.jl")
+include("flows/planar_radial.jl")
+include("flows/realnvp.jl")
+include("flows/rqs.jl")
+include("flows/neuralspline.jl")
+
+export create_flow
+export planarflow, radialflow
+export AffineCoupling, RealNVP_layer, realnvp
+export NeuralSplineCoupling, NSF_layer, nsf
 
 end

@@ -20,16 +20,9 @@ logp = Base.Fix1(logpdf, target)
 ######################################
 # setup planar flow
 ######################################
-function create_planar_flow(n_layers::Int, q₀)
-    d = length(q₀)
-    Ls = [PlanarLayer(d) for _ in 1:n_layers]
-    ts = reduce(∘, Ls)
-    return transformed(q₀, ts)
-end
-
 @leaf MvNormal
 q0 = MvNormal(zeros(T, 2), ones(T, 2))
-flow = create_planar_flow(10, q0)
+flow = planarflow(q0, 10; paramtype=T)
 flow_untrained = deepcopy(flow)
 
 ######################################
