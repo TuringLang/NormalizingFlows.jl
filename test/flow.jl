@@ -7,7 +7,6 @@
     for T in [Float32, Float64]
         # Create a RealNVP flow
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
         flow = NormalizingFlows.realnvp(q₀, hdims, nlayers; paramtype=T)
 
         @testset "Sampling and density estimation for type: $T" begin
@@ -72,7 +71,6 @@ end
     for T in [Float32, Float64]
         # Create a nsf 
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
 
         B = 5one(T)
         flow = NormalizingFlows.nsf(q₀, hdims, K, B, nlayers; paramtype=T)
@@ -103,6 +101,11 @@ end
 
             @test x_batch ≈ x_batch_reconstructed rtol=1e-4
             @test ljs_fwd ≈ -ljs_bwd rtol=1e-4
+
+            _, lj_one_column = Bijectors.with_logabsdet_jacobian(
+                flow.transform, reshape(x, :, 1)
+            )
+            @test lj_fwd ≈ only(lj_one_column) rtol=1e-4
         end
 
 
@@ -139,7 +142,6 @@ end
     for T in [Float32, Float64]
         # Create a nsf 
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
 
         flow = NormalizingFlows.planarflow(q₀, nlayers; paramtype=T)
 
@@ -205,7 +207,6 @@ end
     for T in [Float32, Float64]
         # Create a nsf 
         q₀ = MvNormal(zeros(T, dim), I)
-        @leaf MvNormal
 
         flow = NormalizingFlows.radialflow(q₀, nlayers; paramtype=T)
 
@@ -261,4 +262,19 @@ end
     end
 end
 
+@testset "NSF argument validation" begin
+    @test_throws ArgumentError NSF_layer(2, [8], 4, 0.0)
+    @test_throws ArgumentError NSF_layer(2, [8], 4, -3.0)
+    @test_throws ArgumentError NSF_layer(1, [8], 4, 5.0)
+    @test_throws ArgumentError NeuralSplineCoupling(3, [8], 4, 5.0, Int[], Float64)
+    @test_throws ArgumentError NeuralSplineCoupling(1, [8], 4, 5.0, [1], Float64)
 
+    # the field-form constructor must validate too, or it reopens the same hole
+    nn = NormalizingFlows.fnn(1, [8], 11; output_activation=nothing, paramtype=Float64)
+    mask = Bijectors.PartitionMask(2, [1])
+    @test NeuralSplineCoupling(2, 4, 1, 5.0, nn, mask) isa NeuralSplineCoupling
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 1, 0.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 1, -3.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(2, 4, 0, 5.0, nn, mask)
+    @test_throws ArgumentError NeuralSplineCoupling(1, 4, 1, 5.0, nn, mask)
+end

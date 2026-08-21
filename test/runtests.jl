@@ -11,7 +11,11 @@ import DifferentiationInterface as DI
 
 using Test
 
+# keep q0 parameters out of Optimisers.destructure
+@leaf MvNormal
+
 include("objectives.jl")
 include("interface.jl")
+include("rqs.jl")
 include("flow.jl")
 include("ad.jl")

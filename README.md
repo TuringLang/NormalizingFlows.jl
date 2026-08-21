@@ -92,4 +92,3 @@ where one wants to learn the underlying distribution of some data.
 - [Flux.jl](https://fluxml.ai/Flux.jl/stable/)
 - [Optimisers.jl](https://github.com/FluxML/Optimisers.jl)
 - [AdvancedVI.jl](https://github.com/TuringLang/AdvancedVI.jl)
-- [MonotonicSplines.jl](https://github.com/bat/MonotonicSplines.jl)
