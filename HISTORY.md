@@ -1,3 +1,17 @@
+# 0.4.0
+
+## Breaking changes
+
+DifferentiationInterface has been removed as a dependency. Automatic differentiation is now routed through AbstractPPL's evaluator interface (`AbstractPPL.prepare` and `AbstractPPL.value_and_gradient!!`), following the rest of the Turing ecosystem.
+
+The AD backend package must now be loaded so that its `AbstractPPL.prepare` method is available:
+
+  - `AutoForwardDiff` works with `using ForwardDiff`.
+  - `AutoMooncake` works with `using Mooncake`.
+  - Other backends routed through DifferentiationInterface (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally require `using DifferentiationInterface` alongside the concrete backend package.
+
+`AutoReverseDiff(; compile=true)` stays rejected, and the rejection now matters: through the evaluator interface a compiled tape does take effect and bakes the objective's context into itself, so the gradient would be taken against the first iteration's random draws. Under the previous DifferentiationInterface path the flag was silently dropped instead.
+
 # 0.3.0
 
 ## Breaking changes

@@ -10,8 +10,8 @@ using StatsBase
 using Bijectors
 using Bijectors: PartitionMask, Inverse, combine, partition
 using Functors
+using AbstractPPL: AbstractPPL
 using LogExpFunctions: LogExpFunctions
-import DifferentiationInterface as DI
 
 using DocStringExtensions
 
@@ -43,9 +43,12 @@ Arguments
         function_annotation=Enzyme.Const,
     )`.
     If user wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
-    `AutoReverseDiff(; compile=true)` is rejected. The compile flag is dropped when context
-    arguments are present, as they always are here, so it never takes effect; rejecting it
-    keeps a tape that did take effect from freezing the random number generator.
+    Gradients are computed through AbstractPPL's evaluator interface, so the chosen backend package must be loaded first.
+    `AutoForwardDiff` needs `using ForwardDiff`, and `AutoMooncake` needs `using Mooncake`.
+    The other backends (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally need `using DifferentiationInterface` alongside the backend package.
+    `AutoReverseDiff(; compile=true)` is rejected: a compiled tape bakes the objective's
+    context into itself, so every iteration would differentiate against the first
+    iteration's random draws.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
