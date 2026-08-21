@@ -24,11 +24,8 @@ Fields
 
 Notes
 - Output dimensionality of the conditioner is `(3K - 1) * n_transformed`.
-- For computation performance, we rely on 
-[`MonotonicSplines.jl`](https://github.com/bat/MonotonicSplines.jl) for the
-building the rational quadratic spline functions.
-- See `MonotonicSplines.rqs_forward` and `MonotonicSplines.rqs_inverse` for forward/inverse 
-and log-determinant computations.
+- See `NormalizingFlows.rqs_forward` and `NormalizingFlows.rqs_inverse` for the
+forward/inverse maps and log-determinant computations.
 
 [^DBMP2019]: Durkan, C., Bekasov, A., Murray, I. and Papamarkou, T. (2019). Neural Spline Flows. *NeurIPS.*
 """
@@ -39,6 +36,29 @@ struct NeuralSplineCoupling{T,A<:Flux.Chain} <: Bijectors.Bijector
     B::T                            # bound of the knots
     nn::A                           # networks that parameterize the knots and derivatives
     mask::Bijectors.PartitionMask
+
+    function NeuralSplineCoupling{T,A}(
+        dim::Int,
+        K::Int,
+        n_dims_transformed::Int,
+        B::T,
+        nn::A,
+        mask::Bijectors.PartitionMask,
+    ) where {T,A<:Flux.Chain}
+        B > 0 || throw(ArgumentError("the spline boundary B must be positive"))
+        n_dims_transformed >= 1 ||
+            throw(ArgumentError("at least one dimension must be transformed"))
+        dim > n_dims_transformed || throw(
+            ArgumentError("the conditioner needs at least one untransformed dimension")
+        )
+        return new{T,A}(dim, K, n_dims_transformed, B, nn, mask)
+    end
+end
+
+function NeuralSplineCoupling(
+    dim::Int, K::Int, n_dims_transformed::Int, B::T, nn::A, mask::Bijectors.PartitionMask
+) where {T,A<:Flux.Chain}
+    return NeuralSplineCoupling{T,A}(dim, K, n_dims_transformed, B, nn, mask)
 end
 
 function NeuralSplineCoupling(
@@ -51,23 +71,20 @@ function NeuralSplineCoupling(
 ) where {T1<:Int,T2<:AbstractFloat}
     num_of_transformed_dims = length(mask_idx)
     input_dims = dim - num_of_transformed_dims
-    
-    output_dims = (3K - 1)*num_of_transformed_dims
+
+    output_dims = (3K - 1) * num_of_transformed_dims
     # one big mlp that outputs all the knots and derivatives for all the transformed dimensions
     nn = fnn(input_dims, hdims, output_dims; output_activation=nothing, paramtype=paramtype)
 
     mask = Bijectors.PartitionMask(dim, mask_idx)
-    return NeuralSplineCoupling{T2, typeof(nn)}(dim, K, num_of_transformed_dims, B, nn, mask)
+    return NeuralSplineCoupling{T2,typeof(nn)}(dim, K, num_of_transformed_dims, B, nn, mask)
 end
 
 @functor NeuralSplineCoupling (nn,)
 
 function get_nsc_params(nsc::NeuralSplineCoupling, x::AbstractVecOrMat)
     nnoutput = nsc.nn(x)
-    px, py, dydx = MonotonicSplines.rqs_params_from_nn(
-        nnoutput, nsc.n_dims_transformed, nsc.B
-    )
-    return px, py, dydx
+    return rqs_params_from_raw(_ensure_matrix(nnoutput), nsc.n_dims_transformed, nsc.B)
 end
 
 # when input x is a vector instead of a matrix
@@ -80,14 +97,14 @@ function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractVector)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
-    y1, _ = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, _ = rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, vec(y1), x2, x3)
 end
 function Bijectors.transform(nsc::NeuralSplineCoupling, x::AbstractMatrix)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
-    y1, _ = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, _ = rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, y1, x2, x3)
 end
 
@@ -96,14 +113,14 @@ function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::Abstrac
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
     x1 = _ensure_matrix(x1)
-    y1, logjac = MonotonicSplines.rqs_forward(x1, px, py, dydx)
-    return Bijectors.combine(nsc.mask, vec(y1), x2, x3), logjac[1]
+    y1, logjac = rqs_forward(x1, px, py, dydx)
+    return Bijectors.combine(nsc.mask, vec(y1), x2, x3), sum(logjac)
 end
 function Bijectors.with_logabsdet_jacobian(nsc::NeuralSplineCoupling, x::AbstractMatrix)
     x1, x2, x3 = Bijectors.partition(nsc.mask, x)
     # instantiate rqs knots and derivatives
     px, py, dydx = get_nsc_params(nsc, x2)
-    y1, logjac = MonotonicSplines.rqs_forward(x1, px, py, dydx)
+    y1, logjac = rqs_forward(x1, px, py, dydx)
     return Bijectors.combine(nsc.mask, y1, x2, x3), vec(logjac)
 end
 
@@ -112,37 +129,40 @@ function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractV
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
-    x1, _ = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, _ = rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, vec(x1), y2, y3)
 end
 function Bijectors.transform(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
-    x1, _ = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, _ = rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, x1, y2, y3)
 end
 
-function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractVector)
+function Bijectors.with_logabsdet_jacobian(
+    insl::Inverse{<:NeuralSplineCoupling}, y::AbstractVector
+)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
     y1 = _ensure_matrix(y1)
-    x1, logjac = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
-    return Bijectors.combine(nsc.mask, vec(x1), y2, y3), logjac[1]
+    x1, logjac = rqs_inverse(y1, px, py, dydx)
+    return Bijectors.combine(nsc.mask, vec(x1), y2, y3), sum(logjac)
 end
-function Bijectors.with_logabsdet_jacobian(insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix)
+function Bijectors.with_logabsdet_jacobian(
+    insl::Inverse{<:NeuralSplineCoupling}, y::AbstractMatrix
+)
     nsc = insl.orig
     y1, y2, y3 = partition(nsc.mask, y)
     px, py, dydx = get_nsc_params(nsc, y2)
-    x1, logjac = MonotonicSplines.rqs_inverse(y1, px, py, dydx)
+    x1, logjac = rqs_inverse(y1, px, py, dydx)
     return Bijectors.combine(nsc.mask, x1, y2, y3), vec(logjac)
 end
 
 function (nsc::NeuralSplineCoupling)(x::AbstractVecOrMat)
     return Bijectors.transform(nsc, x)
 end
-
 
 """
     NSF_layer(dim, hdims, K, B; paramtype = Float64)
@@ -171,8 +191,9 @@ function NSF_layer(
     hdims::AbstractVector{T1},     # dimension of hidden units for nn 
     K::T1,                           # number of knots
     B::T2;                           # bound of the knots
-    paramtype::Type{T2} = Float64,   # type of the parameters
+    paramtype::Type{T2}=Float64,   # type of the parameters
 ) where {T1<:Int,T2<:AbstractFloat}
+    dim >= 2 || throw(ArgumentError("NSF_layer needs dim >= 2 for the odd-even masking"))
 
     mask_idx1 = 1:2:dim
     mask_idx2 = 2:2:dim
@@ -204,31 +225,33 @@ Keyword Arguments
 Returns
 - `Bijectors.TransformedDistribution` representing the NSF flow.
 
-!!! note 
-    Under the hood, `nsf` relies on the rational quadratic spline function implememented in 
-    `MonotonicSplines.jl` for performance reasons.  `MonotonicSplines.jl` uses 
-    `KernelAbstractions.jl` to support batched operations. 
-    Because of this, so far `nsf` only supports `Zygote` as the AD type.
-  
+!!! note
+    The rational quadratic spline is written with whole-array operations, so the flow runs
+    on the CPU and the GPU and is differentiable by `Zygote`, `ForwardDiff`, `ReverseDiff`,
+    `Mooncake`, and, on Julia 1.11 and newer, `Enzyme`.
+
+!!! note
+    When training the flow, mark the base distribution as a leaf first (`Functors.@leaf
+    MvNormal`). Otherwise `Optimisers.destructure` tries to flatten the covariance
+    factorisation and fails inside `train_flow`.
 
 Example
 - `q0 = MvNormal(zeros(3), I); flow = nsf(q0, [64,64], 8, 3.0, 6)`
 - `x = rand(flow, 128); lp = logpdf(flow, x)`
 """
 function nsf(
-    q0::Distribution{Multivariate,Continuous},  
+    q0::Distribution{Multivariate,Continuous},
     hdims::AbstractVector{Int},     # dimension of hidden units for s and t
     K::Int,
     B::T,
     nlayers::Int;                   # number of RealNVP_layer 
-    paramtype::Type{T} = Float64,   # type of the parameters
+    paramtype::Type{T}=Float64,   # type of the parameters
 ) where {T<:AbstractFloat}
-
     dim = length(q0)  # dimension of the reference distribution == dim of the problem
-    Ls = [NSF_layer(dim, hdims, K, B; paramtype=paramtype) for _ in 1:nlayers] 
-    create_flow(Ls, q0)         
+    Ls = [NSF_layer(dim, hdims, K, B; paramtype=paramtype) for _ in 1:nlayers]
+    return create_flow(Ls, q0)
 end
 
-nsf(q0; paramtype::Type{T} = Float64) where {T<:AbstractFloat} = nsf(
-    q0, [32, 32], 10, 30*one(T), 10; paramtype=paramtype
-)
+function nsf(q0; paramtype::Type{T}=Float64) where {T<:AbstractFloat}
+    return nsf(q0, [32, 32], 10, 5 * one(T), 10; paramtype=paramtype)
+end

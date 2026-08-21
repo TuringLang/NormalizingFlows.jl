@@ -11,6 +11,7 @@ using Bijectors
 using Bijectors: PartitionMask, Inverse, combine, partition
 using Functors
 using AbstractPPL: AbstractPPL
+using LogExpFunctions: LogExpFunctions
 
 using DocStringExtensions
 
@@ -25,15 +26,17 @@ Arguments
 - `rng::AbstractRNG`: random number generator (default: `Random.default_rng()`)
 - `vo`: variational objective with signature `vo(rng, flow, args...)`. 
     We implement [`elbo`](@ref), [`elbo_batch`](@ref), and [`loglikelihood`](@ref).
-- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended)
+- `flow`: the normalizing flow---a `Bijectors.TransformedDistribution` (recommended).
+    Mark the base distribution as a leaf first (`Functors.@leaf MvNormal`), otherwise
+    `Optimisers.destructure` tries to flatten its covariance factorisation and fails.
 - `args...`: additional arguments passed to `vo`
 
 # Keyword Arguments
 - `max_iters::Int=1000`: maximum number of iterations
 - `optimiser::Optimisers.AbstractRule=Optimisers.ADAM()`: optimiser to compute the steps
-- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`:
-    automatic differentiation backend, currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`,
+- `ADbackend::ADTypes.AbstractADType`: automatic differentiation backend. Required, it has
+    no default. Currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.AutoForwardDiff()`, `ADTypes.AutoReverseDiff()`,
     `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
@@ -43,6 +46,9 @@ Arguments
     Gradients are computed through AbstractPPL's evaluator interface, so the chosen backend package must be loaded first.
     `AutoForwardDiff` needs `using ForwardDiff`, and `AutoMooncake` needs `using Mooncake`.
     The other backends (`AutoZygote`, `AutoReverseDiff`, `AutoEnzyme`) additionally need `using DifferentiationInterface` alongside the backend package.
+    `AutoReverseDiff(; compile=true)` is rejected: a compiled tape bakes the objective's
+    context into itself, so every iteration would differentiate against the first
+    iteration's random draws.
 - `kwargs...`: additional keyword arguments for `optimize` (See [`optimize`](@ref) for details)
 
 # Returns
@@ -129,19 +135,16 @@ function _device_specific_rand(
     return Random.rand(rng, td, n)
 end
 
-
 # interface of contructing common flow layers
 include("flows/utils.jl")
 include("flows/planar_radial.jl")
 include("flows/realnvp.jl")
-
-using MonotonicSplines
+include("flows/rqs.jl")
 include("flows/neuralspline.jl")
 
 export create_flow
 export planarflow, radialflow
 export AffineCoupling, RealNVP_layer, realnvp
 export NeuralSplineCoupling, NSF_layer, nsf
-
 
 end

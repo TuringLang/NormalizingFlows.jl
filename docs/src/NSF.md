@@ -1,12 +1,18 @@
 # Demo of NSF on 2D Banana Distribution
 
+`Banana` is defined in the [`example`](https://github.com/TuringLang/NormalizingFlows.jl/tree/main/example) directory; run this from there so the `include` resolves.
+
 ```julia
 using Random, Distributions, LinearAlgebra
 using Functors
 using Optimisers, ADTypes
-using Zygote
+using Mooncake
 using NormalizingFlows
 
+include("SyntheticTargets.jl")
+
+Random.seed!(123)
+T = Float32
 
 target = Banana(2, one(T), 100one(T))
 logp = Base.Fix1(logpdf, target)
@@ -27,8 +33,7 @@ sample_per_iter = 64
 
 # callback function to log training progress
 cb(iter, opt_stats, re, θ) = (sample_per_iter=sample_per_iter,ad=adtype)
-# nsf only supports AutoZygote
-adtype = ADTypes.AutoZygote()
+adtype = ADTypes.AutoMooncake(; config=Mooncake.Config())
 checkconv(iter, stat, re, θ, st) = stat.gradient_norm < one(T)/1000
 flow_trained, stats, _ = train_flow(
     elbo_batch,

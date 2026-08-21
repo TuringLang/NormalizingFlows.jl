@@ -43,10 +43,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent updating params of q0
-            @leaf MvNormal
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
             flow = Bijectors.transformed(
                 q₀, Bijectors.Shift(zeros(T, 2)) ∘ Bijectors.Scale(ones(T, 2))
             )
@@ -68,12 +65,11 @@ end
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test value !== nothing
-            @test all(grad .!= nothing)
+            @test isfinite(value)
+            @test all(isfinite, grad)
         end
     end
 end
-
 
 @testset "AD for ELBO on realnvp" begin
     @testset "$at" for at in [
@@ -92,10 +88,7 @@ end
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent updating params of q0
-            @leaf MvNormal
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
             flow = realnvp(q₀, [8, 8], 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
@@ -115,35 +108,37 @@ end
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test value !== nothing
-            @test all(grad .!= nothing)
+            @test isfinite(value)
+            @test all(isfinite, grad)
         end
     end
 end
 
 @testset "AD for ELBO on NSF" begin
-    @testset "$at" for at in [
-        # now NSF only works with Zygote
-        # TODO: make it work with other ADs (possibly by adapting MonotonicSplines/src/rqspline_pullbacks.jl to rrules?)
+    nsf_adtypes = ADTypes.AbstractADType[
         ADTypes.AutoZygote(),
-        # ADTypes.AutoForwardDiff(),
-        # ADTypes.AutoReverseDiff(; compile=false),
-        # ADTypes.AutoEnzyme(;
-        #     mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-        #     function_annotation=Enzyme.Const,
-        # ),
-        # ADTypes.AutoMooncake(; config=Mooncake.Config()),
+        ADTypes.AutoForwardDiff(),
+        ADTypes.AutoReverseDiff(; compile=false),
+        ADTypes.AutoMooncake(; config=Mooncake.Config()),
     ]
+    # Enzyme fails LLVM verification differentiating the batched RQS on Julia 1.10
+    if VERSION >= v"1.11"
+        push!(
+            nsf_adtypes,
+            ADTypes.AutoEnzyme(;
+                mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+                function_annotation=Enzyme.Const,
+            ),
+        )
+    end
+    @testset "$at" for at in nsf_adtypes
         @testset "$T" for T in [Float32, Float64]
             μ = 10 * ones(T, 2)
             Σ = Diagonal(4 * ones(T, 2))
             target = MvNormal(μ, Σ)
             logp(z) = logpdf(target, z)
 
-            # necessary for Zygote/mooncake to differentiate through the flow
-            # prevent updating params of q0
-            @leaf MvNormal
-            q₀ = MvNormal(zeros(T, 2), ones(T, 2))
+            q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
             flow = nsf(q₀, [8, 8], 10, 5one(T), 3; paramtype=T)
 
             θ, re = Optimisers.destructure(flow)
@@ -163,8 +158,31 @@ end
                 loss, prep, at, θ, rng, logp, sample_per_iter
             )
 
-            @test value !== nothing
-            @test all(grad .!= nothing)
+            @test isfinite(value)
+            @test all(isfinite, grad)
         end
     end
+end
+
+# Fixed batch, no sampling in the loss: pins the NSF glue (partition, combine, destructure)
+# to a reference backend.
+@testset "NSF gradient matches ForwardDiff" begin
+    T = Float64
+    q₀ = MvNormal(zeros(T, 2), Diagonal(ones(T, 2)))
+    flow = nsf(q₀, [8, 8], 10, 5one(T), 3; paramtype=T)
+    θ, re = Optimisers.destructure(flow)
+    x = 3 .* randn(T, 2, 32)
+    function loss(θ)
+        y, lj = with_logabsdet_jacobian(re(θ).transform, x)
+        return sum(y) + sum(lj)
+    end
+    gz = only(Zygote.gradient(loss, θ))
+    gf = ForwardDiff.gradient(loss, θ)
+    @test gz ≈ gf rtol = 1e-8
+end
+
+@testset "compiled ReverseDiff tapes are rejected" begin
+    @test_throws ArgumentError NormalizingFlows._prepare_gradient(
+        (θ, c) -> sum(abs2, θ) * c, ADTypes.AutoReverseDiff(; compile=true), [1.0, 2.0], 3.0
+    )
 end
