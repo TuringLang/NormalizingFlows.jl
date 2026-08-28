@@ -74,9 +74,8 @@ flow_trained, stats, _ = train_flow(
     sample_per_iter;
     max_iters=2_000,
     optimiser=Optimisers.Adam(one(T) / 100),
-    # Mooncake's CUDA support threads duals only through broadcast elements, so a broadcast
-    # whose closure captures differentiable values gets no gradient for them. Every layer
-    # here is such a broadcast.
+    # Zygote rather than Mooncake: Mooncake 0.5.48 fails on this flow inside its own CUDA
+    # kernel launch, a `CoDual` type assertion in `Adapt.adapt_storage`.
     ADbackend=ADTypes.AutoZygote(),
 )
 

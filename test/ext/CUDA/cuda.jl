@@ -190,9 +190,8 @@ end
         32;
         max_iters=5,
         optimiser=Optimisers.Adam(T(1e-3)),
-        # Mooncake's CUDA support threads duals only through broadcast elements, so a
-        # broadcast whose closure captures differentiable values gets no gradient for them.
-        # Every layer here is such a broadcast.
+        # Zygote rather than Mooncake: Mooncake 0.5.48 fails on this flow inside its own
+        # CUDA kernel launch, a `CoDual` type assertion in `Adapt.adapt_storage`.
         ADbackend=ADTypes.AutoZygote(),
         show_progress=false,
     )
