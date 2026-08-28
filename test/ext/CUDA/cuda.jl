@@ -5,7 +5,7 @@ Pkg.develop(; path=joinpath(@__DIR__, "..", "..", ".."))
 using NormalizingFlows
 using ADTypes, Bijectors, CUDA, Distributions, Flux, Functors, LinearAlgebra, Optimisers
 using Random, Test
-using Zygote
+using Mooncake, Zygote
 # loads the AbstractPPL extension that routes `AutoZygote` through DifferentiationInterface
 import DifferentiationInterface as DI
 
@@ -176,26 +176,35 @@ end
     target = MvNormal(cu(T[2, -1]), Diagonal(CUDA.ones(T, d)))
     logp(z) = NormalizingFlows._device_specific_logpdf(target, z)
 
-    layers = [PlanarLayer(CUDA.rand(T, d), CUDA.rand(T, d), CUDA.rand(T, 1)) for _ in 1:2]
-    flow = create_flow(layers, q0)
+    backends = ADTypes.AbstractADType[ADTypes.AutoZygote()]
+    # On Julia 1.10 the broadcast kernel reaches Mooncake as a KernelAbstractions foreign
+    # call, which it does not differentiate.
+    if VERSION >= v"1.11"
+        push!(backends, ADTypes.AutoMooncake(; config=Mooncake.Config()))
+    end
 
-    θ, re = Optimisers.destructure(flow)
-    @test θ isa CuArray{T}
+    @testset "$(nameof(typeof(ad)))" for ad in backends
+        layers = [
+            PlanarLayer(CUDA.rand(T, d), CUDA.rand(T, d), CUDA.rand(T, 1)) for _ in 1:2
+        ]
+        flow = create_flow(layers, q0)
 
-    flow_trained, stats, _ = train_flow(
-        CUDA.default_rng(),
-        elbo_batch,
-        flow,
-        logp,
-        32;
-        max_iters=5,
-        optimiser=Optimisers.Adam(T(1e-3)),
-        # Zygote rather than Mooncake: Mooncake 0.5.48 fails on this flow inside its own
-        # CUDA kernel launch, a `CoDual` type assertion in `Adapt.adapt_storage`.
-        ADbackend=ADTypes.AutoZygote(),
-        show_progress=false,
-    )
+        θ, re = Optimisers.destructure(flow)
+        @test θ isa CuArray{T}
 
-    @test all(isfinite, map(x -> x.loss, stats))
-    @test Optimisers.destructure(flow_trained)[1] isa CuArray{T}
+        flow_trained, stats, _ = train_flow(
+            CUDA.default_rng(),
+            elbo_batch,
+            flow,
+            logp,
+            32;
+            max_iters=5,
+            optimiser=Optimisers.Adam(T(1e-3)),
+            ADbackend=ad,
+            show_progress=false,
+        )
+
+        @test all(isfinite, map(x -> x.loss, stats))
+        @test Optimisers.destructure(flow_trained)[1] isa CuArray{T}
+    end
 end
