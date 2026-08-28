@@ -184,7 +184,9 @@ function _batched_mvnormal_logpdf(d::Distributions.MvNormal, xs::AbstractMatrix)
     μ = ignore_derivatives(d.μ)
     Σ = ignore_derivatives(d.Σ)
     c = ignore_derivatives(T(length(d) * log(2 * π)) + _cov_logdet(Σ))
-    q = sum(abs2, whiten(Σ, xs .- μ); dims=1)
+    # `sum(f, x; dims)` has no GPU rule in Mooncake, but the mapped array and `sum(x; dims)`
+    # both do.
+    q = sum(abs2.(whiten(Σ, xs .- μ)); dims=1)
     return vec(-(c .+ q) ./ 2)
 end
 
