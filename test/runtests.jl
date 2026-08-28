@@ -6,6 +6,7 @@ using Random
 using ADTypes
 using Functors
 using ForwardDiff, Zygote, ReverseDiff, Enzyme, Mooncake
+using GPUArraysCore, JLArrays, PDMats
 using Flux: f32
 import DifferentiationInterface as DI
 
@@ -15,6 +16,7 @@ using Test
 @leaf MvNormal
 
 include("objectives.jl")
+include("device.jl")
 include("interface.jl")
 include("rqs.jl")
 include("flow.jl")
