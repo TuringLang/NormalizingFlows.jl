@@ -22,10 +22,12 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 
 [extensions]
 NormalizingFlowsCUDAExt = "CUDA"
+NormalizingFlowsMooncakeExt = "Mooncake"
 NormalizingFlowsReverseDiffExt = "ReverseDiff"
 
 [compat]
@@ -40,6 +42,7 @@ Flux = "0.16"
 Functors = "0.5.2"
 GPUArraysCore = "0.1, 0.2"
 LogExpFunctions = "0.3.3"
+Mooncake = "0.5"
 Optimisers = "0.2.16, 0.3, 0.4"
 PDMats = "0.11"
 ProgressMeter = "1.0.0"

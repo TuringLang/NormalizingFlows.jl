@@ -12,7 +12,7 @@ using Bijectors: PartitionMask, Inverse, combine, partition
 using Functors
 using AbstractPPL: AbstractPPL
 using LogExpFunctions: LogExpFunctions
-using ChainRulesCore: ignore_derivatives
+using ChainRulesCore: @non_differentiable, ignore_derivatives
 using GPUArraysCore: AbstractGPUMatrix
 using PDMats: PDMat, whiten
 
@@ -137,6 +137,19 @@ function _device_specific_rand(
 )
     return Random.rand(rng, td, n)
 end
+
+"""
+    _device_draw(rng, s, dims)
+
+Draw a `dims`-shaped sample from `s` into an array on the device `rng` targets. Device
+extensions add the methods.
+"""
+function _device_draw end
+
+# The draw carries no gradient, and no AD backend can trace a device allocation: Zygote
+# descends into the allocator and fails to compile. Mooncake reads ChainRules rules only one
+# signature at a time, so it needs its own declaration, which the Mooncake extension adds.
+@non_differentiable _device_draw(::Any, ::Any, ::Any)
 
 """
     _device_specific_logpdf(d, xs)
