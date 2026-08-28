@@ -1,3 +1,19 @@
+# 0.4.1
+
+## Other changes
+
+`elbo_batch` now works when the samples live on a GPU.
+It used to assemble the ELBO from `Distributions.logpdf`, which evaluates the base distribution column by column and returns a host array.
+The base distribution's log-density is now taken with a whole-array form that stays on the device holding the samples, for any GPU array backend.
+`elbo` is unchanged and still goes through `Distributions.logpdf`, so it stays CPU only.
+
+Coupling flows (`realnvp`, `nsf`) still do not run on the GPU.
+`Bijectors.PartitionMask` holds host sparse matrices and `partition`/`combine` multiply against them, so the split is done on the host.
+`example/gpu/demo_gpu.jl` trains a planar flow instead.
+
+The base distribution is treated as a constant when its log-density is taken this way.
+Differentiating more than one use of a full covariance leaves a cotangent per use, and summing those indexes a device array element by element.
+
 # 0.4.0
 
 ## Breaking changes
