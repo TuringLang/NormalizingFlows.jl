@@ -147,7 +147,7 @@ end
         # The same flow on the host has to produce the same numbers, otherwise a wrong value
         # in the planar overrides or the ELBO assembly would pass on types alone.
         cpu_q0 = MvNormal(zeros(Float32, 2), Matrix{Float32}(I, 2, 2))
-        cpu_pl = PlanarLayer(Array(pl.u), Array(pl.w), Array(pl.b))
+        cpu_pl = fmap(Array, pl)
         cpu_flow = Bijectors.transformed(cpu_q0, cpu_pl)
         cpu_target = MvNormal(zeros(Float32, 2), Matrix{Float32}(I, 2, 2))
         cpu_logp(z) = logpdf(cpu_target, z)
