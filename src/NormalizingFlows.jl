@@ -12,6 +12,9 @@ using Bijectors: PartitionMask, Inverse, combine, partition
 using Functors
 using AbstractPPL: AbstractPPL
 using LogExpFunctions: LogExpFunctions
+using ChainRulesCore: ignore_derivatives
+using GPUArraysCore: AbstractGPUMatrix
+using PDMats: PDMat, whiten
 
 using DocStringExtensions
 
@@ -133,6 +136,43 @@ function _device_specific_rand(
     rng::Random.AbstractRNG, td::Bijectors.TransformedDistribution, n::Int
 )
     return Random.rand(rng, td, n)
+end
+
+"""
+    _device_specific_logpdf(d, xs)
+
+Log-density of `d` at each column of `xs`, left on the device holding `xs`.
+`Distributions.logpdf` maps over the columns and materialises a host array, so the ELBO
+cannot be assembled from it when the samples live on a GPU.
+"""
+_device_specific_logpdf(d, xs::AbstractMatrix) = logpdf(d, xs)
+
+function _device_specific_logpdf(d::Distributions.MvNormal, xs::AbstractGPUMatrix)
+    return _batched_mvnormal_logpdf(d, xs)
+end
+
+# `logdet(::Cholesky)` accumulates `factors[i, i]` in a host loop, which a GPU array rejects.
+# Gathering the diagonal keeps it to one kernel. The other covariance types reduce over a
+# scalar or a vector in PDMats, so they need no help.
+_cov_logdet(Σ) = logdet(Σ)
+_cov_logdet(Σ::PDMat) = 2 * sum(log, diag(cholesky(Σ).factors))
+
+# Whole-array form of the multivariate normal log-density, so it runs wherever `xs` lives.
+# `whiten` stays on the device and does not mutate, unlike the `sqmahal` behind `logpdf`; a
+# solve against `d.Σ` would leave a `PDMats` tangent that AD cannot accumulate.
+#
+# `d` is held constant. Differentiating more than one use of a full covariance leaves a
+# cotangent per use, a `Diagonal` from the log-determinant and an `UpperTriangular` from the
+# whitening, and summing those two indexes a device array element by element. Base
+# distributions are leaves and targets are fixed, so no gradient is owed for `d` here, and
+# returning none beats returning a wrong one.
+function _batched_mvnormal_logpdf(d::Distributions.MvNormal, xs::AbstractMatrix)
+    T = eltype(xs)
+    μ = ignore_derivatives(d.μ)
+    Σ = ignore_derivatives(d.Σ)
+    c = ignore_derivatives(T(length(d) * log(2 * π)) + _cov_logdet(Σ))
+    q = sum(abs2, whiten(Σ, xs .- μ); dims=1)
+    return vec(-(c .+ q) ./ 2)
 end
 
 # interface of contructing common flow layers

@@ -65,7 +65,7 @@ Returns
 function _batched_elbos(flow::Bijectors.MultivariateTransformed, logp, xs::AbstractMatrix)
     # requires the flow transformation to be able to handle batched inputs
     ys, logabsdetjac = with_logabsdet_jacobian(flow.transform, xs) 
-    elbos = logp(ys) .- logpdf(flow.dist, xs) .+ logabsdetjac
+    elbos = logp(ys) .- _device_specific_logpdf(flow.dist, xs) .+ logabsdetjac
     return elbos
 end
 
