@@ -12,11 +12,9 @@
 using Distributions, LinearAlgebra
 using Bijectors
 using Functors
-using Optimisers, ADTypes, Zygote
+using Optimisers, ADTypes, Mooncake
 using CUDA
 using NormalizingFlows
-# loads the AbstractPPL extension that routes `AutoZygote` through DifferentiationInterface
-using DifferentiationInterface
 
 # Bijectors' planar layer broadcasts in a way that CUDA cannot fuse, and reads `flow.b` back
 # from the device.
@@ -74,9 +72,9 @@ flow_trained, stats, _ = train_flow(
     sample_per_iter;
     max_iters=2_000,
     optimiser=Optimisers.Adam(one(T) / 100),
-    # Zygote rather than Mooncake: Mooncake 0.5.48 fails on this flow inside its own CUDA
-    # kernel launch, a `CoDual` type assertion in `Adapt.adapt_storage`.
-    ADbackend=ADTypes.AutoZygote(),
+    # Needs Julia 1.11 or newer: on 1.10 the broadcast kernel reaches Mooncake as a
+    # KernelAbstractions foreign call, which it does not differentiate.
+    ADbackend=ADTypes.AutoMooncake(; config=Mooncake.Config()),
 )
 
 losses = map(x -> x.loss, stats)

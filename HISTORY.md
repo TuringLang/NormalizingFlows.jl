@@ -6,6 +6,7 @@
 It used to assemble the ELBO from `Distributions.logpdf`, which evaluates the base distribution column by column and returns a host array.
 The base distribution's log-density is now taken with a whole-array form that stays on the device holding the samples, for any GPU array backend.
 `elbo` is unchanged and still goes through `Distributions.logpdf`, so it stays CPU only.
+Mooncake now differentiates the GPU path: it reads ChainRules rules one signature at a time, so the device draw carries a `Mooncake.@zero_derivative` declaration of its own in a new extension.
 
 Coupling flows (`realnvp`, `nsf`) still do not run on the GPU.
 `Bijectors.PartitionMask` holds host sparse matrices and `partition`/`combine` multiply against them, so the split is done on the host.
