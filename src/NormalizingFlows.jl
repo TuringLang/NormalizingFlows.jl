@@ -146,8 +146,7 @@ Device extensions add the methods.
 """
 function _device_draw end
 
-# No AD backend can trace a device allocation. Mooncake reads ChainRules rules one signature
-# at a time, so it needs the separate declaration in its extension.
+# No AD backend can trace a device allocation.
 @non_differentiable _device_draw(::Any, ::Any, ::Any)
 
 """

@@ -4,7 +4,7 @@
 
 `elbo_batch` works when the samples live on a GPU, for any GPU array backend.
 The base distribution's log-density is taken with a whole-array form that stays on the device, and the distribution is held constant under automatic differentiation.
-Zygote and Mooncake both differentiate the GPU path, Mooncake through a new extension.
+Zygote and Mooncake 0.5.49 or newer both differentiate the GPU path.
 `elbo` and the coupling flows stay on the host, the latter because `Bijectors.PartitionMask` holds host sparse matrices.
 `example/gpu/demo_gpu.jl` trains a planar flow on the GPU.
 

@@ -169,12 +169,9 @@ end
     target = MvNormal(cu(T[2, -1]), Diagonal(CUDA.ones(T, d)))
     logp(z) = NormalizingFlows._device_specific_logpdf(target, z)
 
-    backends = ADTypes.AbstractADType[ADTypes.AutoZygote()]
-    # On Julia 1.10 the broadcast kernel reaches Mooncake as a KernelAbstractions foreign
-    # call, which it does not differentiate.
-    if VERSION >= v"1.11"
-        push!(backends, ADTypes.AutoMooncake(; config=Mooncake.Config()))
-    end
+    backends = ADTypes.AbstractADType[
+        ADTypes.AutoZygote(), ADTypes.AutoMooncake(; config=Mooncake.Config())
+    ]
 
     @testset "$(nameof(typeof(ad)))" for ad in backends
         layers = [

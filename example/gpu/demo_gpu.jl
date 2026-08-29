@@ -49,7 +49,7 @@ q0 = MvNormal(CUDA.zeros(T, d), Diagonal(CUDA.ones(T, d)))
 # the device, where `logpdf` would gather the columns onto the host.
 const μ_target = cu(T[2, -1])
 const logZ = T(d * log(2 * π))
-logp(z) = vec(-(logZ .+ sum(abs2, z .- μ_target; dims=1)) ./ 2)
+logp(z) = vec(-(logZ .+ sum(abs2.(z .- μ_target); dims=1)) ./ 2)
 
 layers = [
     Bijectors.PlanarLayer(CUDA.rand(T, d), CUDA.rand(T, d), CUDA.rand(T, 1)) for _ in 1:4
@@ -65,8 +65,6 @@ flow_trained, stats, _ = train_flow(
     sample_per_iter;
     max_iters=2_000,
     optimiser=Optimisers.Adam(one(T) / 100),
-    # Needs Julia 1.11 or newer: on 1.10 the broadcast kernel reaches Mooncake as a
-    # KernelAbstractions foreign call, which it does not differentiate.
     ADbackend=ADTypes.AutoMooncake(; config=Mooncake.Config()),
 )
 
