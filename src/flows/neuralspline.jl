@@ -226,11 +226,8 @@ Returns
 - `Bijectors.TransformedDistribution` representing the NSF flow.
 
 !!! note
-    The rational quadratic spline is written with whole-array operations, so it runs on the
-    CPU and the GPU and is differentiable by `Zygote`, `ForwardDiff`, `ReverseDiff`,
-    `Mooncake`, and, on Julia 1.11 and newer, `Enzyme`. The assembled flow is CPU only: the
-    coupling layer splits its input through `Bijectors.PartitionMask`, which holds host
-    sparse matrices.
+    The rational quadratic spline is written with whole-array operations, so it runs on the CPU and the GPU and is differentiable by `Zygote`, `ForwardDiff`, `ReverseDiff`, `Mooncake`, and, on Julia 1.11 and newer, `Enzyme`.
+    The assembled flow is CPU only, because the coupling layer splits its input through `Bijectors.PartitionMask`, which holds host sparse matrices.
 
 !!! note
     When training the flow, mark the base distribution as a leaf first (`Functors.@leaf

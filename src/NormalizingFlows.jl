@@ -141,8 +141,8 @@ end
 """
     _device_draw(rng, s, dims)
 
-Draw a `dims`-shaped sample from `s` into an array on the device `rng` targets. Device
-extensions add the methods.
+Draw a `dims`-shaped sample from `s` into an array on the device `rng` targets.
+Device extensions add the methods.
 """
 function _device_draw end
 
@@ -154,8 +154,7 @@ function _device_draw end
     _device_specific_logpdf(d, xs)
 
 Log-density of `d` at each column of `xs`, left on the device holding `xs`.
-`Distributions.logpdf` maps over the columns and materialises a host array, so the ELBO
-cannot be assembled from it when the samples live on a GPU.
+`Distributions.logpdf` maps over the columns and materialises a host array, so the ELBO cannot be assembled from it when the samples live on a GPU.
 """
 _device_specific_logpdf(d, xs::AbstractMatrix) = logpdf(d, xs)
 
