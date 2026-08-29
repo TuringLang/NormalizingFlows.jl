@@ -17,4 +17,4 @@ using Pkg; Pkg.activate("."); Pkg.instantiate()
 ```
 This will install all needed packages, at the exact versions when the model was last updated. Then you can run the model code with `include("<example-to-run>.jl")`, or by running the example script line-by-line.
 
-`gpu/` holds the GPU demo and has its own project, so the examples above do not depend on CUDA. It needs a GPU; activate and instantiate `gpu/` to run it.
+`gpu/` holds the GPU demo and has its own project, so the examples above do not depend on CUDA. Activate and instantiate `gpu/` to run it.

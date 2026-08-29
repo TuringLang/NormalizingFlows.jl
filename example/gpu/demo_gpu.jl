@@ -1,13 +1,8 @@
-# Training a planar flow on the GPU. This demo has its own project so that the CPU examples
-# do not pull in CUDA. Run it from `example/gpu` after
+# Training a planar flow on the GPU. This demo has its own project, run it from `example/gpu`:
 #
 #     using Pkg; Pkg.activate("."); Pkg.develop(; path="../.."); Pkg.instantiate()
 #
-# The `develop` is needed until 0.4.1 is registered, because the device log-density this
-# demo relies on landed in that version.
-#
-# Coupling flows (RealNVP, NSF) do not run on the GPU yet: `Bijectors.PartitionMask` holds
-# host sparse matrices and `partition`/`combine` multiply against them.
+# The `develop` is needed until 0.4.1 is registered.
 
 using Distributions, LinearAlgebra
 using Bijectors
@@ -30,8 +25,7 @@ function Bijectors._transform(flow::Bijectors.PlanarLayer, z::CuArray{T}) where 
     w = CuArray(flow.w)
     û, wT_û = Bijectors.get_u_hat(CuArray(flow.u), w)
     wT_z = Bijectors.aT_b(w, z)
-    # `flow.b` holds one element, so broadcasting it is the same as Bijectors' `first(flow.b)`
-    # without reading back from the device.
+    # `flow.b` holds one element, so broadcasting it avoids reading back from the device.
     tanh_term = CUDA.tanh.(CUDA.broadcast(+, wT_z, flow.b))
     transformed = CUDA.broadcast(+, z, CUDA.broadcast(*, û, tanh_term))
     return (transformed=transformed, wT_û=wT_û, wT_z=wT_z)
@@ -51,9 +45,8 @@ d = 2
 @leaf MvNormal
 q0 = MvNormal(CUDA.zeros(T, d), Diagonal(CUDA.ones(T, d)))
 
-# `logp` takes the whole `(d, n)` batch and returns one value per column. Writing it with
-# array operations keeps it on the device, where `logpdf` would gather the columns onto the
-# host. The normaliser is kept so the reported ELBO is the true one.
+# `logp` takes the whole batch and returns one value per column. Array operations keep it on
+# the device, where `logpdf` would gather the columns onto the host.
 const μ_target = cu(T[2, -1])
 const logZ = T(d * log(2 * π))
 logp(z) = vec(-(logZ .+ sum(abs2, z .- μ_target; dims=1)) ./ 2)

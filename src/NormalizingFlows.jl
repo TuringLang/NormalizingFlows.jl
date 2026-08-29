@@ -146,9 +146,8 @@ extensions add the methods.
 """
 function _device_draw end
 
-# The draw carries no gradient, and no AD backend can trace a device allocation: Zygote
-# descends into the allocator and fails to compile. Mooncake reads ChainRules rules only one
-# signature at a time, so it needs its own declaration, which the Mooncake extension adds.
+# No AD backend can trace a device allocation. Mooncake reads ChainRules rules one signature
+# at a time, so it needs the separate declaration in its extension.
 @non_differentiable _device_draw(::Any, ::Any, ::Any)
 
 """
@@ -164,28 +163,19 @@ function _device_specific_logpdf(d::Distributions.MvNormal, xs::AbstractGPUMatri
     return _batched_mvnormal_logpdf(d, xs)
 end
 
-# `logdet(::Cholesky)` accumulates `factors[i, i]` in a host loop, which a GPU array rejects.
-# Gathering the diagonal keeps it to one kernel. The other covariance types reduce over a
-# scalar or a vector in PDMats, so they need no help.
+# `logdet(::Cholesky)` reads `factors[i, i]` in a host loop, which a GPU array rejects.
 _cov_logdet(Σ) = logdet(Σ)
 _cov_logdet(Σ::PDMat) = 2 * sum(log, diag(cholesky(Σ).factors))
 
-# Whole-array form of the multivariate normal log-density, so it runs wherever `xs` lives.
-# `whiten` stays on the device and does not mutate, unlike the `sqmahal` behind `logpdf`; a
-# solve against `d.Σ` would leave a `PDMats` tangent that AD cannot accumulate.
-#
-# `d` is held constant. Differentiating more than one use of a full covariance leaves a
-# cotangent per use, a `Diagonal` from the log-determinant and an `UpperTriangular` from the
-# whitening, and summing those two indexes a device array element by element. Base
-# distributions are leaves and targets are fixed, so no gradient is owed for `d` here, and
-# returning none beats returning a wrong one.
+# `whiten` stays on the device and does not mutate, unlike the `sqmahal` behind `logpdf`.
+# `d` is held constant because differentiating two uses of a full covariance leaves a
+# cotangent per use, and summing those indexes a device array element by element.
 function _batched_mvnormal_logpdf(d::Distributions.MvNormal, xs::AbstractMatrix)
     T = eltype(xs)
     μ = ignore_derivatives(d.μ)
     Σ = ignore_derivatives(d.Σ)
     c = ignore_derivatives(T(length(d) * log(2 * π)) + _cov_logdet(Σ))
-    # `sum(f, x; dims)` has no GPU rule in Mooncake, but the mapped array and `sum(x; dims)`
-    # both do.
+    # Mooncake has no GPU rule for `sum(f, x; dims)`.
     q = sum(abs2.(whiten(Σ, xs .- μ)); dims=1)
     return vec(-(c .+ q) ./ 2)
 end

@@ -2,18 +2,11 @@
 
 ## Other changes
 
-`elbo_batch` now works when the samples live on a GPU.
-It used to assemble the ELBO from `Distributions.logpdf`, which evaluates the base distribution column by column and returns a host array.
-The base distribution's log-density is now taken with a whole-array form that stays on the device holding the samples, for any GPU array backend.
-`elbo` is unchanged and still goes through `Distributions.logpdf`, so it stays CPU only.
-Mooncake now differentiates the GPU path: it reads ChainRules rules one signature at a time, so the device draw carries a `Mooncake.@zero_derivative` declaration of its own in a new extension.
-
-Coupling flows (`realnvp`, `nsf`) still do not run on the GPU.
-`Bijectors.PartitionMask` holds host sparse matrices and `partition`/`combine` multiply against them, so the split is done on the host.
-`example/gpu/demo_gpu.jl` trains a planar flow instead.
-
-The base distribution is treated as a constant when its log-density is taken this way.
-Differentiating more than one use of a full covariance leaves a cotangent per use, and summing those indexes a device array element by element.
+`elbo_batch` works when the samples live on a GPU, for any GPU array backend.
+The base distribution's log-density is taken with a whole-array form that stays on the device, and the distribution is held constant under automatic differentiation.
+Zygote and Mooncake both differentiate the GPU path, Mooncake through a new extension.
+`elbo` and the coupling flows stay on the host, the latter because `Bijectors.PartitionMask` holds host sparse matrices.
+`example/gpu/demo_gpu.jl` trains a planar flow on the GPU.
 
 # 0.4.0
 

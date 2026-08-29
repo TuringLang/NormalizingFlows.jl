@@ -1,8 +1,7 @@
-# JLArrays is the GPUArrays reference backend: it runs on the CPU but rejects scalar
-# indexing, so these tests reach device-only failures that would otherwise need a GPU.
+# JLArrays runs on the CPU but rejects scalar indexing, so it reaches device-only failures
+# without a GPU.
 
-# Mirror what cuSOLVER returns: factors on the device with `uplo = 'U'`, which is what makes
-# PDMats wrap them in an `Adjoint` when whitening.
+# cuSOLVER returns `uplo = 'U'`, which is what makes PDMats wrap the factors in an `Adjoint`.
 function device_pdmat(A::AbstractMatrix)
     c = cholesky(A)
     return PDMats.PDMat(jl(A), Cholesky(jl(Matrix(c.factors)), c.uplo, c.info))
@@ -36,14 +35,12 @@ end
             @test batched isa JLArray
             @test Array(batched) ≈ logpdf(host, xs) rtol = rtol
 
-            # the dispatch is on any GPU array, not just CUDA, so a second backend routes here
             @test NormalizingFlows._device_specific_logpdf(dev, xs_dev) ≈ batched rtol =
                 rtol
-            # and the host path is still Distributions
             @test NormalizingFlows._device_specific_logpdf(host, xs) == logpdf(host, xs)
 
-            # The gradient is the part that used to fail: a full covariance leaves one
-            # cotangent per differentiated use and adding them indexes the device array.
+            # A full covariance leaves one cotangent per differentiated use, and summing them
+            # indexes the device array.
             g = only(
                 Zygote.gradient(
                     x -> sum(NormalizingFlows._batched_mvnormal_logpdf(dev, x)), xs_dev

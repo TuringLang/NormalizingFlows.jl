@@ -28,15 +28,12 @@ function Bijectors._transform(flow::PlanarLayer, z::CuArray{T}) where {T<:Real}
     û, wT_û = Bijectors.get_u_hat(CuArray(flow.u), w)
     wT_z = Bijectors.aT_b(w, z)
 
-    # `flow.b` holds one element, so broadcasting it is the same as Bijectors' `first(flow.b)`
-    # without reading back from the device.
+    # `flow.b` holds one element, so broadcasting it avoids reading back from the device.
     tanh_term = CUDA.tanh.(CUDA.broadcast(+, wT_z, flow.b))
     transformed = CUDA.broadcast(+, z, CUDA.broadcast(*, û, tanh_term))
 
     return (transformed=transformed, wT_û=wT_û, wT_z=wT_z)
 end
-# Only the batched path is covered. A `CuVector` still falls to Bijectors' own method, whose
-# `first(flow.b)` reads back from the device, so single samples need `allowscalar(true)`.
 function Bijectors.with_logabsdet_jacobian(
     flow::PlanarLayer, z::CuMatrix{T}
 ) where {T<:Real}
@@ -115,9 +112,8 @@ end
     @test Array(x_back) ≈ x_cpu rtol = 1.0f-4
 end
 
-# `Distributions.logpdf` maps over columns and returns a host array, which used to break the
-# batched ELBO on a GPU. Planar layers are used throughout because coupling layers still
-# partition through a host sparse `PartitionMask`.
+# Planar layers throughout, because coupling layers partition through a host sparse
+# `PartitionMask`.
 @testset "batched ELBO on CUDA" begin
     CUDA.allowscalar(false)
     q0 = MvNormal(CUDA.zeros(Float32, 2), cu(Matrix{Float32}(I, 2, 2)))
@@ -144,8 +140,6 @@ end
         @test all(isfinite, Array(elbos))
         @test isfinite(elbo_batch(flow, logp, xs))
 
-        # The same flow on the host has to produce the same numbers, otherwise a wrong value
-        # in the planar overrides or the ELBO assembly would pass on types alone.
         cpu_q0 = MvNormal(zeros(Float32, 2), Matrix{Float32}(I, 2, 2))
         cpu_pl = fmap(Array, pl)
         cpu_flow = Bijectors.transformed(cpu_q0, cpu_pl)
@@ -154,9 +148,8 @@ end
         cpu_elbos = NormalizingFlows._batched_elbos(cpu_flow, cpu_logp, Array(xs))
         @test Array(elbos) ≈ cpu_elbos rtol = 1.0f-4
 
-        # A full covariance has to differentiate, not just evaluate: each differentiated use
-        # of one leaves a cotangent of a different matrix type, and summing them indexes the
-        # device array element by element.
+        # Each differentiated use of a full covariance leaves a cotangent of a different
+        # matrix type, and summing them indexes the device array.
         g = only(
             Zygote.gradient(x -> sum(NormalizingFlows._batched_elbos(flow, logp, x)), xs)
         )
@@ -170,8 +163,8 @@ end
     T = Float32
     d = 2
 
-    # Diagonal covariances exercise the broadcast branch of the log-density; the testset
-    # above covers the full covariance branch, gradient included.
+    # Diagonal covariances take the broadcast branch of the log-density. The full covariance
+    # branch is covered above.
     q0 = MvNormal(CUDA.zeros(T, d), Diagonal(CUDA.ones(T, d)))
     target = MvNormal(cu(T[2, -1]), Diagonal(CUDA.ones(T, d)))
     logp(z) = NormalizingFlows._device_specific_logpdf(target, z)
