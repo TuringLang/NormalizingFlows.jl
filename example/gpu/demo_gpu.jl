@@ -1,9 +1,3 @@
-# Training a planar flow on the GPU. This demo has its own project, run it from `example/gpu`:
-#
-#     using Pkg; Pkg.activate("."); Pkg.develop(; path="../.."); Pkg.instantiate()
-#
-# The `develop` is needed until 0.4.1 is registered.
-
 using Distributions, LinearAlgebra
 using Bijectors
 using Functors
