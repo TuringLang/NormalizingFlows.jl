@@ -23,9 +23,7 @@ function _cuda_rand(
     rng::CUDA.RNG,
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
 )
-    return @inbounds Distributions.rand!(
-        rng, Distributions.sampler(s), CuArray{float(eltype(s))}(undef, size(s))
-    )
+    return NormalizingFlows._device_draw(rng, s, size(s))
 end
 
 function _cuda_rand(
@@ -33,8 +31,12 @@ function _cuda_rand(
     s::Distributions.Sampleable{<:Distributions.ArrayLikeVariate,Distributions.Continuous},
     n::Int,
 )
+    return NormalizingFlows._device_draw(rng, s, (size(s)..., n))
+end
+
+function NormalizingFlows._device_draw(rng::CUDA.RNG, s, dims::Tuple)
     return @inbounds Distributions.rand!(
-        rng, Distributions.sampler(s), CuArray{float(eltype(s))}(undef, size(s)..., n)
+        rng, Distributions.sampler(s), CuArray{float(eltype(s))}(undef, dims)
     )
 end
 
@@ -48,7 +50,9 @@ function Distributions._rand!(rng::CUDA.RNG, d::Distributions.MvNormal, x::CuVec
 end
 
 # to enable `_device_specific_rand(rng:CUDA.RNG, flow[, num_samples])`
-function NormalizingFlows._device_specific_rand(rng::CUDA.RNG, td::Bijectors.TransformedDistribution)
+function NormalizingFlows._device_specific_rand(
+    rng::CUDA.RNG, td::Bijectors.TransformedDistribution
+)
     return _cuda_rand(rng, td)
 end
 

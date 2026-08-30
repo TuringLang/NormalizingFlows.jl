@@ -3,33 +3,46 @@ Pkg.activate(@__DIR__)
 Pkg.develop(; path=joinpath(@__DIR__, "..", "..", ".."))
 
 using NormalizingFlows
-using Bijectors, CUDA, Distributions, Flux, LinearAlgebra, Random, Test
-using Zygote
+using ADTypes, Bijectors, CUDA, Distributions, Flux, Functors, LinearAlgebra, Optimisers
+using Random, Test
+using Mooncake, Zygote
+# loads the AbstractPPL extension that routes `AutoZygote` through DifferentiationInterface
+import DifferentiationInterface as DI
+
+# keep q0 parameters out of Optimisers.destructure
+@leaf MvNormal
+
+# Bijectors' planar layer broadcasts in a way that CUDA cannot fuse, and reads `flow.b` back
+# from the device.
+# https://github.com/TuringLang/Bijectors.jl/blob/93cb25563043c527905519d81d6dee7917af4dbe/src/bijectors/planar_layer.jl#L65-L110
+function Bijectors.get_u_hat(u::CuVector{T}, w::CuVector{T}) where {T<:Real}
+    wT_u = dot(w, u)
+    scale = (Bijectors.LogExpFunctions.log1pexp(-wT_u) - 1) / sum(abs2, w)
+    û = CUDA.broadcast(+, u, CUDA.broadcast(*, scale, w))
+    wT_û = Bijectors.LogExpFunctions.log1pexp(wT_u) - 1
+    return û, wT_û
+end
+function Bijectors._transform(flow::PlanarLayer, z::CuArray{T}) where {T<:Real}
+    w = CuArray(flow.w)
+
+    û, wT_û = Bijectors.get_u_hat(CuArray(flow.u), w)
+    wT_z = Bijectors.aT_b(w, z)
+
+    # `flow.b` holds one element, so broadcasting it avoids reading back from the device.
+    tanh_term = CUDA.tanh.(CUDA.broadcast(+, wT_z, flow.b))
+    transformed = CUDA.broadcast(+, z, CUDA.broadcast(*, û, tanh_term))
+
+    return (transformed=transformed, wT_û=wT_û, wT_z=wT_z)
+end
+function Bijectors.with_logabsdet_jacobian(
+    flow::PlanarLayer, z::CuMatrix{T}
+) where {T<:Real}
+    transformed, wT_û, wT_z = Bijectors._transform(flow, z)
+    logjac = log1p.(wT_û .* abs2.(sech.(vec(wT_z) .+ flow.b)))
+    return (result=transformed, logabsdetjac=logjac)
+end
 
 @testset "rand with CUDA" begin
-
-    # Bijectors versions use dot for broadcasting, which causes issues with CUDA.
-    # https://github.com/TuringLang/Bijectors.jl/blob/6f0d383f73afd150a018b65a3ea4ac9306065d38/src/bijectors/planar_layer.jl#L65-L80
-    function Bijectors.get_u_hat(u::CuVector{T}, w::CuVector{T}) where {T<:Real}
-        wT_u = dot(w, u)
-        scale = (Bijectors.LogExpFunctions.log1pexp(-wT_u) - 1) / sum(abs2, w)
-        û = CUDA.broadcast(+, u, CUDA.broadcast(*, scale, w))
-        wT_û = Bijectors.LogExpFunctions.log1pexp(wT_u) - 1
-        return û, wT_û
-    end
-    function Bijectors._transform(flow::PlanarLayer, z::CuArray{T}) where {T<:Real}
-        w = CuArray(flow.w)
-        b = T(first(flow.b))  # Scalar
-
-        û, wT_û = Bijectors.get_u_hat(CuArray(flow.u), w)
-        wT_z = Bijectors.aT_b(w, z)
-
-        tanh_term = CUDA.tanh.(CUDA.broadcast(+, wT_z, b))
-        transformed = CUDA.broadcast(+, z, CUDA.broadcast(*, û, tanh_term))
-
-        return (transformed=transformed, wT_û=wT_û, wT_z=wT_z)
-    end
-
     CUDA.allowscalar(true)
     dists = [
         MvNormal(CUDA.zeros(2), cu(Matrix{Float64}(I, 2, 2))),
@@ -97,4 +110,91 @@ end
     y_gpu, _ = NormalizingFlows.rqs_forward(x_gpu, params_gpu...)
     x_back, _ = NormalizingFlows.rqs_inverse(y_gpu, params_gpu...)
     @test Array(x_back) ≈ x_cpu rtol = 1.0f-4
+end
+
+# Planar layers throughout, because coupling layers partition through a host sparse
+# `PartitionMask`.
+@testset "batched ELBO on CUDA" begin
+    CUDA.allowscalar(false)
+    q0 = MvNormal(CUDA.zeros(Float32, 2), cu(Matrix{Float32}(I, 2, 2)))
+    xs = NormalizingFlows._device_specific_rand(CUDA.default_rng(), q0, 64)
+
+    @testset "log-density stays on the device" begin
+        lp = NormalizingFlows._device_specific_logpdf(q0, xs)
+        @test lp isa CuArray{Float32}
+        @test length(lp) == 64
+        cpu_q0 = MvNormal(zeros(Float32, 2), Matrix{Float32}(I, 2, 2))
+        @test Array(lp) ≈ logpdf(cpu_q0, Array(xs)) rtol = 1.0f-4
+    end
+
+    @testset "batched ELBO" begin
+        target = MvNormal(CUDA.zeros(Float32, 2), cu(Matrix{Float32}(I, 2, 2)))
+        logp(z) = NormalizingFlows._device_specific_logpdf(target, z)
+        pl = PlanarLayer(
+            CUDA.rand(Float32, 2), CUDA.rand(Float32, 2), CUDA.rand(Float32, 1)
+        )
+        flow = Bijectors.transformed(q0, pl)
+
+        elbos = NormalizingFlows._batched_elbos(flow, logp, xs)
+        @test elbos isa CuArray{Float32}
+        @test all(isfinite, Array(elbos))
+        @test isfinite(elbo_batch(flow, logp, xs))
+
+        cpu_q0 = MvNormal(zeros(Float32, 2), Matrix{Float32}(I, 2, 2))
+        cpu_pl = fmap(Array, pl)
+        cpu_flow = Bijectors.transformed(cpu_q0, cpu_pl)
+        cpu_target = MvNormal(zeros(Float32, 2), Matrix{Float32}(I, 2, 2))
+        cpu_logp(z) = logpdf(cpu_target, z)
+        cpu_elbos = NormalizingFlows._batched_elbos(cpu_flow, cpu_logp, Array(xs))
+        @test Array(elbos) ≈ cpu_elbos rtol = 1.0f-4
+
+        # Each differentiated use of a full covariance leaves a cotangent of a different
+        # matrix type, and summing them indexes the device array.
+        g = only(
+            Zygote.gradient(x -> sum(NormalizingFlows._batched_elbos(flow, logp, x)), xs)
+        )
+        @test g isa CuArray{Float32}
+        @test all(isfinite, Array(g))
+    end
+end
+
+@testset "planar flow training on CUDA" begin
+    CUDA.allowscalar(false)
+    T = Float32
+    d = 2
+
+    # Diagonal covariances take the broadcast branch of the log-density. The full covariance
+    # branch is covered above.
+    q0 = MvNormal(CUDA.zeros(T, d), Diagonal(CUDA.ones(T, d)))
+    target = MvNormal(cu(T[2, -1]), Diagonal(CUDA.ones(T, d)))
+    logp(z) = NormalizingFlows._device_specific_logpdf(target, z)
+
+    backends = ADTypes.AbstractADType[
+        ADTypes.AutoZygote(), ADTypes.AutoMooncake(; config=Mooncake.Config())
+    ]
+
+    @testset "$(nameof(typeof(ad)))" for ad in backends
+        layers = [
+            PlanarLayer(CUDA.rand(T, d), CUDA.rand(T, d), CUDA.rand(T, 1)) for _ in 1:2
+        ]
+        flow = create_flow(layers, q0)
+
+        θ, re = Optimisers.destructure(flow)
+        @test θ isa CuArray{T}
+
+        flow_trained, stats, _ = train_flow(
+            CUDA.default_rng(),
+            elbo_batch,
+            flow,
+            logp,
+            32;
+            max_iters=5,
+            optimiser=Optimisers.Adam(T(1e-3)),
+            ADbackend=ad,
+            show_progress=false,
+        )
+
+        @test all(isfinite, map(x -> x.loss, stats))
+        @test Optimisers.destructure(flow_trained)[1] isa CuArray{T}
+    end
 end
