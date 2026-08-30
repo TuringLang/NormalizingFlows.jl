@@ -26,8 +26,6 @@ steps:
         label:
           - "cuda"
 
-  # The demo has its own project, and develops the checkout because its compat asks for a
-  # version that is not registered yet.
   - label: "GPU demo, Julia v1"
     plugins:
       - JuliaCI/julia#v1:
