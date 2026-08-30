@@ -25,3 +25,15 @@ steps:
           - "1.10"
         label:
           - "cuda"
+
+  # The demo has its own project, and develops the checkout because its compat asks for a
+  # version that is not registered yet.
+  - label: "GPU demo, Julia v1"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+    command: julia --project=example/gpu --eval='using Pkg; Pkg.develop(; path=pwd()); Pkg.instantiate(); include("example/gpu/demo_gpu.jl")'
+    agents:
+      queue: "cuda"
+    if: build.message !~ /\[skip tests\]/
+    timeout_in_minutes: 30
