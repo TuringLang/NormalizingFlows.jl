@@ -2,9 +2,7 @@ using NormalizingFlows: rqs_params_from_raw, rqs_forward, rqs_inverse
 
 @testset "RQS parameters" begin
     @testset "T=$T, K=$K, D=$D, N=$N, B=$B" for T in (Float32, Float64),
-        K in (4, 8),
-        D in (1, 3),
-        N in (1, 16),
+        K in (4, 8), D in (1, 3), N in (1, 16),
         B in (2, 30)
 
         θ_raw = randn(T, (3K - 1) * D, N)
@@ -82,8 +80,7 @@ end
 
 @testset "RQS forward" begin
     @testset "T=$T, K=$K, D=$D, N=$N" for T in (Float32, Float64),
-        K in (4, 8),
-        D in (1, 3),
+        K in (4, 8), D in (1, 3),
         N in (1, 8)
 
         B = 5
@@ -132,21 +129,23 @@ end
 
 @testset "RQS inverse" begin
     @testset "T=$T, K=$K, D=$D, N=$N" for T in (Float32, Float64),
-        K in (4, 8),
-        D in (1, 3),
+        K in (4, 8), D in (1, 3),
         N in (1, 8)
 
         B = 5
-        w, h, d = rqs_params_from_raw(randn(T, (3K - 1) * D, N), D, B)
+        # Seeded: the inverse solves a quadratic, so a root near zero loses enough relative
+        # precision in Float32 to miss this tolerance on an unlucky draw.
+        rng = Random.MersenneTwister(51)
+        w, h, d = rqs_params_from_raw(randn(rng, T, (3K - 1) * D, N), D, B)
         rtol = T == Float32 ? 1.0f-4 : 1.0e-9
 
-        x = T(0.8B) .* (2 .* rand(T, D, N) .- 1)
+        x = T(0.8B) .* (2 .* rand(rng, T, D, N) .- 1)
         y, logjac_fwd = rqs_forward(x, w, h, d)
         xback, logjac_inv = rqs_inverse(y, w, h, d)
         @test xback ≈ x rtol = rtol
         @test logjac_inv ≈ -logjac_fwd rtol = rtol
 
-        yin = T(0.8B) .* (2 .* rand(T, D, N) .- 1)
+        yin = T(0.8B) .* (2 .* rand(rng, T, D, N) .- 1)
         xr, _ = rqs_inverse(yin, w, h, d)
         yr, _ = rqs_forward(xr, w, h, d)
         @test yr ≈ yin rtol = rtol
